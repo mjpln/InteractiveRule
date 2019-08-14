@@ -85,3 +85,6 @@ local.properties
 
 # Java class files
 *.class
+
+.mymetadata
+.mystrutsdata
