@@ -1,0 +1,56 @@
+/*chen*/
+@charset "utf-8";
+body {background-color:#fff;background-repeat: repeat-x;font-family:"\5FAE\8F6F\96C5\9ED1";font-size: 14px;}
+table { background-color: transparent;border-collapse: collapse; border-spacing: 0; max-width: 100%;}
+th{border-top: 1px solid #DDDDDD; padding: 4px; background-color:#ddd;font-size:14px;}
+td{padding: 8px;}
+.container-fluid{ min-width:1200px; padding:5px;} 
+.nav{  margin-top:5px;}
+.nav-pills{ padding-left:1%;}
+.nav-pills li{ margin-right:5px;}
+.span12{background-color:#fff;border-radius:4px;border:1px solid #d5d5d5;margin-bottom:20px;border-radius:6px;}
+.nav{ margin-bottom:0;}
+.tblStandard {border-bottom: 1px solid #ddd; margin-bottom:10px; margin-top:6px;}
+.table-striped{ width:98%; margin-left:1%; line-height:25px;}
+.row-fluid [class*='span']{ margin-left:1%;}
+.row-fluid .span8 { width: 64.95744680851064%;*width: 64.90425531914893%;}
+.row-fluid .span12b{ margin-top:10px; height:410px; padding-left:15px; margin-left:2%; width:98%;}
+.row-fluid .span12c{ padding:10px;}
+code{margin-right:10px;padding: 3px 25px;}
+.btn-group{ margin-top:5px;}
+.cc0000{ color:#cc0000; margin-right:3px;}
+.c438DBA{color:#438DBA; }
+.c666{color:#666; }
+.guild{
+	margin-left: 20px;
+	height: 300px;
+	overflow: auto;
+}
+.guild li{list-style-type: decimal;cursor: pointer;line-height:31px;border-bottom: 1px dashed #ccc;}
+.guild li a{ color:#666;}
+.row-fluid .offset6{margin-bottom:5px;text-align: right;}
+.input-append .add-on, .input-append .btn { margin-right:2px;}
+.row-fluid .width220{ width:180px; margin-bottom:10px;}
+.row-fluid .width650{ width:655px;}
+.tab-content .tab-pane2{border: 1px solid #ccc;border-top:0;padding: 10px;margin-bottom:10px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;}
+
+.navxs li{ margin-left:10px; margin-top:5px;}
+.control-label{display:block;float: left; line-height:30px; }
+.btn { margin-right:5px;}
+.page-header{ margin:0;}
+.navbar{ margin-bottom:5px;}
+.page-header h2 { line-height:25px;}
+.alert-info{ line-height:30px; padding-left:10px; background-color:#fff;border-bottom: 1px dashed #ccc; margin-bottom:10px;}
+.label{min-width:300px;height:25px;line-height:25px;padding-right:10px;padding-left:10px;display: block;text-align: center;float: left;background-color:#eee;color:#666;text-shadow:none;font-weight: normal;}
+.div_show{   display:block;}
+.div_hide{   display:none;}
+.fanhui{ margin-top:5px;}
+.fanhui li{float: left;list-style-type: none; margin-right:15px;}
+.input{padding:3px;width:97px;height:16px;position:absolute;display:none;}
+#select_type{display:none;}
+.alert{	color:#3a87ad;background-color:#d9edf7;border-color:#bce8f1;padding:1px;margin-bottom:5px;}
+.alert em{font-weight: bold;font-style: normal;width:200px;float: left;display: block;}
+.alert p{ margin:0;}
+.alert-success{	color:#666;background-color:#f5f5f5;border-color:#eee;}
+.duihua{scrollbar-face-color: #ccc; scrollbar-highlight-color: #ffffff; scrollbar-shadow-color: #ccc; scrollbar-arrow-color: #2F96B4; scrollbar-track-color: #eee; 
+ background-color: transparent; height:200px;overflow:auto;border:1px solid #d5d5d5; padding:6px;}

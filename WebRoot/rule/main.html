@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
+		<link rel="icon" href="../Images/favicon.ico">
+		<link type="text/css" rel="stylesheet" href="../easyui/jquery-easyui-1.4.1/themes/default/easyui.css" />
+		<link type="text/css" rel="stylesheet" href="../easyui/jquery-easyui-1.4.1/themes/icon.css" />
+		<link type="text/css" rel="stylesheet" href="../css/scrollbar.css" />
+		<script type="text/javascript" src="../easyui/jquery-1.8.0.min.js"></script>
+		<script type="text/javascript" src="../easyui/jquery-easyui-1.4.1/jquery.easyui.min.js"></script>
+		<script type="text/javascript" src="../easyui/jquery-easyui-1.4.1/locale/easyui-lang-zh_CN.js"></script>
+		<script type="text/javascript" src="../script/json2.js"></script>
+		<script type="text/javascript" src="./js/main.js?v=20160608"></script> 
+		<script type="text/javascript" src="../script/publicSetup.js"></script>
+		<script type="text/javascript">
+		  //处理键盘事件 禁止后退键（Backspace）密码或单行、多行文本框除外
+	      function banBackSpace(e){   
+	          var ev = e || window.event;//获取event对象   
+	          var obj = ev.target || ev.srcElement;//获取事件源   
+	          var t = obj.type || obj.getAttribute('type');//获取事件源类型  
+	          //获取作为判断条件的事件类型
+	          var vReadOnly = obj.getAttribute('readonly');
+	          //处理null值情况
+	          vReadOnly = (vReadOnly == "") ? false : vReadOnly;
+	         //当敲Backspace键时，事件源类型为密码或单行、多行文本的，
+	        //并且readonly属性为true或enabled属性为false的，则退格键失效
+	         var flag1=(ev.keyCode == 8 && (t=="password" || t=="text" || t=="textarea") 
+	                     && vReadOnly=="readonly")?true:false;
+	         //当敲Backspace键时，事件源类型非密码或单行、多行文本的，则退格键失效
+	         var flag2=(ev.keyCode == 8 && t != "password" && t != "text" && t != "textarea")
+	                     ?true:false;        
+	        
+	       //判断
+	         if(flag2){
+	             return false;
+	         }
+	         if(flag1){   
+	             return false;   
+	         }   
+	     }
+        //禁止后退键 作用于Firefox、Opera
+        document.onkeypress = banBackSpace;
+        //禁止后退键  作用于IE、Chrome
+        document.onkeydown = banBackSpace;
+		</script>
+</head>
+<body onkeydown="myKeyDown()" >
+	<div class="easyui-layout" style="width:100%;height:560px;">
+	    <!--场景名称区域 start  -->
+		<div id="menuarea" data-options="region:'west',split:true"  title="场景名称" style="width:18%;padding:5px;" >
+			<div id='AA'>
+				<ul id="aa" class="easyui-combotree" style="width:130px;"></ul>
+			</div>
+			<div id='BB'>
+				<ul id="bb" class="easyui-combobox" style="width:130px;"></ul>
+			</div>
+			<ul id="tt"  ></ul>
+		</div>
+		
+		
+		 <!--场景名称区域 end  -->
+		 
+		 <!--场景名称右击菜单 start  -->
+        <div id="mm" class="easyui-menu" style="width:120px;">
+        <div  id ="s" onclick="search()" data-options="iconCls:'icon-search'">查找场景</div>
+		<div  id ="sm" class="menu-sep"></div> 
+		<div  id ="c" onclick="edit()" data-options="iconCls:'icon-edit'">修改场景名称</div>
+		<div  id ="cm" class="menu-sep"></div> 
+		<div id ="r" onclick="reload()" data-options="iconCls:'icon-reload'">刷新场景</div>
+		<div  id ="rm" class="menu-sep"></div> 
+		<div id = "a" onclick="append(false)" data-options="iconCls:'icon-add'">添加场景</div>
+		<div id = "a" onclick="append(true)" data-options="iconCls:'icon-add'">添加外呼场景</div>
+		<div id ="am" class="menu-sep"></div> 
+		<div id="d" onclick="removeit()" data-options="iconCls:'icon-remove'">删除场景</div>
+		<div id ="dm" class="menu-sep"></div> 
+		<div id="p" onclick="updateRuleNLP()" data-options="iconCls:'icon-reload'">更新场景知识</div>
+		<div id ="pm" class="menu-sep"></div> 
+		<div id="u" onclick="uploadhtml()" data-options="iconCls:'icon-upload'">上传文档</div>
+		<div id ="um" class="menu-sep"></div> 
+		<div id ="sw" onclick="seehtml()" data-options="iconCls:'icon-search'">查看文档</div>
+		<div id ="om" class="menu-sep"></div> 
+		<div id ="oj" onclick="opengojs()" data-options="iconCls:'icon-search'">打开流程图</div>
+	    </div>
+	    <!--场景名称右击菜单 end -->
+	    
+	     <!-- 菜单添加区 window start-->
+		 <div id="menu_add" class="easyui-window" title="添加" data-options="modal:true,closed:true,iconCls:'icon-add'" style="width:500px;height:200px;padding:5px;">
+            <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">上级目录：</span><input id="menu_super" type="text" class="easyui-textbox" style="width:320px;" readOnly="true"/></div>
+            <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">输入名称：</span><input id="menu_name" type="text" class="easyui-textbox" style="width:320px;"/></div>
+			<div robot="roboid">
+				<div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">机器人名称：</span><input id="menu_robot_name" type="text" class="easyui-textbox" style="width:320px;"/></div>
+				<div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">机器人ID：</span><input id="menu_robot_ID" type="text" class="easyui-textbox" style="width:320px;"/></div>
+			</div>
+            <div style='text-align:center' >
+            <a href="javascript:void(0)" class="easyui-linkbutton"    data-options="iconCls:'icon-save'" plain="false" onclick="addmenu()">保存</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton"   data-options="iconCls:'icon-clear'" plain="false" onclick="clearmenu()">清空</a>
+		    </div>
+         </div>
+         <!-- 菜单添加区 window end--> 
+         
+		 <!-- 提示框 window start-->
+		 <div id="waihu_msg" class="easyui-window" title="正在操作" data-options="modal:true,closed:true,iconCls:'icon-add'" style="width:400px;height:150px;padding:3px;">
+            <div style="padding:10px;" > <span id="waihu_msg_content" style="font-size:12px;margin-left:10px">上级目录：</span></div>
+         </div>
+         <!-- 提示框 window end-->
+         
+          <!-- 上传文档区 window start-->
+		 <div id="html_upload" class="easyui-window" title="上传场景说明" data-options="modal:true,closed:true,iconCls:'icon-add'" style="width:500px;height:200px;padding:10px;">
+            
+            <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">场景名称：</span><input id="menuname" type="text" class="easyui-textbox" style="width:320px;" readOnly="true"/></div>
+            
+            <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px;">文件名称:</span>
+						<form id="formUpload" style="display:inline;" method="post" enctype="multipart/form-data">
+							<input name="upload" id="fileuploadtxt" class="easyui-filebox" data-options="buttonText:'选择文件'" style="width:320px;"/>
+						</form></div>
+			<div style="padding: 10px;">
+			<span style="font-size: 12px; margin-left: 10px">温馨提示：</span>
+			<span style="font-size: 12px;color:#ACA899">上传文件仅限.doc格式</span>
+			</div>
+            <div style='text-align:center' >
+            <a href="javascript:void(0)" class="easyui-linkbutton"    data-options="iconCls:'icon-upload'" plain="false" onclick="upload()">上传</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton"   data-options="iconCls:'icon-clear'" plain="false" onclick="clearmenu()">清空</a>
+		    </div>
+         </div>
+         <!-- 上传文档区 window end--> 
+         
+         
+           <!-- 场景查找区 window start-->
+		 <div id="menu_select" class="easyui-window" title="查找场景" data-options="modal:true,closed:true,iconCls:'icon-add'" style="width:500px;height:200px;padding:10px;">
+            <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">场景名称：</span><input id="select_menu_name" type="text" class="easyui-combobox" style="width:320px;"/></div>
+            <div style='text-align:center' >
+		    </div>
+         </div>
+         <!-- 场景查找区 window end--> 
+         
+          <!-- 场景名称修改区 window start-->
+		 <div id="menu_edit" class="easyui-window" title="修改场景名称" data-options="modal:true,closed:true,iconCls:'icon-edit'" style="width:500px;height:200px;padding:10px;">
+            <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">场景名称：</span><input id="select_menu_name2" type="text" class="easyui-textbox" style="width:320px;" readOnly="true"/></div>
+            <div style="padding:10px;" > <span style="font-size:12px;margin-left:20px">新名称：</span><input id="menu_newname" type="text" class="easyui-textbox" style="width:320px;"/></div>
+            <div style='text-align:center' >
+            	<a href="javascript:void(0)" class="easyui-linkbutton"    data-options="iconCls:'icon-save'" plain="false" onclick="editmenu()">保存</a>
+				<a href="javascript:void(0)" class="easyui-linkbutton"   data-options="iconCls:'icon-clear'" plain="false" onclick="clearmenu2()">清空</a>
+		    </div>
+         </div>
+         <!-- 场景名称修改区 window end--> 
+         
+         
+         
+        
+		<div data-options="region:'center'">
+		
+        <div id="tb" class="easyui-tabs" style="width:100%;height:558px;"> 
+		</div>
+		
+	    </div>
+	   <!--
+		<div data-options="region:'center'" style="border:none;">
+			    <div id="tb"  class="easyui-tabs" style="width:100%;height:100%;" data-options="tabHeight:23">
+			    </div>
+						
+		</div>
+		 -->
+	    
+	</div>
+
+</body>
+</html>

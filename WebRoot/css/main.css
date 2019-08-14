@@ -1,0 +1,23 @@
+div.container {
+	margin: 0 auto; /*内容居中*/
+}
+
+#div_info {
+	height: 20px;
+	position: relative;
+}
+
+#div_info_1 {
+	position: absolute; /*设置内容层相对于父容器定位*/
+	right: 0;
+	bottom: 0;
+}
+.txtMarquee-left{ width:100%;  position:relative;  border:1px solid #ccc;   }
+.txtMarquee-left .hd{ overflow:hidden;  height:20px; background:#f4f4f4; padding:0 10px;  }
+.txtMarquee-left .hd .prev,.txtMarquee-left .hd .next{ display:block;  width:5px; height:9px; float:right; margin-right:5px; margin-top:10px;  overflow:hidden; cursor:pointer; background:url("../image/icoLeft.gif") no-repeat;}
+.txtMarquee-left .hd .next{ background:url("../image/icoRight.gif") no-repeat;  }
+.txtMarquee-left .bd{ padding:10px; }
+.txtMarquee-left .bd .tempWrap{ width:100% !important; }/* 用 !important覆盖SuperSlide自动生成的宽度，这样就可以手动控制可视宽度。 */
+.txtMarquee-left .bd ul{ overflow:hidden; zoom:1; }
+.txtMarquee-left .bd ul li{ margin-right:20px;  float:left; height:24px; line-height:24px;  text-align:left; _display:inline; width:auto !important;  }/* 用 width:auto !important 覆盖SuperSlide自动生成的宽度，解决文字不衔接问题 */
+.txtMarquee-left .bd ul li span{ color:#999;  }

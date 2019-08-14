@@ -1,0 +1,87 @@
+/*
+*	create by lxf
+*/
+body, select, input{
+	font-size: 12px;
+	font-family: "Hiragino Sans GB","Microsoft Yahei",SimSun,Arial,"Helvetica Neue",Helvetica;
+	color: #333;
+}
+.kw-wrap{
+	width: 835px;
+	margin: 0 auto;
+	padding: 20px 10px;
+}
+.kw-wrap .ct{
+
+}
+.kw-wrap .w-30{
+	width: 30%;
+}
+.kw-wrap .blk{
+	display: inline-block;
+}
+.kw-wrap .mr-15{
+	margin-right: 15px;
+}
+.kw-wrap .mr-10{
+	margin-right: 10px;
+}
+.kw-wrap .mr-5{
+	margin-right: 5px;
+}
+.kw-wrap .mt-20{
+	margin-top: 20px;
+}
+.kw-wrap .mt-30{
+	margin-top: 30px;
+}
+.kw-wrap .talign-r{
+	text-align: right;
+}
+.kw-wrap .talign-c{
+	text-align: center;
+}
+.main-form{
+	width: 100%;
+	border-collapse: collapse; 
+}
+.main-form td{
+	border: 1px solid #E0ECFF;
+	padding: 3px 5px;
+}
+.main-form thead {
+	font-size: 14px;
+}
+.main-form thead td{
+	text-align: center;
+	background: #E0ECFF;
+	height: 36px;
+}
+.main-form .ta{
+	outline: none;
+    border: none;
+    resize: none;
+    width: 100%;
+}
+.main-form textarea{
+	overflow-y:hidden;	
+}
+.main-form tr:hover{
+	cursor: pointer;
+}
+.main-form tr:hover{
+	background: #efefef;
+}
+.main-form tbody td{
+	font-size: 12px;
+}
+.search-box{
+	border: 1px solid #95B8E7;
+    padding: 20px;
+}
+.kshow .panel {
+	width: 100%!important;
+}
+.kshow .panel .datagrid-body{
+	width: 100%!important;
+}

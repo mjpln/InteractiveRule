@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+            
+    
+    <wb-module deploy-name="InteractiveRule">
+                        
+        
+        <wb-resource deploy-path="/" source-path="/WebRoot"/>
+                        
+        
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
+        <dependent-module archiveName="CommonLib.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/CommonLib/CommonLib">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+                        
+        
+        <property name="context-root" value="/InteractiveRule"/>
+                        
+        
+        <property name="java-output-path" value="/InteractiveRule/WebRoot/WEB-INF/classes"/>
+                    
+    
+    </wb-module>
+        
+
+</project-modules>

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN" "http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+	<package name="wordclass" namespace="/" extends="valid-default">
+		<action name="wordclass" class="com.knowology.km.action.WordclassAction"
+			method="execute">
+			<interceptor-ref name="validLoginStack"/> 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="worditem" class="com.knowology.km.action.WorditemAction"
+			method="execute">
+			<interceptor-ref name="validLoginStack"/> 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+	</package>
+	<package name="interactiveScene" namespace="/" extends="valid-default">
+		<action name="interactiveScene" class="com.knowology.km.action.InteractiveSceneAction"
+			method="execute">
+			<interceptor-ref name="validLoginStack"/>
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+	</package>
+	
+	<package name="interactiveSceneLogin" namespace="/" extends="json-default">
+		<action name="interactiveSceneLogin" class="com.knowology.km.action.InteractiveSceneAction"
+			method="execute">
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+	</package>
+
+	<package name="selProvince" namespace="/" extends="json-default">
+		<action name="selProvince" class="com.knowology.km.action.QuestionUploadAction"
+			method="getProvince">
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+	</package>
+	<package name="selCity" namespace="/" extends="json-default">
+		<action name="selCity" class="com.knowology.km.action.QuestionUploadAction"
+			method="getCity">
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+	</package>
+	<package name="questionupload" namespace="/" extends="json-default">
+		<action name="hotquestion" class="com.knowology.km.action.QuestionUploadAction"
+			method="gethotquestion">
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="hotquestion2" class="com.knowology.km.action.QuestionUploadAction"
+			method="gethotquestion2">
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="sethot" class="com.knowology.km.action.QuestionUploadAction"
+			method="setAttr">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="importxls" class="com.knowology.km.action.QuestionUploadAction"
+			method="importxls">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="exportxls" class="com.knowology.km.action.QuestionUploadAction"
+			method="exportxls">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="understand" class="com.knowology.km.action.QuestionUploadAction"
+			method="understand">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="dosavereport" class="com.knowology.km.action.QuestionUploadAction"
+			method="doSaveReport">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="getsonquestion" class="com.knowology.km.action.QuestionUploadAction"
+			method="getsonquestion">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="insertother" class="com.knowology.km.action.QuestionUploadAction"
+			method="insertother">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="getSession" class="com.knowology.km.action.QuestionUploadAction"
+			method="getSession">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="delOther" class="com.knowology.km.action.QuestionUploadAction"
+			method="delOther">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="selLocal" class="com.knowology.km.action.QuestionUploadAction"
+			method="selLocal">
+			   
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		
+		<action name="getCityTree" class="com.knowology.km.action.QuestionUploadAction"
+			method="getCityTree">
+			  
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		
+		<action name="getCityTreeByLoginInfo" class="com.knowology.km.action.QuestionUploadAction"
+			method="getCityTreeByLoginInfo">
+			  
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		
+		<action name="updateQueName" class="com.knowology.km.action.QuestionUploadAction"
+			method="updateQueName">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="deleteOther" class="com.knowology.km.action.QuestionUploadAction"
+			method="deleteOther">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="ExportExcel" class="com.knowology.km.action.QuestionUploadAction"
+			method="ExportExcel">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="ExportExcel2" class="com.knowology.km.action.QuestionUploadAction"
+			method="ExportExcel2">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="exportexample" class="com.knowology.km.action.QuestionUploadAction"
+			method="exportexample">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="exsitfile" class="com.knowology.km.action.QuestionUploadAction"
+			method="exsitfile">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="getKWDatas" class="com.knowology.km.action.KnowSearch"
+			method="getKWDatas">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+		<action name="getKwTypes" class="com.knowology.km.action.KnowSearch"
+			method="getKwTypes">
+			 
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+	</package>
+	
+	<package name="InteractiveSceneGoJS" namespace="/" extends="json-default">
+		<action name="saveConfiguration"
+			class="com.knowology.km.action.InteractiveSceneCallOutAction" method="execute">
+			<result name="success" type="json">
+				<param name="root">m_result</param>
+			</result>
+		</action>
+	</package>
+	
+</struts>

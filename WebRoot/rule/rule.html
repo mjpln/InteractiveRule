@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
+	<link type="text/css" rel="stylesheet" href="../easyui/jquery-easyui-1.4.1/themes/default/easyui.css" />
+	<link type="text/css" rel="stylesheet" href="../easyui/jquery-easyui-1.4.1/themes/icon.css" />
+	<link href="../css/common.css"type="text/css" rel="stylesheet">
+	<link type="text/css" rel="stylesheet" href="../css/kw.css" />
+	<link href="../umeditor1_2_2-utf8-jsp/themes/default/css/umeditor.css" type="text/css" rel="stylesheet">    
+    <link type="text/css" rel="stylesheet" href="../css/scrollbar.css" />
+    <script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/third-party/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../umeditor1_2_2-utf8-jsp/umeditor.config.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../umeditor1_2_2-utf8-jsp/umeditor.min.js"></script>
+    <script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/lang/zh-cn/zh-cn.js"></script>
+	<script type="text/javascript" src="../easyui/jquery-easyui-1.4.1/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="../easyui/jquery-easyui-1.4.1/locale/easyui-lang-zh_CN.js"></script>
+	<script type="text/javascript" src="../script/json2.js"></script>
+	<script type="text/javascript" src="./js/rule.js?v=20160608"></script>
+	<script type="text/javascript" src="../script/publicSetup.js"></script>
+		<script type="text/javascript">
+		  //处理键盘事件 禁止后退键（Backspace）密码或单行、多行文本框除外
+	      function banBackSpace(e){   
+	          var ev = e || window.event;//获取event对象   
+	          var obj = ev.target || ev.srcElement;//获取事件源   
+	          var t = obj.type || obj.getAttribute('type');//获取事件源类型  
+	          //获取作为判断条件的事件类型
+	          var vReadOnly = obj.getAttribute('readonly');
+	          //处理null值情况
+	          vReadOnly = (vReadOnly == "") ? false : vReadOnly;
+	         //当敲Backspace键时，事件源类型为密码或单行、多行文本的，
+	        //并且readonly属性为true或enabled属性为false的，则退格键失效
+	         var flag1=(ev.keyCode == 8 && (t=="password" || t=="text" || t=="textarea") 
+	                     && vReadOnly=="readonly")?true:false;
+	         //当敲Backspace键时，事件源类型非密码或单行、多行文本的，则退格键失效
+	         var flag2=(ev.keyCode == 8 && t != "password" && t != "text" && t != "textarea")
+	                     ?true:false;        
+	        
+	       //判断
+	         if(flag2){
+	             return false;
+	         }
+	         if(flag1){   
+	             return false;   
+	         }   
+	     }
+        //禁止后退键 作用于Firefox、Opera
+        document.onkeypress = banBackSpace;
+        //禁止后退键  作用于IE、Chrome
+        document.onkeydown = banBackSpace;
+		</script>
+	<script>
+	//获取浏览器页面可见高度和宽度
+    var _PageHeight = document.documentElement.clientHeight,
+        _PageWidth = document.documentElement.clientWidth;
+    //计算loading框距离顶部和左部的距离（loading框的宽度为215px，高度为61px）
+    var _LoadingTop = _PageHeight > 61 ? (_PageHeight - 61) / 2 : 0,
+        _LoadingLeft = _PageWidth > 215 ? (_PageWidth - 215) / 2 : 0;
+    //在页面未加载完毕之前显示的loading Html自定义内容
+    var _LoadingHtml = '<div id="loadingDiv" style="position:absolute;left:0;width:100%;height:' + _PageHeight + 'px;top:0;background:#f3f8ff;opacity:1;filter:alpha(opacity=80);z-index:10000;"><div style="position: absolute; cursor1: wait; left: ' + _LoadingLeft + 'px; top:' + _LoadingTop + 'px; width: auto; height: 57px; line-height: 57px; padding-left: 50px; padding-right: 5px; background: #fff url(/Content/loading.gif) no-repeat scroll 5px 10px; border: 2px solid #95B8E7; color: #696969; font-family:\'Microsoft YaHei\';">页面加载中，请稍等。。。</div></div>';
+    //呈现loading效果
+    document.write(_LoadingHtml);
+
+
+    //监听加载状态改变
+    document.onreadystatechange = completeLoading;
+
+    //加载状态为complete时移除loading效果
+    function completeLoading() {
+        if (document.readyState == "complete") {
+            var loadingMask = document.getElementById('loadingDiv');
+            loadingMask.parentNode.removeChild(loadingMask);
+        }
+    }
+
+	
+	
+	</script>
+		
+		
+		
+		
+		 
+</head>
+<body>
+	<div class="easyui-layout" style="padding:0px">
+	
+	<div id="aa" class="easyui-tabs" style="width:100%;height:515px;">
+    <!-- <div id="aa" class="easyui-tabs" style="width:100%;height:515px;"> -->
+    
+    	<div title="场景语义对应关系" style="padding: 10px"
+					data-options="selected:true">
+					<div>
+						<div id="servicekbdatadatagrid_tb" style="height: 30px;">
+							<span style="margin-left: 10px">所在目录：</span>
+							<select id="service" class="easyui-combotree"
+								style="width: 200px;"></select>
+							<span style="margin-left: 10px">标准问题：</span>
+							<input id="kbdata" class="easyui-combobox" style="width: 200px;">
+							<!-- 
+							<span style="margin-left: 10px; display:none;">用户问题：</span>
+							<input id="userquery" class="easyui-textbox"
+								style="width: 200px;">
+							 -->
+							<a href="javascript:void(0)" class="easyui-linkbutton"
+								data-options="iconCls:'icon-search'" plain="false"
+								style="margin-left: 10px" onclick="searchRelation()">查找</a>
+							<a href="javascript:void(0)" class="easyui-linkbutton"
+								data-options="iconCls:'icon-add'" plain="false"
+								style="margin-left: 10px" onclick="saveRelation()">保存</a>
+							<a href="javascript:void(0)" class="easyui-linkbutton"
+								data-options="iconCls:'icon-clear'" plain="false"
+								style="margin-left: 10px" onclick="clearRelation()">清空</a>
+							<a href="javascript:void(0)" class="easyui-linkbutton"
+								data-options="iconCls:'icon-reload'" plain="false"
+								style="margin-left: 10px" onclick="reloadScenarios()">更新场景</a>
+						</div>
+						<table id="servicekbdatadatagrid"></table>
+					</div>
+				</div>
+	
+		<div title="场景配置"    style="padding:10px">
+		
+		<div title="交互规则" style="display:inline;padding:20px;position:relative;overflow-x:hidden;">
+					<table>
+						<!-- 
+							<tr>
+							<td>
+								<span id="selrule0name1"></span>
+								<span id="selrule01"><input id="selrule0value1" class="easyui-combobox"/></span>
+							</td>
+							<td>
+								<span id="selrule0name2"></span>
+								<span id="selrule02"><input id="selrule0value2" class="easyui-combobox"/></span>
+							</td>
+							<td>
+								<span id="selrule0name3"></span>
+								<span id="selrule03"><input id="selrule0value3" class="easyui-combobox"/></span>
+							</td>
+							<td>
+								<span id="selrule0name4"></span>
+								<span id="selrule04"><input id="selrule0value4" class="easyui-combobox"/></span>
+							</td>
+							<td>
+								<span id="selrule0name5"></span>
+								<span id="selrule05"><input id="selrule0value5" class="easyui-combobox"/></span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<span id="selrule0name6"></span>
+								<span id="selrule06"><input id="selrule0value6" class="easyui-combobox"/></span>
+							</td>
+							<td>
+								<span id="selrule0name7"></span>
+								<span id="selrule07"><input id="selrule0value7" class="easyui-combobox"/></span>
+							</td>
+							<td>
+								<span id="selrule0name8"></span>
+								<span id="selrule08"><input id="selrule0value8" class="easyui-combobox"/></span>
+							</td>
+							<td>
+								<span id="selrule0name9"></span>
+								<span id="selrule09"><input id="selrule0value9" class="easyui-combobox"/></span>
+							</td>
+							<td>
+								<span id="selrule0name10"></span>
+								<span id="selrule010"><input id="selrule0value10" class="easyui-combobox"/></span>
+							</td>
+						</tr>
+						
+						
+						
+						 -->
+						
+							<tr>
+							<td>
+								<span id="selrule0name1"></span>
+								<span id="selrule01"><input id="selrule0value1" class="easyui-combobox"/></span>
+							
+							
+								<span id="selrule0name2"></span>
+								<span id="selrule02"><input id="selrule0value2" class="easyui-combobox"/></span>
+							
+							
+								<span id="selrule0name3"></span>
+								<span id="selrule03"><input id="selrule0value3" class="easyui-combobox"/></span>
+							
+							
+								<span id="selrule0name4"></span>
+								<span id="selrule04"><input id="selrule0value4" class="easyui-combobox"/></span>
+								<span id="selrule0name5"></span>
+								<span id="selrule05"><input id="selrule0value5" class="easyui-combobox"/></span>
+							
+							
+								
+							</td>
+						</tr>
+						<tr>
+							<td>
+							   
+								<span id="selrule0name6"></span>
+								<span id="selrule06"><input id="selrule0value6" class="easyui-combobox"/></span>
+							
+								<span id="selrule0name7"></span>
+								<span id="selrule07"><input id="selrule0value7" class="easyui-combobox"/></span>
+							
+								<span id="selrule0name8"></span>
+								<span id="selrule08"><input id="selrule0value8" class="easyui-combobox"/></span>
+							
+								<span id="selrule0name9"></span>
+								<span id="selrule09"><input id="selrule0value9" class="easyui-combobox"/></span>
+						
+								<span id="selrule0name10"></span>
+								<span id="selrule010"><input id="selrule0value10" class="easyui-combobox"/></span>
+							</td>
+						</tr>
+						
+						
+						
+						
+						<tr>
+							<td>
+								<!--  <span>规则类型:</span>
+								<span><input id="selrule0type" class="easyui-combobox"/></span> -->
+							
+								<!-- <span>规则优先级:</span>
+								<span><input id="selrule0weight" class="easyui-numberbox" data-options="min:0,prompt:'请输入数字'"/></span>  -->
+								<span class="span_class"  >归属地市:</span>
+								<span><input id="search_city" class="easyui-combotree"  style="width:150px;" type="text" ></input></span>
+								<span class="span_class">回复内容:</span>
+									<span><input id="search_ruleresponse" class="easyui-textbox"></span>
+								<a href="javascript:void(0)" class="easyui-linkbutton" style="margin-left:10px;" data-options="iconCls:'icon-search'" plain="false" onclick="searchRule0()">查询</a>
+							</td>
+						<!--  	
+							<td><a href="javascript:void(0)" class="easyui-linkbutton" style="float:right;" data-options="iconCls:'icon-reload'" plain="false" onclick="updateRuleNLP()">更新业务规则</a></td>
+						-->
+						</tr>
+					</table>
+					<table id="rule0datagrid" ></table>
+					<!-- 工具栏 -->
+					<div id="rule0datagridTools">
+						<span id = "issueChoose" style = "margin-left:10px;"></span>
+						<a href="javascript:void(0)" class="easyui-linkbutton" style="margin-left:20px;" data-options="iconCls:'icon-start'" plain="false" onclick="issueRule0()">发布</a>
+					</div>
+					<div id="detail"></div>
+					
+					
+					
+					
+					   <!-- 规则编辑区 window start-->
+					   <div id="rule0_edit" class="easyui-panel" title="编辑规则" style="width:1000px;height:460px;padding:10px;"
+							data-options="iconCls:'icon-save',collapsible:true,minimizable:false,maximizable:false,closable:true">
+					   <!-- 
+						<div id="w" class="easyui-window" title="编辑规则" data-options="modal:true,closed:true,iconCls:'icon-save',maximized:true,maximizable:true" >
+		                -->
+						<form id="rule0form" class="easyui-form" method="post" data-options="novalidate:true" style="margin:0px 20px 20px 20px;">
+					    	<table style="width:100%;">
+					    		<tr>
+								<td width="120">
+									用户问题:
+									</td>
+									<td>
+									<span> <input id="adduserquestion" class="easyui-textbox" style="width: 270px;" /> </span>
+									<span class="span_class">归属地市:</span>
+											<span><input id="edit_city" class="easyui-textbox"
+													style="width: 150px;" type="text"></input>
+											</span>
+									
+									<span class="span_class">失效地市:</span>
+											<span><input id="edit_excludedcity" class="easyui-textbox"
+													style="width: 150px;" type="text"></input>
+											</span>
+									
+									</td>
+								
+								</tr>
+					    	
+					    		<tr>
+					    			<td>场景要素:</td>
+									<td>
+										<span id="addrule0name1"></span>
+										<span id="addrule01"><input id="addrule0value1" class="easyui-combobox"/></span>
+										&emsp;
+										<span id="addrule0name2"></span>
+										<span id="addrule02"><input id="addrule0value2" class="easyui-combobox"/></span>
+									</td>
+								</tr>
+								<tr class="td-display3">
+									<td></td>
+									<td>
+										<span id="addrule0name3"></span>
+										<span id="addrule03"><input id="addrule0value3" class="easyui-combobox"/></span>
+										&emsp;
+										<span id="addrule0name4"></span>
+										<span id="addrule04"><input id="addrule0value4" class="easyui-combobox"/></span>
+									</td>
+								</tr>
+								<tr class="td-display5">
+									<td></td>
+									<td>
+										<span id="addrule0name5"></span>
+										<span id="addrule05"><input id="addrule0value5" class="easyui-combobox"/></span>
+										&emsp;
+										<span id="addrule0name6"></span>
+										<span id="addrule06"><input id="addrule0value6" class="easyui-combobox"/></span>
+									</td>
+								</tr>
+								<tr class="td-display7">
+									<td></td>
+									<td>									
+										<span id="addrule0name7"></span>
+										<span id="addrule07"><input id="addrule0value7" class="easyui-combobox"/></span>
+										&emsp;
+										<span id="addrule0name8"></span>
+										<span id="addrule08"><input id="addrule0value8" class="easyui-combobox"/></span>
+									</td>
+								</tr>
+								<tr class="td-display9">
+									<td></td>
+									<td>
+										<span id="addrule0name9"></span>
+										<span id="addrule09"><input id="addrule0value9" class="easyui-combobox"/></span>
+										&emsp;
+										<span id="addrule0name10"></span>
+										<span id="addrule010"><input id="addrule0value10" class="easyui-combobox"/></span>
+									</td>
+								</tr>
+								
+								<tr>
+										<!-- <td></td>
+									<td><a href="javascript:void(0)" class="easyui-linkbutton" style="float:right;" data-options="iconCls:'icon-reload'" plain="false" onclick="updateRuleNLP()">更新业务规则</a></td>-->
+										<td>
+											<input id="rule0id" type="hidden" />
+										</td>
+									</tr>
+					    			<tr>
+										<td>回复类型:</td>
+										<td>
+										<!--
+										<select id="responsetype" class="easyui-combobox" name="responsetype_name" style="width:150px; ">
+							    			  <option value="0" >文本型</option>
+                                              <option value="2">菜单询问</option>
+                                         </select>
+                                         -->
+                                         <input id="responsetype" class="easyui-combobox" />
+											<span class="span_class" id="span_addrule0weight">规则优先级:</span>
+											<span id="input_addrule0weight"><input
+													id="addrule0weight" class="easyui-combobox" />
+											</span>
+											<a href="javascript:void(0)" class="easyui-linkbutton"
+												data-options="iconCls:'icon-add'" plain="false"
+												id="triggerAction_btn" onclick="saveTriggerAction()">插入触发动作</a>
+											<a href="javascript:void(0)" class="easyui-linkbutton"
+												data-options="iconCls:'icon-add'" plain="false"
+												id="interactiveoptions_btn"
+												onclick="saveInteractiveOoptions()">插入交互项</a>
+											<a href="javascript:void(0)" class="easyui-linkbutton"
+												data-options="iconCls:'icon-add'" plain="false"
+												id="hitquestion_btn"
+												onclick="saveHitquestion()">插入命中问题</a>
+											<a href="javascript:void(0)" class="easyui-linkbutton"
+												data-options="iconCls:'icon-add'" plain="false"
+												id="addOtherResponse_btn"
+												onclick="addOtherResponse()">插入其他形式答案</a>
+										</td>
+										</tr>
+					    				<tr >
+				<td class ="serviceinfo_tr">
+					信息表名称：
+				</td>
+				<td class ="serviceinfo_tr">
+					<span><input id="serviceinfo"  class="easyui-combobox" style="width:300px;"/></span>
+					<!--
+					<span style="font-size: 12px; margin-left: 20px" >知识名称：</span>
+					<span style=" margin-left: 40px"  ><input id="knoname"  class="easyui-combobox" style="width:300px;"/></span>
+					<span style=" margin-left: 20px"><a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add'" plain="false" id="hitquestion_btn" onclick="openTemplateColumnWin()">插入模板列</a></span>
+					-->
+				</td>
+			</tr>
+			<tr >
+				<td class ="serviceinfo_tr">
+					模板路径：
+				</td>
+				<td class ="serviceinfo_tr">
+					<span><input id="attrname"  class="easyui-combobox" style="width:300px;"/></span>
+					<!--
+					<span style="font-size: 12px; margin-left: 20px" >知识名称：</span>
+					<span style=" margin-left: 40px"  ><input id="knoname"  class="easyui-combobox" style="width:300px;"/></span>
+					<span style=" margin-left: 20px"><a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add'" plain="false" id="hitquestion_btn" onclick="openTemplateColumnWin()">插入模板列</a></span>
+					-->
+					<span style="font-size: 12px; margin-left: 20px" id="attrlabel">模板内容：</span>
+					<span style=" margin-left: 40px"><input id="attrvalue"  class="easyui-combobox" style="width:300px;" /></span>
+					<!--
+					<span style=" margin-left: 10px"><a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add'" plain="false" id="hitquestion_btn" onclick="openPrimitiveFunctionWin()">原子函数</a></span>
+					-->
+				</td>
+			</tr>
+			<tr >
+				<td class ="serviceinfo_tr">
+					信息表模板：
+				</td>
+				<td class ="serviceinfo_tr">
+					<span><input id="serviceinfotemplate"  class="easyui-textbox" data-options="multiline:true" style="width:730px;height:60px" editable="false" /></span>
+				</td>
+			</tr>
+					    		<tr>
+					    			<td valign="top">回复内容:</td>
+					    			<!-- <td colspan="5"><textarea id="addrule0response" style="width:100%;min-width:800px;height:100px;font-size:12px;"></textarea></td> -->
+					    		   <td colspan="5" >  <div id="myEditor" style="width:100%;height:150px;" ></div> </td>
+					    		</tr>
+					    		
+					    	</table>
+					    </form>
+					    <div style="text-align:center;padding:5px">
+					    	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" plain="false" onclick="saveRule0('')">保存</a>
+					    	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" plain="false" onclick="clearRule0Form()">清空</a>
+					    	
+					  <!-- 	<form id="uploadrule0form" style="display:inline;margin-left:50px;" method="post" enctype="multipart/form-data">
+			                   	<input name="upload" id="fileuploadrule0" class="easyui-filebox" style="width:200px;" data-options="buttonText:'选择文件'">
+			                </form>
+			               	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-upload'" plain="false" onclick="uploadRule0()" style="margin-left:10px;">导入文件</a>  
+			              	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-download'" plain="false" onclick="exportExcelRule0()">导出文件</a>
+					    -->  
+					    </div> 
+	               </div>  
+					  <!-- 缺失补全规则编辑区 window end-->
+				 
+					  
+					  
+					
+			<!-- 列信息添加区 window start-->
+		 <div id="column_add" class="easyui-window" title="添加场景要素列" data-options="modal:true,closed:true,iconCls:'icon-add'" style="width:500px;height:240px;padding:10px;">
+            <div style="padding:10px; > <span style="font-size:12px;margin-left:10px">场景要素：</span><input id="columncom" class="easyui-combobox" style="width:250px;" />
+            <a href="javascript:void(0)" class="easyui-linkbutton"    data-options="iconCls:'icon-save'" plain="false" onclick="saveColumn()">保存</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton"   data-options="iconCls:'icon-clear'" plain="false" onclick="clearColumn()">清空</a> 
+            </div>
+         </div>
+         <!-- 列信息添加区 window end--> 
+         
+         		<!-- 列信息删除区 window start-->
+		 <div id="column_delete" class="easyui-window" title="删除场景要素列" data-options="modal:true,closed:true,iconCls:'icon-remove'" style="width:500px;height:240px;padding:10px;">
+            <div style="padding:10px; > <span style="font-size:12px;margin-left:10px">场景要素：</span><input id="columncom_delete" class="easyui-combobox" style="width:250px;" />
+            <a href="javascript:void(0)" class="easyui-linkbutton"    data-options="iconCls:'icon-remove'" plain="false" onclick="deleteColumn()">删除</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton"   data-options="iconCls:'icon-clear'" plain="false" onclick="clearDeleteColumn()">清空</a> 
+            </div>
+         </div>
+         <!-- 列信息删除区 window end--> 
+		
+		 <!-- 交互选项编辑区 window start-->
+		 <div id="menuItems_edit" class="easyui-window" title="编辑交互选项" data-options="modal:true,closed:true,iconCls:'icon-edit'" style="width:500px;height:460px;padding:10px;">
+		   <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">交互名称：</span><input id="interactionname" type="text" class="easyui-textbox" style="width:320px;" readOnly="true"/></div>
+            <div style="padding:10px; "  id ="correspondingwordclass_div" > <span style="font-size:12px;margin-left:10px">对应词类ID：</span><input id="correspondingwordclass" type="text" class="easyui-textbox" style="width:320px;"/></div>
+            <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">交互选项：</span><input id="interactiveoptions" type="text" class="easyui-combobox" style="width:320px;"/></div>
+             <div style="padding:10px;"  id ="interactivetemplate_div"> <span style="font-size:12px;margin-left:10px">自定义值：</span><textarea name="" cols="5" rows="5" id ="customvalue" style="width:320px;font-size:12px;" onfocus="if(this.value == '多条值以|分隔开'){  this.value =''; this.style.color = '#000000'; } "  onblur="if(this.value == ''){this.style.color = '#ACA899'; this.value = '多条值以|分隔开'; }"  > </textarea></div>
+              <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">交互口径：</span><textarea name="" cols="5" rows="5" id ="interactivetemplate" style="width:320px;font-size:12px;"></textarea></div>
+            <div style='text-align:center' >
+            <a href="javascript:void(0)" class="easyui-linkbutton"    data-options="iconCls:'icon-save'" plain="false" onclick="saveMenuItems()">保存</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton"   data-options="iconCls:'icon-clear'" plain="false" onclick="clearMenuItems()">清空</a>
+		    </div>
+         </div>
+         <!-- 交互选项编辑区 window end--> 
+         
+         <!-- 新增交互选项区 window start-->
+	<div id="add_menuItems_edit" class="easyui-window" title="场景要素交互回复编辑"
+							data-options="modal:true,closed:true,iconCls:'icon-add'"
+							style="width: 500px; height: 460px; padding: 10px;">
+							<div style="padding: 10px;">
+								<span style="font-size: 12px; margin-left: 10px">交互口径：</span>
+								<textarea name="" cols="5" rows="5" id="add_interactivetemplate"
+									style="width: 320px; font-size: 12px;"></textarea>
+							</div>
+							<div style="padding: 10px;" id ="add_interactionname_div">
+								<span style="font-size: 12px; margin-left: 10px">开始话语：</span>
+								<input id="add_interactionname" type="text"
+									class="easyui-textbox" style="width: 320px;" readOnly="true" />
+							</div>
+							<div style="padding: 10px;" id="add_correspondingwordclass_div">
+								<span style="font-size: 12px; margin-left: 10px">对应词类：</span>
+								<input id="add_correspondingwordclass" type="text"
+									class="easyui-textbox" style="width: 320px;" />
+							</div>
+							<div style="padding: 10px;" id="add_interactiveoptions_div">
+								<span style="font-size: 12px; margin-left: 10px">菜单选项：</span>
+								<input id="add_interactiveoptions" type="text" class="easyui-combobox" style="width: 320px;" /><img style=" margin-left: 10px" id="img_add" src="../easyui/jquery-easyui-1.4.1/themes/icons/edit_add.png"  title="补充交互选项" />	
+							</div>
+							<div style="padding: 10px;" id="add_interactivetemplate_div">
+								<span style="font-size: 12px; margin-left: 10px">自定义值：</span>
+								<textarea name="" cols="5" rows="5" id="add_customvalue"
+									style="width: 320px; font-size: 12px;"
+									onfocus="if(this.value == '多条值以|分隔开'){  this.value =''; this.style.color = '#000000'; } "
+									onblur="if(this.value == ''){this.style.color = '#ACA899'; this.value = '多条值以|分隔开'; }"></textarea>
+							</div>
+							<div style="padding: 10px;">
+								<span style="font-size: 12px; margin-left: 10px">结束话语：</span>
+								<textarea name="" cols="5" rows="5" id="add_interactivetemplateend"
+									style="width: 320px; font-size: 12px;"></textarea>
+							</div>
+							<div style='text-align: center'>
+								<a href="javascript:void(0)" class="easyui-linkbutton"
+									data-options="iconCls:'icon-add'" plain="false"
+									onclick="add_saveMenuItems()">插入</a>
+								<a href="javascript:void(0)" class="easyui-linkbutton"
+									data-options="iconCls:'icon-clear'" plain="false"
+									onclick="add_clearMenuItems()">清空</a>
+							</div>
+						</div>
+	
+	
+         <!-- 新增交互选项编辑区 window end--> 	
+       
+           <!-- 插入模板列区 window start-->
+		 <div id="add_templatecolumn" class="easyui-window" title="插入模板列" data-options="modal:true,closed:true,iconCls:'icon-add'" style="width:500px;height:285px;padding:10px;">
+		 	
+		    
+		    <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">模板列名称：</span><input id="templatecolumn" class="easyui-combobox" style="width:300px;" type="text" ></input></div>
+            
+            <div style='text-align:center' >
+            <a href="javascript:void(0)" class="easyui-linkbutton"    data-options="iconCls:'icon-add'" plain="false" onclick="add_templateColumn()">插入</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton"   data-options="iconCls:'icon-cancel'" plain="false" onclick="add_clearTemplateColumn()">取消</a>
+		    </div>
+         </div>
+         <!-- 插入模板列区  window end-->  			
+					
+		   
+               <!-- 插入触发动作 window start-->
+		 <div id="add_triggerAction" class="easyui-window" title="插入触发动作" data-options="modal:true,closed:true,iconCls:'icon-add'" style="width:500px;height:285px;padding:10px;">
+		    <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">触发动作名称：</span><input id="triggerActionName" class="easyui-combobox" style="width:300px;" type="text" ></input></div>
+            
+            <div style='text-align:center' >
+            <a href="javascript:void(0)" class="easyui-linkbutton"    data-options="iconCls:'icon-add'" plain="false" onclick="add_triggerAction()">插入</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton"   data-options="iconCls:'icon-cancel'" plain="false" onclick="clearTriggerAction()">取消</a>
+		    </div>
+         </div>
+         <!-- 插入触发动作  window end-->  			
+					
+					<!-- 插入命中问题 window start-->
+						<div id="add_hitquestion" class="easyui-window" title="插入命中问题"
+							data-options="modal:true,closed:true,iconCls:'icon-add'"
+							style="width: 530px; height: 465px; padding: 10px;">
+							<div style="padding: 10px;">
+								<span style="font-size: 12px; margin-left: 10px">命中问题：</span>
+						    <textarea name="" cols="5" rows="5" id="hitquestion"  onfocus="hitquestionOnfocus('hitquestion')"
+								 onblur="hitquestionOnblur()"
+									style="width: 218px; font-size: 12px;"></textarea> 
+									<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add'" plain="false"
+								id="element_btn" onclick="openElementWin()">插入场景元素列</a> 
+							</div>
+							<div style="padding: 10px;">
+							<span style="font-size: 12px; margin-left: 10px">选择省市：</span>
+							 <span>省份</span> <input id="hit_province" type="text" class="easyui-combobox" style="width:100px;" />
+						     <span>地市</span><input id="hit_city" type="text" class="easyui-combobox" style="width:100px;" />
+						  <a href="javascript:void(0)" class="easyui-linkbutton"data-options="iconCls:'icon-start'" plain="false"
+									onclick="testHitQuestion()">识别问题</a>
+							</div>
+							<div style="padding: 10px;">
+							<span style="font-size: 12px; margin-left: 10px">识别结果：</span>
+							<textarea name="" cols="5" rows="5" id="hitquestionresult"   disabled="disabled" 
+									style="width: 337px; font-size: 12px;color:blue"></textarea> 
+							</div> 
+							
+							<div style="padding: 10px;">
+								<span style="font-size: 12px; margin-left: 10px">温馨提示：</span>
+								<span style="font-size: 12px;color:#ACA899">命中问题是指系统会根据您录入的问题，再次进行理解，并将理解的结果作为此次交互结果进行展现。如果该问题理解的结果是结构化知识，系统将展现结构化知识中的内容。但结构化知识内容为空，则有可能展示相似问题。</span>
+							</div>
+							
+							<div style='text-align: center'>
+							
+							   <span style="font-size: 12px; margin-left: 10px;color:red">请确认识别结果是否正确！确认后插入命中问题？</span>
+								<a href="javascript:void(0)" class="easyui-linkbutton"
+									data-options="iconCls:'icon-add'" plain="false"
+									onclick="add_hitquestion()">是</a>
+								<a href="javascript:void(0)" class="easyui-linkbutton"
+									data-options="iconCls:'icon-cancel'" plain="false"
+									onclick="clearHitquestion()">否</a>
+							</div>
+						</div>
+						<!-- 插入命中问题  window end-->
+					
+					
+						<!-- 插入场景元素列区 window start-->
+						<div id="add_elementcolumn" class="easyui-window" title="插入场景元素列"
+							data-options="modal:true,closed:true,iconCls:'icon-add'"
+							style="width: 500px; height: 285px; padding: 10px;">
+							<div style="padding: 10px;">
+								<span style="font-size: 12px; margin-left: 10px">场景元素列名称：</span>
+								<input id="elementcolumn" class="easyui-combobox"
+									style="width: 300px;" type="text"></input>
+							</div>
+
+							<div style='text-align: center'>
+								<a href="javascript:void(0)" class="easyui-linkbutton"
+									data-options="iconCls:'icon-add'" plain="false"
+									onclick="add_elementColumn()">插入</a>
+								<a href="javascript:void(0)" class="easyui-linkbutton"
+									data-options="iconCls:'icon-cancel'" plain="false"
+									onclick="clearElementColumn()">取消</a>
+							</div>
+						</div>
+						<!-- 插入场景元素列区  window end-->
+					
+                        <!--插入知识名称  window start-->
+                        <div id="add_knoname" class="easyui-window" title="插入知识名称"
+							data-options="modal:true,closed:true,iconCls:'icon-add'"
+							style="width: 905px; height: 460px; padding: 10px;">
+							<div class="kw-wrap">
+					     	<div class="ct search-box">
+					     		<div class="blk mr-15 w-28">
+						            <label for="keyword" class="mr-5">关键词:</label>
+						            <input class="easyui-textbox keyword"
+													style="width: 148px;" name="keyword">
+						        </div>
+						        <div class="blk mr-15 w-28" style="height: 22px;">
+						            <label for="types" class="mr-5">知识类别(必选):</label>
+						        	<select id="kw_type" class="easyui-combobox " name="types" style="width:148px;">
+										
+									</select>
+						        </div>
+						        <div class="blk mr-15 w-28">
+						            <label for="loc" class="mr-5">地市:</label>
+						        	<input id="kw_search_city" class="easyui-combotree"
+																style="width: 150px;" type="text" name='loc'></input>
+						        </div>
+						        <div class="blk mr-15" >
+						            <a href="#" class="easyui-linkbutton search-btn" data-options="iconCls:'icon-search'">搜索</a>
+						        </div>
+						        
+					     	</div>
+					     	<div class="ct  mt-20 kshow">
+					     		<table id="kw-knowology-info"></table>
+					     		
+					     	</div>
+					     	<div class="ct mt-20 talign-r">
+					     		<a href="#" class="easyui-linkbutton mr-10 save" data-options="iconCls:'icon-save'">确认</a>
+					     		<a href="#" class="easyui-linkbutton cancel" data-options="iconCls:'icon-undo'"  onclick="closeKnonameWin()" >取消</a>
+					     	</div>
+					     </div>
+							
+						</div>	
+							
+                        
+                        <!--插入知识名称  window end-->
+					
+					<!-- 插入其他形式答案 window start-->
+		 			<div id="otherResponse_add" class="easyui-window" title="插入其他形式答案" data-options="modal:true,closed:true,iconCls:'icon-edit'" style="width:300px;height:480px;padding:10px;">
+         			
+         				<form id="otherResponse0form" class="easyui-form" method="post" data-options="novalidate:true" style="margin:0px 20px 20px 20px;">
+					    	<table style="width:100%;">
+					    		<tr class="btd-display1">
+									<td>
+										<span id="otherResponse0name1"></span>
+										<span id="otherResponse01"><input id="otherResponse0value1"/></span>
+									</td>
+								</tr>
+								<tr class="btd-display2">
+									<td>
+										<span id="otherResponse0name2"></span>
+										<span id="otherResponse02"><input id="otherResponse0value2"/></span>
+									</td>
+								</tr>
+								<tr class="btd-display3">
+									<td>
+										<span id="otherResponse0name3"></span>
+										<span id="otherResponse03"><input id="otherResponse0value3"/></span>
+									</td>
+								</tr>
+								<tr class="btd-display4">
+									<td>
+										<span id="otherResponse0name4"></span>
+										<span id="otherResponse04"><input id="otherResponse0value4"/></span>
+									</td>
+								</tr>
+								<tr class="btd-display5">
+									<td>
+										<span id="otherResponse0name5"></span>
+										<span id="otherResponse05"><input id="otherResponse0value5"/></span>
+									</td>
+								</tr>
+								<tr class="btd-display6">
+									<td>
+										<span id="otherResponse0name6"></span>
+										<span id="otherResponse06"><input id="otherResponse0value6"/></span>
+									</td>
+								</tr>
+								<tr class="btd-display7">
+									<td>									
+										<span id="otherResponse0name7"></span>
+										<span id="otherResponse07"><input id="otherResponse0value7"/></span>
+									</td>
+								</tr>
+								<tr class="btd-display8">
+									<td>
+										<span id="otherResponse0name8"></span>
+										<span id="otherResponse08"><input id="otherResponse0value8"/></span>
+									</td>
+								</tr>
+								<tr class="btd-display9">
+									<td>
+										<span id="otherResponse0name9"></span>
+										<span id="otherResponse09"><input id="addrule0value9"/></span>
+									</td>
+								</tr>
+								<tr class="btd-display10">
+									<td>
+										<span id="otherResponse0name10"></span>
+										<span id="otherResponse010"><input id="otherResponse0value10"/></span>
+									</td>
+								</tr>
+					    	</table>
+					    </form>
+         				
+         				<div style="text-align: center; padding: 5px">
+							<a href="javascript:void(0)" class="easyui-linkbutton" 
+								data-options="iconCls:'icon-add'" plain="false"
+								onclick="addToResponse()">添加</a>
+         				</div>
+         			</div>
+         			<!-- 插入其他形式答案 window end--> 
+					
+					
+					
+				</div>
+				
+		<div id="elementdialog" class="easyui-dialog" title="场景要素" style="padding: 10px;">
+
+					<div>
+						<div id="elementnamedatagrid_tb" style="height: 30px;">
+							<span style="font-size: 12px; margin-left: 10px">场景要素：</span>
+							<input id="selelementname" type="text" class="easyui-textbox"
+								style="width: 320px;" />
+							<a style="margin: 0 10px" class="easyui-linkbutton" plain="fasle"
+								iconCls="icon-search" onclick="searchElementName()">查询</a>
+						</div>
+						<table id="elementnamedatagrid"></table>
+						<div style="margin: 20px 0 0 0;"></div>
+
+						<!--场景要素编辑区 window start  -->
+						<div id="elementedit_w" class="easyui-window" title="编辑场景要素"
+							data-options="modal:true,closed:true,iconCls:'icon-save'"
+							style="width: 500px; height: 400px; padding: 10px;">
+							<form id="elementnameform" class="easyui-form" method="post"
+								data-options="novalidate:true">
+								<table cellpadding="3"
+									style="text-align: center; margin: 0 auto;">
+									<tr>
+										<td>
+											场景要素:
+										</td>
+										<td>
+											<input id="elementnametextbox" class="easyui-textbox"
+												style="width: 300px;" type="text"
+												data-options="required:true,missingMessage:'属性名称不能为空!'"></input>
+										</td>
+									</tr>
+									<tr>
+										<td>
+											优先级&nbsp;&nbsp;:
+										</td>
+										<td>
+											<input id="weightcombobox" style="width: 300px;"></input>
+										</td>
+									</tr>
+									<tr style="display:none;">
+										<td>
+											对应词类:
+										</td>
+										<td>
+											<input id="wordclasstextbox" class="easyui-combobox"
+												style="width: 300px;" type="text"></input>
+										</td>
+									</tr>
+
+									<tr style="display:none;">
+										<td>
+											对应信息表列:
+										</td>
+										<td>
+											<input id="infotalbepath" class="easyui-combobox"
+												style="width: 300px;" type="text"></input>
+										</td>
+									</tr>
+
+
+									<tr>
+										<td>
+											对应地市:
+										</td>
+										<td>
+											<input id="city" class="easyui-textbox" style="width: 300px;"
+												type="text"></input>
+										</td>
+									</tr>
+
+									<tr>
+										<td>
+											填写方式:
+										</td>
+										<td>
+											<select id="itemmode" class="easyui-combobox"
+												name="itemmode_name" style="width: 300px;">
+												<option value="勾选">勾选</option>
+												<option value="自定义">自定义</option>
+												<option value="勾选+自定义">勾选+自定义</option>
+											</select>
+										</td>
+									</tr>
+
+									<tr>
+										<td>
+											归属:
+										</td>
+										<td>
+											<select id="container" class="easyui-combobox"
+												name="itemmode_name" style="width: 300px;">
+												<option value="键值补全">菜单询问用户</option>
+												<option value="词模匹配">系统反问</option>
+											</select>
+										</td>
+									</tr>
+
+									<tr>
+										<td>
+											交互口径:
+										</td>
+										<td>
+											<textarea name="" cols="5" rows="5" id="interpat"
+												style="width: 300px; font-size: 12px;"></textarea>
+										</td>
+									</tr>
+
+								</table>
+							</form>
+							<div style="text-align: center; padding: 5px">
+								<a href="javascript:void(0)" class="easyui-linkbutton"
+									data-options="iconCls:'icon-save'" plain="false"
+									onclick="submitElementNameForm()">保存</a>
+								<a href="javascript:void(0)" class="easyui-linkbutton"
+									data-options="iconCls:'icon-clear'" plain="false"
+									onclick="clearElementNameForm()">清空</a>
+							</div>
+
+						</div>
+
+					</div>
+
+					<!-- 场景要素值 window end -->
+					<div id="elementvalueedit_w" class="easyui-window" title="编辑场景要素值"
+						data-options="modal:true,closed:true,iconCls:'icon-save'"
+						style="width: 650px; height: 500px; padding: 10px;">
+						<div style="margin-left: 30px; width: 580px; text-align: center">
+							<div id="elementvaluedatagrid_tb" style="height: 30px;">
+								<span style="font-size: 12px; margin-left: 10px">场景要素值：</span>
+								<input id="selelementvalue" type="text" class="easyui-textbox"
+									style="width: 150px;" />
+								<a href="javascript:void(0)" style="margin-left: 5px"
+									class="easyui-linkbutton" plain="fasle" iconCls="icon-search"
+									onclick="searchElementValue()">查询</a>
+								<a href="javascript:void(0)" style="margin-left: 5px"
+									class="easyui-linkbutton" data-options="iconCls:'icon-save'"
+									plain="false" onclick="insertElementValue()">保存</a>
+								<a href="javascript:void(0)" style="margin-left: 5px"
+									class="easyui-linkbutton" data-options="iconCls:'icon-clear'"
+									plain="false" onclick="clearElementValueForm()">清空</a>
+							</div>
+							<table id="elementvaluedatagrid"></table>
+
+							<!-- 
+							<div style="margin:20px 0 0 0;"></div>
+							<div class="easyui-panel" title="问题要素值编辑区" style="width:350px;height:auto;padding-top:10px;">
+								<form id="elementvalueform" class="easyui-form" method="post" data-options="novalidate:true">
+							    	<table cellpadding="3" style="text-align:center;margin:0 auto;">
+							    		<tr>
+							    			<td>属性值:</td>
+							    			<td><input id="elementvaluetextbox" class="easyui-textbox" style="width:200px;" type="text" data-options="required:true,missingMessage:'属性值不能为空!'"></input></td>
+							    		</tr>
+							    	</table>
+							    </form>
+							    <div style="text-align:center;padding:5px">
+							    	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" plain="false" onclick="submitElementValueForm()">保存</a>
+							    	<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" plain="false" onclick="clearElementValueForm()">清空</a>
+							    </div>
+							</div>   -->
+
+						</div>
+					</div>
+					<!-- 场景要素值 window end -->
+
+
+
+
+
+				</div>		
+				
+		</div>
+		
+        
+		
+
+	</div>
+		
+	</div>
+
+	<script type="text/javascript">
+    //实例化编辑器
+    var um = UM.getEditor('myEditor');
+    
+</script>
+
+
+</body>
+</html>
