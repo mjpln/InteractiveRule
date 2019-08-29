@@ -1471,8 +1471,10 @@ public class InteractiveSceneCallOutDAO {
 		// 将结果转化为json对象
 		// 定义返回值后面的编者
 		String autor = "编者=\"" + user.getUserName() + "\"";
-
-		return getResult(result, autor);
+		jsonObj = (JSONObject) getResult(result, autor);
+		result = jsonObj.getString("result").replaceAll("\\s*", "");
+		jsonObj.put("result", result);
+		return jsonObj;
 	}
 
 	/**

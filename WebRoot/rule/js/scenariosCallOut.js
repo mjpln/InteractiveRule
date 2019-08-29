@@ -2373,7 +2373,7 @@ function addAutoWordpat() {
         rvalue = '&针对问题="' + targetedquery + '"';
     }
     var inputValue = $("#autoworrdpat-nextabs-div input[name='autoworrdpat-radio']:checked").next("span").text();
-    var wordpat = inputValue + rvalue;
+    var wordpat = inputValue.replace(/\s*/g,"") + rvalue;
     $("#customerAnswerAdd-wordclasses").val(wordpat);
     // 关闭自学习词模页面
 	$('#autoworrdpat').window('close');
