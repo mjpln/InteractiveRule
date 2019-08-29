@@ -19,6 +19,7 @@
 <script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/umeditor.min.js"></script>
 <script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/lang/zh-cn/zh-cn.js"></script>
 <script type="text/javascript" src="./js/scenariosCallOut.js"></script>
+<script type="text/javascript" src="./js/validate.js"></script>
 <script type="text/javascript">
 	//获取浏览器页面可见高度和宽度
 	var _PageHeight = document.documentElement.clientHeight, _PageWidth = document.documentElement.clientWidth;
@@ -180,18 +181,13 @@
 					<tr>
 						<td>
 							<span>&nbsp;&nbsp;<input id="sms-checkbox" type="checkbox"/>发送短信</span>
-							<span id="sms-templete-span" style="display:none;">
+							<span id="sms-template-span" style="display:none;">
 								<br/><br/>
 								短信模板：
-								<select id="templateId" class="easyui-combobox" style="width: 200px;">
-									<option value="123456">测试短信模板</option>
-								</select>
+								<input id="templateId" name="templateId" class="easyui-combobox" style="width: 200px;"/>
+								<br/>
 							</span>
-							<span id="sms-varibales-span" style="display:none;" >
-								<br/>
-								变量名1：<input id="variableName1" class="easyui-textbox" style="width: 200px;"/>
-								<br/>
-								变量名2：<input id="variableName2" class="easyui-textbox" style="width: 200px;"/>
+							<span id="sms-varibales-span">
 							</span>
 						</td>
 					</tr>
@@ -213,31 +209,32 @@
 		    	<table id="collection-table" style="width:100%;">
 		    		<tr>
 						<td>
-							<span>信息名称：</span>
+							<span><span style='color:red'>*</span>信息名称：</span>
 							<span><input id="collectionName" class="easyui-textbox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<span>参数名称：</span>
-							<span><input id="collectionParam" class="easyui-textbox" style="width: 240px;"/></span>
+							<span><span style='color:red'>*</span>参数名称：</span>
+							<span><input id="collectionParam" class="easyui-textbox" style="width: 240px;"
+									data-options="prompt:'参数名称只能使用英文字母,不能使用数字、符号、中文'"/></span>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<span>信息类型：</span>
+							<span><span style='color:red'>*</span>信息类型：</span>
 							<span><input id="collectionType" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<span>重复次数：</span>
+							<span><span style='color:red'>*</span>重复次数：</span>
 							<span><input id="collectionTimes" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<span>反问话术：</span>
+							<span><span style='color:red'>*</span>反问话术：</span>
 							<span><textarea id="collectionWords" style="width: 240px; height:100px; font-size: 12px;"></textarea></span>
 						</td>
 					</tr>
@@ -259,25 +256,31 @@
             <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
             <form id="dTMFPressform" style="padding-right: 5px;padding-left:5px;font-size: 13px;">
                 <div class="form-div">
-                    <div class="form-div"><span style='color:red'>*</span>DTMF名称：</div>
+                    <div class="form-div">
+                    	<span style='color:red'>*</span>
+                    	<span>DTMF名称：</span>
+                    </div>
                     <input class="easyui-textbox" name="txt_dtmf_name" data-options="prompt:'DTMF名称'" style="width: 240px;"/></div>
                 <div class="form-div">
-                    <div class="form-div"><span style='color:red'>*</span>DTMF别名：</div>
-                    <input class="easyui-textbox" name="txt_dtmf_alias" data-options="prompt:'请输入别名'" style="width: 240px;"/>
+                    <div class="form-div">
+                    	<span style='color:red'>*</span>
+                    	<span title='1. DTMF别名用于给条件、动作、信息收集等组件传递参数时使用;<br>2. 非必填项目,别名只能使用英文字母,不能使用数字、符号、中文;' class='easyui-tooltip'>DTMF别名：</span>
+                    </div>
+                    <input class="easyui-textbox" name="txt_dtmf_alias" data-options="prompt:'别名只能使用英文字母,不能使用数字、符号、中文'" style="width: 240px;"/>
                 </div>
-                <div style="margin-bottom: 5px;width: 100%;">
-                    <div style="margin-bottom: 5px;width: 100%;">
+                <div class="form-div">
+                    <div class="form-div">
                         <span style='color:red'>*</span>
-                        <span title='1. DTMF别名用于给条件、动作、信息收集等组件传递参数时使用;<br>2. 非必填项目,别名只能使用英文字母,不能使用数字、符号、中文;' class='easyui-tooltip'>DTMF话术:</span>
+                        <span>DTMF话术:</span>
                     </div>
                     <input class="easyui-textbox" name="txt_dtmf_answer" multiline="true" style="width: 240px;height: 100px;"
                            data-options="prompt:'请输入AI无法识别时,反问用户的话术(&quot;*&quot;号请用&quot;星&quot;字替换，&quot;#&quot;字请用&quot;井&quot;字替换)'"/></div>
-                <div style="margin-bottom: 5px;width: 100%;">
+                <div class="form-div">
                     <span width="30%">等待录音</span>
                     <span style="float: right;"><input class="easyui-combobox" id="comb_sentence_var" data-options="prompt:'请选择变量'" editable="false" style="width: 150px;"/></span>
                 </div>
-                <div style="margin-bottom: 5px;width: 100%;"><span style='color:red'>*</span><span style="font-weight: bold ">DTMF设置</span></div>
-                <div style="margin-bottom: 5px;width: 100%;">
+                <div class="form-div"><span style='color:red'>*</span><span style="font-weight: bold ">DTMF设置</span></div>
+                <div class="form-div">
                     <input name="presstype">
                     <input name="presstype">
                 </div>
@@ -316,17 +319,17 @@
         
         <!-- 转人工组件 window start -->
         <div id="myTransferDiv" tabindex="0"
-             style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:400px;height: 600px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
+             style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:240px;height: 500px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
             <div><span>AI转人工</span></div>
             <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
 
             <form id="Transferform" style="padding-right: 10px;padding-left:10px;font-size: 13px;">
                 <div class="form-div">
                     <div class="form-div">AI转人工名称<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" name="txt_transfer_name" data-options="prompt:'请输入名称'" style="width: 100%;"/></div>
+                    <input class="easyui-textbox" id="txt_transfer_name" name="txt_transfer_name" data-options="prompt:'请输入名称'" style="width: 100%;"/></div>
                 <div class="form-div">
                     <div class="form-div">人工服务号码<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" name="txt_transfer_number" data-options="prompt:'请输入人工电话号码'" style="width: 100%;"/></div>
+                    <input class="easyui-textbox" id="txt_transfer_number" name="txt_transfer_number" data-options="prompt:'请输入人工电话号码'" style="width: 100%;"/></div>
             </form>
             <div style="text-align: center; padding: 10px">
                 <a id="saveTransfer" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
@@ -337,24 +340,26 @@
         
         <!-- 动作组件 window start -->
         <div id="myURLActionDiv" tabindex="0"
-             style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:400px;height: 500px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
+             style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:240px;height: 500px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
             <div><span>动作组件</span></div>
             <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
             <form id="URLActionform" style="padding-right: 10px;padding-left:10px;font-size: 13px;">
                 <div class="form-div">
                     <div class="form-div">节点名称<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" name="txt_action_name" data-options="prompt:'动作'" style="width: 100%;height: 30px"/></div>
+                    <input class="easyui-textbox" id="txt_action_name" name="txt_action_name" data-options="prompt:'动作'" style="width: 100%;height: 30px"/></div>
                 <div class="form-div">
                     <div class="form-div">接口地址<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" name="txt_action_url" data-options="prompt:'URL'" style="width: 100%;height: 30px"/></div>
+                    <input class="easyui-textbox" id="txt_action_url" name="txt_action_url" data-options="prompt:'URL'" style="width: 100%;height: 30px"/></div>
                 <div class="form-div">
                     <div class="form-div">请求方法<span style='color:red'>*</span>：</div>
-                    <input class="easyui-combobox" name="txt_action_method" data-options="prompt:'方法'" style="width: 100%;height: 30px"/></div>
+                    <input class="easyui-combobox" id="txt_action_method" name="txt_action_method" data-options="prompt:'方法',valueField:'value',textField:'text',data: [ {'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}]" style="width: 100%;height: 30px"/></div>
                 <div class="form-div">
-                    <div class="form-div" id="key_vals_div">
-                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+                    <div class="form-div" id="in_key_vals_div">
+                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">入参</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
                     </div>
-                    <a id="addKey_val" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add'">新增</a>
+                    <div class="form-div" id="out_key_vals_div">
+                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">出参</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+                    </div>
                     <a id="testAction" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'">测试</a>
                 </div>
             </form>

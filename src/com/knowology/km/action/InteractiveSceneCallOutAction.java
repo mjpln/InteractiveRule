@@ -18,8 +18,9 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 	private String customeranswer;
 	private String simplewordpat;
 	private String wordpattype;
-
 	private String ioa;
+	private String actionUrl;
+	private String actionName;
 
 	public Object execute() {
 		if ("saveConfig".equals(type)) { // 解析并保存流程图
@@ -45,11 +46,20 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 			m_result = InteractiveSceneCallOutDAO.initCustomerAnswer(scenariosid);
 		}
 		if ("querySmsTemplate".equals(type)) {// 查询短信模板
-			m_result = InteractiveSceneCallOutDAO.querySmsTemplate();
+			m_result = InteractiveSceneCallOutDAO.querySmsTemplate(scenariosid);
 		}
 		if ("queryCollectionType".equals(type)) {// 查询信息收集类型
 			m_result = InteractiveSceneCallOutDAO.initCollectionType(scenariosid);
 		}
+		if ("queryPhoneAttributeNames".equals(type)) {// 查询号码属性
+			m_result = InteractiveSceneCallOutDAO.queryPhoneAttributeNames();
+		}
+		if ("testUrl".equals(type)) {// 测试URL
+			m_result = InteractiveSceneCallOutDAO.testURLAction(actionUrl);
+		}
+		if ("checkUrlActionName".equals(type)) {// 校验接口名称是否重复
+			m_result = InteractiveSceneCallOutDAO.checkUrlActionName(actionName);
+		}	
 		return "success";
 	}
 
@@ -145,4 +155,19 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 		this.ioa = ioa;
 	}
 
+	public String getActionUrl() {
+		return actionUrl;
+	}
+
+	public void setActionUrl(String actionUrl) {
+		this.actionUrl = actionUrl;
+	}
+
+	public String getActionName() {
+		return actionName;
+	}
+
+	public void setActionName(String actionName) {
+		this.actionName = actionName;
+	}
 }

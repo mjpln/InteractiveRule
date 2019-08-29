@@ -12,16 +12,17 @@ var customerAnswerSelectId;
 var otherResponseNames=[];
 var otherResponseValues=[];
 
+// 短信模板
 var smsTemplates;
+
+// 号码属性
+var phoneAttributeNames;
 
 //用于定义模板的简洁性
 var $GO = go.GraphObject.make;
 
 // 定义图表对象
 var myDiagram;
-
-var condCnt=0;
-var key_valCnt = 0;
 
 $(function() {
 	
@@ -64,7 +65,10 @@ $(function() {
 	initCustomerAnswer();
 	
 	// 初始化短信模板
-	//initSmsTemplate();
+	initSmsTemplate();
+	
+	// 初始化号码属性
+	initPhoneAttributeNames();
 	
 	// 初始化信息收集类型
 	initCollectionType();
@@ -193,32 +197,59 @@ function initSmsTemplate() {
 		url : '../saveConfiguration.action',
 		type : "post",
 		data : {
-			type : 'querySmsTemplate'
+			type : 'querySmsTemplate',
+			scenariosid : publicscenariosid
 		},
 		async : false,
 		dataType : "json",
 		success : function(data, textStatus, jqXHR) {
 			if(data.success) {
 				smsTemplates = data.rows;
-				// 短信模板下拉框
-				for(var i=0; i<smsTemplates.length; i++) {
-					$("#templateId").html('');
-					$("#templateId").append('<option value="'+smsTemplates[i].templateId+'">'+smsTemplates[i].templateName+'</option>');
-				}
-				// 短信模板变量
-				$("#templateId").change(function(){  
-					$("#sms-varibales-span").html('');
-					if(smsTemplates != null && smsTemplates.length > 0) {
-						for(var i=0; i<smsTemplates.length; i++) {
-							if($("#templateId").val() == smsTemplates[i].templateId) {
-								var variableNames = smsTemplates[i].variableNames;
-								for(var i=0; i<variableNames.length; i++) {
-									$("#sms-varibales-span").append('<br/>'+variableNames[j]+'：<input id="'+variableNames[j]+'" class="easyui-textbox" style="width: 200px;"/>');
+				if(smsTemplates != null && smsTemplates.length > 0) {
+					// 短信模板下拉框
+					$("#templateId").combobox({
+						width: 240,
+						valueField: 'templateId',    
+				        textField: 'templateName',
+				        data : smsTemplates,
+				        onChange: function(newVal, oldVal) {
+				        	// 短信模板变量
+				        	$("#sms-varibales-span").empty();
+							if(smsTemplates != null && smsTemplates.length > 0) {
+								for(var i=0; i<smsTemplates.length; i++) {
+									if(newVal == smsTemplates[i].templateId) {
+										var variableNames = smsTemplates[i].variableNames;
+										for(var j=0; j<variableNames.length; j++) {
+											var variableInputName = variableNames[j];
+											$("#sms-varibales-span").append(variableInputName+":<br/>");
+											var variableInputHtml = '<input type="text" id="'+variableInputName+'" name="'+variableInputName+'" style="width: 240px;"/>';
+											$("#sms-varibales-span").append(variableInputHtml);
+											$("#sms-varibales-span").append("<br/>");
+										}
+									}
 								}
 							}
-						}
-					}
-			    });   
+				        } 
+					});
+				}
+			}
+		}
+	});
+}
+
+// 初始化号码属性
+function initPhoneAttributeNames() {
+	$.ajax({
+		url : '../saveConfiguration.action',
+		type : "post",
+		data : {
+			type : 'queryPhoneAttributeNames'
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				phoneAttributeNames = data.rows;
 			}
 		}
 	});
@@ -312,13 +343,15 @@ function initTransfer()
 
 var condition = "<div class=\"form-div\">" +
 "                            <div class=\"form-div\"> " +
-"								 <input class=\"easyui-textbox\" name=\"param_name\" data-options=\"prompt:'name'\" style=\"width: 80%; height: 25px;\"/>" +
+"								 <input class=\"easyui-combobox\" name=\"variable_type\" data-options=\"prompt:'变量类型'\" style=\"width: 200px; height: 25px;\"/>" +
+"								 <input class=\"easyui-combobox\" name=\"param_name_combobox\" data-options=\"prompt:'客户属性'\" style=\"width: 200px; height: 25px;\"/>" +
+"								 <input class=\"easyui-textbox\" name=\"param_name_textbox\" data-options=\"prompt:'其他变量'\" style=\"width: 200px; height: 25px;\"/>" +
 "								 <a style='width: 20px;height: 10px' href=\"javascript:void(0)\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-remove'\">+移除</a>" +
 "							 </div>" +
-"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_relation\" data-options=\"prompt:'比较关系',valueField: 'id',textField: 'text',data: [{id: '大于', text: '大于'},{ id: '小于', text: '小于'},{ id: '等于', text: '等于'}]\" style=\"width: 80%; height: 25px;\"/></div>" +
-"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_type\" data-options=\"prompt:'类型',valueField: 'id',textField: 'text',data: [{id: 'String', text: 'String'},{ id: 'Integer', text: 'Integer'},{ id: 'Variable', text: 'Variable'}]\" style=\"width: 40%; height: 25px;\"/>" +
-"                                <input class=\"easyui-textbox\" name=\"param_value\" data-options=\"prompt:'name'\" style=\"width: 40%; height: 25px;\"/></div>" +
-"                            <div class=\"form-div\">" +
+"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_relation\" data-options=\"prompt:'比较关系',valueField: 'id',textField: 'text',data: [{id: '大于', text: '大于'},{ id: '小于', text: '小于'},{ id: '等于', text: '等于'},{ id: '不等于', text: '不等于'},{ id: '大于等于', text: '大于等于'},{ id: '小于等于', text: '小于等于'}]\" style=\"width: 200px; height: 25px;\"/></div>" +
+"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_type\" data-options=\"prompt:'类型',valueField: 'id',textField: 'text',data: [{id: 'String', text: 'String'},{ id: 'Integer', text: 'Integer'},{ id: 'Variable', text: 'Variable'}]\" style=\"width: 100px; height: 25px;\"/>" +
+"                                <input class=\"easyui-textbox\" name=\"param_value\" data-options=\"prompt:'name'\" style=\"width: 100px; height: 25px;\"/></div>" +
+"                            <div class=\"form-div updown\">" +
 "                                <div style=\"padding:3px;float:left;width: 20%\"> <input type=\"checkbox\" name=\"isUpDown\"  style=\"width:30%\"><span style=\"width: 70%\">浮动</span></div>" +
 "                                <div style=\"width: 80%\">" +
 "                                    <input class=\"easyui-combobox\" name=\"upDownType\" data-options=\"prompt:'上下浮动',valueField: 'id',textField: 'text',data: [{id: '0', text: '上浮'},{ id: '1', text: '下浮'}]\" style=\"width: 30%\"/>" +
@@ -328,7 +361,7 @@ var condition = "<div class=\"form-div\">" +
 "                        </div>";
 
 
-var addAnd = " <div class=\"form-div\" style=\"padding-top: 5px;background: #E2E2E2;\">" +
+var addAnd = " <div class=\"form-div condition-div\" style=\"padding-top: 5px;background: #E2E2E2;\">" +
 "                        <div add=\"andconditions\">" +
 "                            " +
 "                        </div>"+
@@ -368,9 +401,11 @@ function addOneCondition(conditionIdx, variableIdx) {
 	    	   $(this).parent().parent().find("div").eq(1).fadeIn("slow");
 	       }
 	    });
-	    cpUpdown.prop("checked",false );
-
-	    var paramNameInput = "param_name" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    cpUpdown.prop("checked",false);
+	    
+	    var variableTypeInput = "variable_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    var paramNameComboboxInput = "param_name_combobox" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    var paramNameTextboxInput = "param_name_textbox" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var paramRelationInput = "param_relation" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var paramTypeInput = "param_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var paramValueInput = "param_value" + "_cdt"+conditionIdx + "_and"+variableIdx;
@@ -378,7 +413,9 @@ function addOneCondition(conditionIdx, variableIdx) {
 	    var upDownTypeInput = "upDownType" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var updownRatioInput = "updownRatio" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    
-	    cpCondition.find("input[name='param_name']").attr("name", paramNameInput);
+	    cpCondition.find("input[name='variable_type']").attr("name", variableTypeInput);
+	    cpCondition.find("input[name='param_name_combobox']").attr("name", paramNameComboboxInput);
+	    cpCondition.find("input[name='param_name_textbox']").attr("name", paramNameTextboxInput);
 	    cpCondition.find("input[name='param_relation']").attr("name", paramRelationInput);
 	    cpCondition.find("input[name='param_type']").attr("name", paramTypeInput);
 	    cpCondition.find("input[name='param_value']").attr("name", paramValueInput);
@@ -386,7 +423,9 @@ function addOneCondition(conditionIdx, variableIdx) {
 	    cpCondition.find("input[name='upDownType']").attr("name", upDownTypeInput);
 	    cpCondition.find("input[name='updownRatio']").attr("name", updownRatioInput);
 	    
-	    cpCondition.find("input[name='"+paramNameInput+"']").attr("id", paramNameInput);
+	    cpCondition.find("input[name='"+variableTypeInput+"']").attr("id", variableTypeInput);
+	    cpCondition.find("input[name='"+paramNameComboboxInput+"']").attr("id", paramNameComboboxInput);
+	    cpCondition.find("input[name='"+paramNameTextboxInput+"']").attr("id", paramNameTextboxInput);
 	    cpCondition.find("input[name='"+paramRelationInput+"']").attr("id", paramRelationInput);
 	    cpCondition.find("input[name='"+paramTypeInput+"']").attr("id", paramTypeInput);
 	    cpCondition.find("input[name='"+paramValueInput+"']").attr("id", paramValueInput);
@@ -399,11 +438,38 @@ function addOneCondition(conditionIdx, variableIdx) {
 	    var nodeHr =andcd.append(cphr);
 	    $.parser.parse(cpCondition);
 		$.parser.parse(cphr);
+		
+		$("#"+paramNameComboboxInput).combobox({
+			valueField: 'attributeName',    
+	        textField: 'attributeDesc',
+	        data : phoneAttributeNames
+		});
+		
+		$(".updown").hide();
+		$("#"+paramNameComboboxInput).next().hide();
+		$("#"+paramNameTextboxInput).next().hide();
+		
+		// 初始化变量类型
+		$("#"+variableTypeInput).combobox({
+			valueField: 'id',    
+	        textField: 'text',
+	        data : [{'text': '号码属性', 'id': 'phoneAttr'},{'text': '其他变量', 'id': 'otherAttr'}],
+	        onChange: function(newVal, oldVal) {
+				if(newVal == "phoneAttr") {
+					$("#"+paramNameComboboxInput).next().show();
+					$("#"+paramNameTextboxInput).next().hide();
+				} 
+				if(newVal == "otherAttr") {
+					$("#"+paramNameComboboxInput).next().hide();
+					$("#"+paramNameTextboxInput).next().show();
+				}
+	        } 
+		});
 	};
 
 	var cphr=$("<hr style=\"width:240px;height:1px;border:none;border-top:2px dashed #0066CC;\" />");
 	nodetmp = $("#conditions").find("div").eq(0).append(cphr);
-	$.parser.parse(cphr );
+	$.parser.parse(cphr);
 
 	var cpAction = cpAddAnd.find("#addAndCondition").find("a");
 	cpAction.eq(0).attr("id","andBtn" + "_cdt"+conditionIdx);
@@ -417,7 +483,6 @@ function addOneCondition(conditionIdx, variableIdx) {
 		cpAction.eq(1).bind("click",function () {
 			$(this).parent().parent().remove();
 			cphr.remove();
-			condCnt--;
 		})
 	}
 	addVariable(conditionIdx, variableIdx++);
@@ -425,27 +490,94 @@ function addOneCondition(conditionIdx, variableIdx) {
 
 function initCondition(){
 	$("#addCondition").bind("click",function () {
-		addOneCondition(condCnt, 0);
-		condCnt++;
+		var conditionDivs = $("#conditions").find("div").eq(0).find('.condition-div');
+		var conditionCount = conditionDivs.length;
+		addOneCondition(conditionCount, 0);
 	});
 }
+
+var inKeyDiv = "<div class=\"form-div in-key\">" +
+					"<input name=\"in_key\" style=\"float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;\">" +
+					"<input name=\"in_value\" style=\"float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;\"> " +
+					"<a href=\"javascript:addInKeyDiv()\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-add'\"></a>" +
+					"<a href=\"javascript:void(0)\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-remove'\"></a>" +
+				"</div>";
+var outKeyDiv = "<div class=\"form-div out-key\">" +
+					"<input name=\"out_key\" style=\"float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;\">" +
+					"<input name=\"out_value\" style=\"float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;\"> " +
+					"<a href=\"javascript:addOutKeyDiv()\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-add'\"></a>" +
+					"<a href=\"javascript:void(0)\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-remove'\"></a>" +
+				"</div>";
+
+function addInKeyDiv() {
+	var inKey = $(inKeyDiv);
+	var inKeyDivs = $("#in_key_vals_div").find('.in-key');
+	var inKeyIndex = inKeyDivs.length;
+	
+	var inKeyNameInput = "in_key_"+inKeyIndex;
+	inKey.find("input[name='in_key']").attr("name", inKeyNameInput);
+	inKey.find("input[name='"+inKeyNameInput+"']").attr("id", inKeyNameInput);
+	
+	var inValueNameInput = "in_value_"+inKeyIndex;
+	inKey.find("input[name='in_value']").attr("name", inValueNameInput);
+	inKey.find("input[name='"+inValueNameInput+"']").attr("id", inValueNameInput);
+	
+	inKey.find('a').eq(1).bind('click', function () {
+		this.parentNode.remove();
+	});
+	if(0==inKeyIndex) {
+		inKey.find('a').eq(1).remove();
+	} 
+	var append = $("#in_key_vals_div").append(inKey);
+	$.parser.parse(append);
+}
+
+function addOutKeyDiv() {
+	var outKey = $(outKeyDiv);
+	var outKeyDivs = $("#out_key_vals_div").find('.out-key');
+	var outKeyIndex = outKeyDivs.length;
+	
+	var outKeyNameInput = "out_key_"+outKeyIndex;
+	outKey.find("input[name='out_key']").attr("name", outKeyNameInput);
+	outKey.find("input[name='"+outKeyNameInput+"']").attr("id", outKeyNameInput);
+	
+	var outValueNameInput = "out_value_"+outKeyIndex;
+	outKey.find("input[name='out_value']").attr("name", outValueNameInput);
+	outKey.find("input[name='"+outValueNameInput+"']").attr("id", outValueNameInput);
+	
+	outKey.find('a').eq(1).bind('click', function () {
+		this.parentNode.remove();
+	});
+	if(0==outKeyIndex) {
+		outKey.find('a').eq(1).remove();
+	}
+	var append = $("#out_key_vals_div").append(outKey);
+	$.parser.parse(append);
+}
+
 function initURLAction(){
-	$("#addKey_val").bind("click", function () {
-		var node = $("<div class=\"form-div\"><input style=\"float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;\"></input><input style=\"height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;\"> <a href=\"javascript:void(0)\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-remove'\">删除</a></div>");
-		key_valCnt++;
-		node.find("input").each(function (index, ele) {
-			if (index == 0) {
-				$(ele).attr("name", "key_" + key_valCnt);
-			}
-			else {
-				$(ele).attr("name", "val_" + key_valCnt);
+	addInKeyDiv();
+	addOutKeyDiv();
+	// 测试URL
+	$('#testAction').click(function() {
+		var actionUrl = $("#txt_action_url").textbox("getValue");
+		$.ajax({
+			url : '../saveConfiguration.action',
+			type : "post",
+			data : {
+				type : 'testUrl',
+				actionUrl : actionUrl
+			},
+			async : false,
+			dataType : "json",
+			success : function(data, textStatus, jqXHR) {
+				if(data.success) {
+					$.messager.alert("提示","测试成功","info");
+				} else {
+					$.messager.alert("提示","测试失败","info");
+				}
 			}
 		});
-		node.find("a").bind('click', function () {
-			this.parentNode.remove();
-		})
-		var appd = $("#key_vals_div").append(node);
-		$.parser.parse(appd);
 	});
 }
 
@@ -883,12 +1015,6 @@ function makeGraphObject() {
 					new go.Binding("width", "width"),
 					new go.Binding("height", "height"),
 					new go.Binding("margin", "margin"))), 
-					$GO(go.TextBlock, {
-						margin : 0,
-						maxSize : new go.Size(0, 0),
-						editable : false,
-						visible : false
-					}, new go.Binding("text", "response").makeTwoWay()), 
 					makePort("T", go.Spot.Top, go.Spot.Top, false, true)));
 
 
@@ -922,12 +1048,6 @@ function makeGraphObject() {
 				new go.Binding("width", "width"),
 				new go.Binding("height", "height"),
 				new go.Binding("margin", "margin"))), 
-				$GO(go.TextBlock, {
-					margin : 0,
-					maxSize : new go.Size(0, 0),
-					editable : false,
-					visible : false
-				}, new go.Binding("text", "response").makeTwoWay()), 
 				makePort("T", go.Spot.Top, go.Spot.Top, false, true),
 				makePort("B", go.Spot.Bottom, go.Spot.Bottom, true, false)));
 		
@@ -1123,7 +1243,10 @@ function loadDiagramData() {
 					"key" : 'Start',
 					"category" : "Start",
 					"loc" : "1 0",
-					"text" : "开始"
+					"text" : "开始",
+					"width": 50,
+					"height": NaN,
+					"margin": new go.Margin(5, 10, 5, 30)
 				}];
 				myDiagram.model.nodeDataArray = nodeDataArray;
 			}
@@ -1163,6 +1286,10 @@ function makePalette() {
 			width: 50,
 			height: 20,
 			margin: 0,
+			collectionParam: '',
+			collectionType: '',
+			collectionTimes: '',
+			collectionWords: ''
 		},{
 			key : "DTMFPress",
 			category : "DTMFPress",
@@ -1170,6 +1297,16 @@ function makePalette() {
 			width: 50,
 			height: 20,
 			margin: 0,
+			txt_dtmf_name: '',
+			txt_dtmf_alias: '',
+			txt_dtmf_answer: '',
+			txt_min_length: '',
+			txt_max_length: '',
+			comb_finish_press: '',
+			txt_press_numbers: '',
+			txt_press_timeout: '',
+			txt_press_timeout_answer: '',
+			comb_attempt_limit: '',
 			bottomArray : [],
 		},{
 			key : "URLAction",
@@ -1178,6 +1315,12 @@ function makePalette() {
 			width: 50,
 			height: 20,
 			margin: 0,
+			interfaceName:'',
+			txt_action_name:'',
+			txt_action_url:'',
+			txt_action_method:'',
+			inKeys:[],
+			outKeys:[]
 		},{
 			key : "Condition",
 			category : "Condition",
@@ -1185,6 +1328,8 @@ function makePalette() {
 			width: 50,
 			height: 20,
 			margin: 0,
+			txt_condition_name: '',
+			conditions: []
 		},{
 			key : "Transfer",
 			category : "Transfer",
@@ -1192,6 +1337,8 @@ function makePalette() {
 			width: 50,
 			height: 20,
 			margin: 0,
+			txt_transfer_name: '',
+			txt_transfer_number: ''
 		},{
 			key : "End",
 			category : "End",
@@ -1253,6 +1400,16 @@ function addListenerEvents() {
 					myDiagram.model.setDataProperty(nodeData, 'margin', new go.Margin(5, 10, 40, 10));
 					myDiagram.model.setDataProperty(nodeData, 'bottomArray', []);
 				}
+				if (nodeData.category == "Transfer") {
+					myDiagram.model.setDataProperty(nodeData, 'width', 200);
+					myDiagram.model.setDataProperty(nodeData, 'height', NaN);
+					myDiagram.model.setDataProperty(nodeData, 'margin', 10);
+				}
+				if (nodeData.category == "URLAction") {
+					myDiagram.model.setDataProperty(nodeData, 'width', 200);
+					myDiagram.model.setDataProperty(nodeData, 'height', NaN);
+					myDiagram.model.setDataProperty(nodeData, 'margin', 10);
+				}
 				if (nodeData.category == "End") {
 					myDiagram.model.setDataProperty(nodeData, 'width', 100);
 					myDiagram.model.setDataProperty(nodeData, 'height', NaN);
@@ -1268,9 +1425,9 @@ function addListenerEvents() {
 		var nodeData = subject.part.data;
 		var from = nodeData.from;
 		var to = nodeData.to;
-		if (from.match("Normal") && to.match("Normal")) {
-			//myDiagram.commandHandler.deleteSelection();
-			//$.messager.alert('警告', "不允许矩形到矩形的直连", "error");
+		if (from.match("Condition") && to.match("Condition")) {
+			myDiagram.commandHandler.deleteSelection();
+			$.messager.alert('警告', "不允许条件组件到条件组件的直连", "error");
 		}
 	});
 	
@@ -1285,14 +1442,25 @@ function addListenerEvents() {
 			setTTSResponseValue();
 			$('#customer-answer-table').show();
 			$('#myNormalEditDiv').show();
+			$('#myConditionDiv').hide();
+			$('#myCollectionEditDiv').hide();
+			$('#myDTMFPressDiv').hide();
+			$('#myURLActionDiv').hide();
+			$('#myTransferDiv').hide();
 		} 
 		if (nodeData.category == "End") {
 			// 回复编辑内容赋值
 			setTTSResponseValue();
 			$('#customer-answer-table').hide();
 			$('#myNormalEditDiv').show();
+			$('#myConditionDiv').hide();
+			$('#myCollectionEditDiv').hide();
+			$('#myDTMFPressDiv').hide();
+			$('#myURLActionDiv').hide();
+			$('#myTransferDiv').hide();
 		}
 		if (nodeData.category == "Collection") {
+			$('#collectionform').form('clear');
 			// 信息收集内容赋值
 			$("#collectionName").textbox('setValue', nodeData.text);
 			$("#collectionParam").textbox('setValue', nodeData.collectionParam);
@@ -1300,8 +1468,14 @@ function addListenerEvents() {
 			$("#collectionTimes").combobox('setValue', nodeData.collectionTimes);
 			$("#collectionWords").val(nodeData.collectionWords);
 			$('#myCollectionEditDiv').show();
+			$('#myNormalEditDiv').hide();
+			$('#myConditionDiv').hide();
+			$('#myDTMFPressDiv').hide();
+			$('#myURLActionDiv').hide();
+			$('#myTransferDiv').hide();
 		}
 		if (nodeData.category == "DTMFPress") {
+			$('#dTMFPressform').form('clear');
 			$('#dTMFPressform').form('load',nodeData);
 			$("#comb_attempt_limit").combobox({
 			    width:240,
@@ -1322,19 +1496,23 @@ function addListenerEvents() {
 			    } 
 			});
 			$('#myDTMFPressDiv').show();
+			$('#myNormalEditDiv').hide();
+			$('#myConditionDiv').hide();
+			$('#myCollectionEditDiv').hide();
+			$('#myURLActionDiv').hide();
+			$('#myTransferDiv').hide();
 			$.parser.parse();
 		}
 		if (nodeData.category == "Condition") {
+			$('#Conditionform').form('clear');
 			// 节点数据
-			var nodeData = public_thisGraphObj.part.data; 
 			if(nodeData.conditions == "" || nodeData.conditions == null || nodeData.conditions == undefined) {
 				nodeData.conditions = [];
 			}
 			// 条件个数
-			condCnt = nodeData.conditions.length; 
+			var conditionCount = nodeData.conditions.length; 
 			// 清空条件
 			$('#myConditionDiv').find("#conditions").find("div").eq(0).empty();
-			$('#myConditionDiv').show();
 			// 设置条件名称
 			$("#txt_condition_name").textbox('setValue', nodeData.txt_condition_name);
 			// 设置条件内容
@@ -1347,19 +1525,88 @@ function addListenerEvents() {
 						$("#andBtn" + "_cdt"+i).trigger("click");
 					}
 					var andCondition = andConditions[j];
-					$("#param_name_cdt"+i+"_and"+j).textbox('setValue', andCondition.param_name);
+					var variableType = andCondition.variable_type;
+					$("#variable_type_cdt"+i+"_and"+j).combobox('setValue', andCondition.variable_type);
+					if(variableType == "phoneAttr") {
+						$("#param_name_combobox_cdt"+i+"_and"+j).next().show();
+						$("#param_name_textbox_cdt"+i+"_and"+j).next().hide();
+						$("#param_name_combobox_cdt"+i+"_and"+j).combobox('setValue', andCondition.param_name);
+					}
+					if(variableType == "otherAttr") {
+						$("#param_name_combobox_cdt"+i+"_and"+j).next().hide();
+						$("#param_name_textbox_cdt"+i+"_and"+j).next().show();
+						$("#param_name_textbox_cdt"+i+"_and"+j).textbox('setValue', andCondition.param_name);
+					}
 					$("#param_relation_cdt"+i+"_and"+j).combobox('setValue', andCondition.param_relation);
 					$("#param_type_cdt"+i+"_and"+j).combobox('setValue', andCondition.param_type);
 					$("#param_value_cdt"+i+"_and"+j).textbox('setValue', andCondition.param_value);
 				}
 			}
+			$('#myNormalEditDiv').hide();
+			$('#myConditionDiv').show();
+			$('#myCollectionEditDiv').hide();
+			$('#myDTMFPressDiv').hide();
+			$('#myTransferDiv').hide();
 		}
 		if (nodeData.category == "URLAction") {
+			$('#URLActionform').form('clear');
+			$("#txt_action_name").textbox('setValue', nodeData.txt_action_name);
+			$("#txt_action_url").textbox('setValue', nodeData.txt_action_url);
+			$("#txt_action_method").combobox({
+			    valueField:'value',
+			    textField:'text',
+			    data: [{'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}],
+			    onLoadSuccess: function(){
+			        $(this).combobox('setValue',nodeData.txt_action_method);
+			    } 
+			});
+			$('#in_key_vals_div').find(".in-key").remove();
+			$('#out_key_vals_div').find(".out-key").remove();
+			// 入参
+			if(nodeData.inKeys == "" || nodeData.inKeys == null || nodeData.inKeys == undefined) {
+				nodeData.inKeys = [];
+			}
+			// 出参
+			if(nodeData.outKeys == "" || nodeData.outKeys == null || nodeData.outKeys == undefined) {
+				nodeData.outKeys = [];
+			}
+			var inKeys = nodeData.inKeys;
+			for(var i=0; i < nodeData.inKeys.length; i++) {
+				var inKey = inKeys[i];
+				addInKeyDiv();
+				$("#in_key_"+i).val(inKey.key);
+				$("#in_value_"+i).val(inKey.value);
+			}
+			var outKeys = nodeData.outKeys;
+			for(var j=0; j < nodeData.outKeys.length; j++) {
+				var outKey = outKeys[j];
+				addOutKeyDiv();
+				$("#out_key_"+j).val(outKey.key);
+				$("#out_value_"+j).val(outKey.value);
+			}
+			if(inKeys.length==0) {
+				addInKeyDiv();
+			}
+			if(outKeys.length==0) {
+				addOutKeyDiv();
+			}
 			$('#myURLActionDiv').show();
+			$('#myNormalEditDiv').hide();
+			$('#myConditionDiv').hide();
+			$('#myCollectionEditDiv').hide();
+			$('#myDTMFPressDiv').hide();
+			$('#myTransferDiv').hide();
 			$.parser.parse();
 		}
 		if (nodeData.category == "Transfer") {
+			$('#Transferform').form('clear');
+			$('#Transferform').form('load',nodeData);
 			$('#myTransferDiv').show();
+			$('#myNormalEditDiv').hide();
+			$('#myConditionDiv').hide();
+			$('#myCollectionEditDiv').hide();
+			$('#myDTMFPressDiv').hide();
+			$('#myURLActionDiv').hide();
 			$.parser.parse();
 		}
 	});
@@ -1394,14 +1641,14 @@ function addToResponse(){
 	}
 	if($('#sms-checkbox').is(':checked')) {
 		// 发送短信
-		actionParams = $("#templateId").val()+"|";
-		if($('#sms-varibales-span').find(".easyui-textbox").length > 0) {
-			$('#sms-varibales-span').find(".easyui-textbox").each(function() {
-				actionParams += $(this).attr("id")+'='+$(this).textbox('getText')+'&';
+		actionParams = $("#templateId").combobox('getValue')+"|";
+		if($('#sms-varibales-span').find("input").length > 0) {
+			$('#sms-varibales-span').find("input").each(function() {
+				actionParams += $(this).attr("id")+'='+$(this).val()+'&';
 			});
 			actionParams = actionParams.substring(0, actionParams.length-1);
 		}
-		action = 'sms';
+		action = 'SMS';
 	} 	
 	// 获取已选的用户回答
     var checkedArray = [];   
@@ -1463,24 +1710,26 @@ function setTTSResponseValue() {
 			}
 		}
 	}
-	if(nodeData.action == 'sms') {
+	if(nodeData.action == 'SMS') {
 		$("#sms-checkbox").prop({checked:true}); 
-		$('#sms-templete-span').show();
+		$('#sms-template-span').show();
 		$('#sms-varibales-span').show();
 		var actionParams = nodeData.actionParams;
 		var templateId = actionParams.split('|')[0];
-		$("#templateId").textbox('setText', templateId);
+		$("#templateId").combobox('setValue', templateId);
 		var varibales = actionParams.split('|')[1].split('&');
 		if(varibales.length > 0) {
 			for(var i=0; i<varibales.length; i++) {
 				var varibaleName = varibales[i].split('=')[0];
 				var varibaleValue = varibales[i].split('=')[1];
-				$("#"+varibaleName).textbox('setText', varibaleValue);
+				$('#sms-varibales-span').find("input[name="+varibaleName+"]").val(varibaleValue);
 			}
 		}
 	} else {
 		$("#sms-checkbox").prop({checked:false}); 
-		$('#sms-templete-span').hide();
+		$('#templateId').combobox('setValue', '');
+		$('#sms-varibales-span').empty();
+		$('#sms-template-span').hide();
 		$('#sms-varibales-span').hide();
 	}
 	var bottomArray = nodeData.bottomArray;
@@ -1534,6 +1783,20 @@ function buttonClick() {
 
 	// 保存回复内容
 	$('#saveRule0').click(function() {
+		var tts = $("#tts").val();
+		var code = $("#code").val();	
+		if(tts == '') {
+			$.messager.alert('提示', "请填写话术文字", "info");
+			return;
+		}
+	    var checkedArray = [];   
+	    $('[name=customerAnswer]:checkbox:checked').each(function() {
+	    	checkedArray.push({'text':$(this).val()});
+	    });
+	    if(checkedArray.length == 0) {
+			$.messager.alert('提示', "请选择用户回答", "info");
+			return;
+		}
 		addToResponse();
 	});
 	
@@ -1576,10 +1839,10 @@ function buttonClick() {
 	// 发送短信复选框点击事件
 	$('#sms-checkbox').click(function() {
 		if($('#sms-checkbox').is(':checked')) {
-			$('#sms-templete-span').show();
+			$('#sms-template-span').show();
 			$('#sms-varibales-span').show();
 		} else {
-			$('#sms-templete-span').hide();
+			$('#sms-template-span').hide();
 			$('#sms-varibales-span').hide();
 		}
 	});
@@ -1592,6 +1855,30 @@ function buttonClick() {
 		var collectionType = $("#collectionType").combobox('getValue');
 		var collectionTimes = $("#collectionTimes").combobox('getValue');
 		var collectionWords = $("#collectionWords").val();
+		if(collectionName == '') {
+			$.messager.alert('提示', "请填写信息名称", "info");
+			return;
+		}
+		if(collectionParam == '') {
+			$.messager.alert('提示', "请填写参数名称", "info");
+			return;
+		}
+		if(collectionType == '') {
+			$.messager.alert('提示', "请选择信息类型", "info");
+			return;
+		}
+		if(collectionTimes == '') {
+			$.messager.alert('提示', "请填写重复次数", "info");
+			return;
+		}
+		if(collectionWords == '') {
+			$.messager.alert('提示', "请填写反问话术", "info");
+			return;
+		}
+		if(!isEnglish(collectionParam)) {
+			$.messager.alert('提示', "参数名称请填写英文", "info");
+			return;
+		}
 		myDiagram.model.setDataProperty(nodeData, 'text', collectionName);
 		myDiagram.model.setDataProperty(nodeData, 'collectionParam', collectionParam);
 		myDiagram.model.setDataProperty(nodeData, 'collectionType', collectionType);
@@ -1618,20 +1905,66 @@ function buttonClick() {
 				return true;
 			}
 		});
-		if(isNaN(t.txt_press_timeout))
-		{
-			$.messager.alert("警告","超时时间，格式不合法","warn");
-			return;
-		}
-		if(t.presstype==1 && (isNaN(t.txt_max_length) ||  isNaN(t.txt_min_length)))
-		{
-			$.messager.alert("警告","最大，最短长度，格式不合法","warn");
-			return;
-		}    
 		$.each(array,function(index, value){
 			t[this.name] = this.value;
 		});
-		
+		if(t.txt_dtmf_name == '') {
+			$.messager.alert('提示', "请填写DTMF名称", "info");
+			return;
+		}
+		if(t.txt_dtmf_alias == '') {
+			$.messager.alert('提示', "请填写DTMF别名", "info");
+			return;
+		}
+		if(t.txt_dtmf_answer == '') {
+			$.messager.alert('提示', "请填写DTMF话术", "info");
+			return;
+		}
+		if(isNaN(t.presstype)) {
+			$.messager.alert('提示', "请选择DTMF设置", "info");
+			return;
+		}
+		if(t.comb_attempt_limit == '') {
+			$.messager.alert('提示', "请选择尝试次数", "info");
+			return;
+		}
+		if(t.txt_press_timeout == '') {
+			$.messager.alert('提示', "请填写超时时间", "info");
+			return;
+		}
+		if(t.txt_press_timeout_answer == '') {
+			$.messager.alert('提示', "请填写超时话术", "info");
+			return;
+		}
+		if(!isEnglish(t.txt_dtmf_alias)) {
+			$.messager.alert('提示', "DTMF别名请填写英文", "info");
+			return;
+		}
+		if(isNaN(t.txt_press_timeout)) {
+			$.messager.alert("提示","超时时间，格式不合法","info");
+			return;
+		}
+		if(t.presstype==0 && t.txt_press_numbers == '') {
+			$.messager.alert("提示","请输入按键值","info");
+			return;
+		}
+		if(t.presstype==0 && !checkPressNumber(t.txt_press_numbers)) {
+			$.messager.alert("提示","按键值不合法","info");
+			return;
+		}
+		if(t.presstype==1 && (isNaN(t.txt_max_length) || isNaN(t.txt_min_length))) {
+			$.messager.alert("提示","最短，最大长度，格式不合法","info");
+			return;
+		}
+		if(t.presstype==1 && t.comb_finish_press == '') {
+			$.messager.alert("提示","请选择结束按键","info");
+			return;
+		}
+		if(t.presstype == 0) {
+			t.txt_max_length = 1;
+			t.txt_min_length = 1;
+			t.comb_finish_press = "";
+		}
         $.each(t,function(index,value){
         	myDiagram.model.setDataProperty(nodeData, index, value);
         });
@@ -1639,14 +1972,95 @@ function buttonClick() {
         $("#closeDTMFPress").trigger("click");
     })
     $("#closeDTMFPress").bind("click",function () {
-        $('#dTMFPressform').form('clear');
         $('#myDTMFPressDiv').hide();
 	});
 	
-	$("#saveURLAction").bind("click", function () {
+	$("#saveURLAction").bind("click", function () {		
+		var nodeData = public_thisGraphObj.part.data;
 		var array = $('#URLActionform').serializeArray();
-		console.log(array);
-		$.messager.alert("提示", JSON.stringify(array), "info")
+		// 校验格式
+		var actionName = $("#txt_action_name").textbox('getValue');
+		if(actionName == '') {
+			$.messager.alert("提示","请填写节点名称","info");
+			return;
+		}
+		var actionUrl = $("#txt_action_url").textbox('getValue');
+		if(actionUrl == '') {
+			$.messager.alert("提示","请填写接口地址","info");
+			return;
+		}
+		var actionMethod = $("#txt_action_method").combobox('getValue');
+		if(actionMethod == '') {
+			$.messager.alert("提示","请选择请求方法","info");
+			return;
+		}
+		if(!checkUrl(actionUrl)) {
+			$.messager.alert("提示","请检查接口地址","info");
+			return;
+		}
+		// 设置数据
+		var inKeyDivs = $("#in_key_vals_div").find('.in-key');
+		var outKeyDivs = $("#out_key_vals_div").find('.out-key');
+		var inKeys = [];
+		var outKeys = [];
+		for(var i=0; i<inKeyDivs.length; i++) {
+			inKeys[i]={};
+		}
+		for(var j=0; j<outKeyDivs.length; j++) {
+			outKeys[j]={};
+		}
+		$.each(array,function(index, value){
+			if(this.name.indexOf("txt_action") > -1) {
+				myDiagram.model.setDataProperty(nodeData, this.name, this.value);
+			}
+			if(this.name.indexOf("in_key") > -1) {
+				var inKeySliptArray = this.name.split("_");
+				var inKeyIndex = inKeySliptArray[inKeySliptArray.length-1];
+				inKeys[inKeyIndex].key = this.value;
+			}
+			if(this.name.indexOf("in_value") > -1) {
+				var inValueSliptArray = this.name.split("_");
+				var inValueIndex = inValueSliptArray[inValueSliptArray.length-1];
+				inKeys[inValueIndex].value = this.value;
+			}
+			if(this.name.indexOf("out_key") > -1) {
+				var outKeySliptArray = this.name.split("_");
+				var outKeyIndex = outKeySliptArray[outKeySliptArray.length-1];
+				outKeys[outKeyIndex].key = this.value;
+			}
+			if(this.name.indexOf("out_value") > -1) {
+				var outValueSliptArray = this.name.split("_");
+				var outValueIndex = outValueSliptArray[outValueSliptArray.length-1];
+				outKeys[outValueIndex].value = this.value;
+			}
+		});
+		myDiagram.model.setDataProperty(nodeData, "text", actionName);
+		myDiagram.model.setDataProperty(nodeData, "interfaceName", publicscenariosname+actionName);
+		myDiagram.model.setDataProperty(nodeData, "inKeys", inKeys);
+		myDiagram.model.setDataProperty(nodeData, "outKeys", outKeys);
+		$('#myURLActionDiv').hide();
+	});
+	
+	$("#saveTransfer").bind("click", function () {
+		var nodeData = public_thisGraphObj.part.data;
+		var array = $('#Transferform').serializeArray();
+		$.each(array,function(index, value){
+			myDiagram.model.setDataProperty(nodeData, this.name, this.value);
+		});
+		if(nodeData.txt_transfer_name == '') {
+			$.messager.alert("提示","请填写转人工名称","info");
+			return;
+		}
+		if(nodeData.txt_transfer_number == '') {
+			$.messager.alert("提示","请填写转人工号码","info");
+			return;
+		}
+		if(!checkPhoneNumber(nodeData.txt_transfer_number) && !checkTelePhone(nodeData.txt_transfer_number)) {
+			$.messager.alert("提示","转人工号码格式不正确","info");
+			return;
+		}
+		myDiagram.model.setDataProperty(nodeData, "text", nodeData.txt_transfer_name);
+		$('#myTransferDiv').hide();
 	});
 
 	$("#saveCondition").bind("click",function () {
@@ -1654,10 +2068,21 @@ function buttonClick() {
 		var array = $('#Conditionform').serializeArray();
 		var conditions = [];
 		var bottomArray = [];
-		for(var i=0; i < condCnt; i++) {
+		var conditionDivs = $("#conditions").find("div").eq(0).find('.condition-div');
+		var conditionCount = conditionDivs.length;
+		for(var i=0; i < conditionCount; i++) {
 			var andConditions = [];
 			conditions[i] = andConditions;
 			bottomArray[i] = {'text':'条件'+i};
+		}
+		var txt_condition_name = $("#txt_condition_name").textbox('getValue');
+		if(txt_condition_name == '') {
+			$.messager.alert("提示","请填写名称","info");
+			return;
+		}
+		if(bottomArray.length == 0) {
+			$.messager.alert("提示","请填写条件","info");
+			return;
 		}
 		$.each(array,function(index, value){
 			if(this.name.indexOf("_and") > -1) {
@@ -1670,8 +2095,16 @@ function buttonClick() {
 				if(andConditions[andIndex] == "" || andConditions[andIndex] == null || andConditions[andIndex] == undefined) {
 					andConditions[andIndex] = {}
 				} 
-				if(this.name.indexOf("param_name") > -1) {
-					andConditions[andIndex].param_name = this.value;
+				if(this.name.indexOf("variable_type") > -1) {
+					andConditions[andIndex].variable_type = this.value;
+					if(this.value == "phoneAttr") {
+						var paramNameCombobox = "param_name_combobox" + "_cdt"+conditionIndex+"_and"+andIndex;
+						andConditions[andIndex].param_name = $("#"+paramNameCombobox).combobox("getValue");
+					} 
+					if(this.value == "otherAttr") {
+						var paramNameTextbox = "param_name_textbox" + "_cdt"+conditionIndex+"_and"+andIndex;
+						andConditions[andIndex].param_name = $("#"+paramNameTextbox).textbox("getValue");
+					} 
 				}
 				if(this.name.indexOf("param_relation") > -1) {
 					andConditions[andIndex].param_relation = this.value;
@@ -1686,11 +2119,10 @@ function buttonClick() {
 				myDiagram.model.setDataProperty(nodeData, this.name, this.value);
 			}
 		});
+		myDiagram.model.setDataProperty(nodeData, "text", nodeData.txt_condition_name);
 		myDiagram.model.setDataProperty(nodeData, "conditions", conditions);
 		myDiagram.model.setDataProperty(nodeData, "bottomArray", bottomArray);
 		$('#myConditionDiv').hide();
-		//$.messager.alert("提示",JSON.stringify(array),"info");
-		//$.messager.alert("提示",JSON.stringify(conditions),"info");
 	});
 	
     $("#closeURLAction").bind("click",function () {
@@ -1703,6 +2135,7 @@ function buttonClick() {
         $('#myConditionDiv').hide();
 	});	
 }
+
 // 显示为赋值隐藏的链接
 function showLinkLabel(e) {
 	var label = e.subject.findObject("LABEL");
@@ -1758,8 +2191,16 @@ function VerificationData() {
 	var modeldata = myDiagram.model;
 	var nodeDataArray = modeldata.nodeDataArray;
 	var linkDataArray = modeldata.linkDataArray;
-	var ispassverification = true;
-	if (ispassverification) {
+	var isPassVerification = true;
+	if(nodeDataArray.length==0) {
+		$.messager.alert('提示', '请添加组件', "info");
+		return false;
+	}
+	if(linkDataArray.length==0) {
+		$.messager.alert('提示', '请添加连线', "info");
+		return false;
+	}
+	if (isPassVerification) {
 		return true;
 	}
 	return false;
