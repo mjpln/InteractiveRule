@@ -1477,6 +1477,16 @@ function addListenerEvents() {
 		if (nodeData.category == "DTMFPress") {
 			$('#dTMFPressform').form('clear');
 			$('#dTMFPressform').form('load',nodeData);
+			if(nodeData.presstype == 0) {
+				$("input:radio[name='presstype']").eq(0).attr("checked",'checked');
+				$("#gather_numbers").fadeOut('slow');
+	            $("#press_numbers").fadeIn('slow');
+			} 
+			if(nodeData.presstype == 1) {
+				$("input:radio[name='presstype']").eq(1).attr("checked",'checked');
+				$("#gather_numbers").fadeIn('slow');
+	            $("#press_numbers").fadeOut('slow');
+			} 
 			$("#comb_attempt_limit").combobox({
 			    width:240,
 			    valueField:'value',
