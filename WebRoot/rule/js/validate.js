@@ -22,12 +22,12 @@ function checkPressNumber(pressNumber) {
 
 // 校验手机号码
 function checkPhoneNumber(phoneNumber) {
-	var strRegex = '/^1[34578]\d{9}$/';
+	var strRegex = '^1[34578]\\d{9}$';
     return new RegExp(strRegex).test(phoneNumber);
 }
 
 // 校验固话
 function checkTelePhone(telePhone) {
-	var strRegex = '/^((0\d{2,3})-?)(\d{7,8})(-(\d{3,}))?$/';
+	var strRegex = '^((0\d{2,3})-?)(\d{7,8})(-(\d{3,}))?$';
     return new RegExp(strRegex).test(telePhone);
 }

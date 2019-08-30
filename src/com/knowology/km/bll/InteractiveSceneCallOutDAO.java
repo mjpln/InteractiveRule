@@ -279,34 +279,9 @@ public class InteractiveSceneCallOutDAO {
 		// 未理解 语义理解规则
 		sceneRule = generateNotRegnitionRule(scenariosid, weight++);
 		sceneRules.add(sceneRule);
-
-		// 未理解时设置action为空
-		Map<String, String> setItems = new HashMap<String, String>();
-		setItems.put("action", "");
-		setItems.put("actionParams", "");
-		sceneRule = InteractiveSceneCallOutDAO.generateInteractiveRule(scenariosid, null, null, "未理解", null, null, null,
-				null, null, null, null, weight++, ScenariosDAO.getRuleResponse(setItems));
-		// sceneRules.add(sceneRule);
-		sceneRules = filterDuplicateRules(sceneRules);
 		return sceneRules;
 	}
 	
-	private static List<SceneRule> filterDuplicateRules(List<SceneRule> sceneRules) {
-		// 过滤其他规则
-		List<SceneRule> newSceneRules = new ArrayList<SceneRule>();
-		Set<String> otherRuleResponses = new HashSet<String>();
-		for(SceneRule sceneRule : sceneRules) {
-			if(RuleTypeConsts.OTHER_RULE.equals(sceneRule.getRuleType())) {
-				String ruleResponse = sceneRule.getRuleResponseTemplate();
-				if(!otherRuleResponses.contains(ruleResponse)) {
-					newSceneRules.add(sceneRule);
-				} 
-			} else {
-				newSceneRules.add(sceneRule);
-			}
-		}
-		return newSceneRules;
-	}
 		
 	/**
 	 * 根据连线生成规则
@@ -407,6 +382,10 @@ public class InteractiveSceneCallOutDAO {
 			condition += " and query" + "=" + "\"未获取到按键值\"";
 			result = "SET(\"" + CallOutSceneElementConsts.DTMF_IS_GET_PRESS_NUMBER_ELEMENT_NAME + "\",\"否\")";
 			sceneRule = generateOtherRule(scenariosid, weight++, condition, result);
+			sceneRules.add(sceneRule);
+			
+			// 未获取到按键值识别规则
+			sceneRule = InteractiveSceneCallOutDAO.generateEmptyPressNumberRegnitionRule(scenariosid, fromNode.getKey());
 			sceneRules.add(sceneRule);
 		}
 		if ("获取到按键值".equals(isGetPressNumber)) {
@@ -1027,6 +1006,26 @@ public class InteractiveSceneCallOutDAO {
 		ruleResponse = ScenariosDAO.getRuleResponse(setItems, others);
 		SceneRule sceneRule = ScenariosDAO.buildSceneRuleInfo(scenariosid, null, RuleTypeConsts.REGNITION_RULE,
 				conditions, null, null, ruleResponse, ResponseTypeConsts.WRITTEN_RESPONSE_RULE, weight + "");
+		return sceneRule;
+	}
+	
+	/**
+	 * 未获取到按键值 语义理解规则
+	 */
+	private static SceneRule generateEmptyPressNumberRegnitionRule(String scenariosid, String aboveNodeName) {
+		List<SceneElement> sceneElementValues = getSceneElementValues(scenariosid, aboveNodeName, null, null, null,
+				null, null, null, null, null);
+		String[] conditions = ScenariosDAO.getSceneConditions(scenariosid, sceneElementValues);
+		Map<String, String> setItems = new HashMap<String, String>();
+		setItems.put("query", "未获取到按键值");
+		List<String> others = new ArrayList<String>();
+		others.add("信息补全(\"query\",\"上文\")");
+		String ruleResponse = ScenariosDAO.getRuleResponse(setItems, others);
+		String questionObject = "识别规则业务";
+		String standardQuestion = recognitionQuestions.get("未获取到按键值");
+		SceneRule sceneRule = ScenariosDAO.buildSceneRuleInfo(scenariosid, null, RuleTypeConsts.REGNITION_RULE,
+				conditions, questionObject, standardQuestion, ruleResponse, ResponseTypeConsts.WRITTEN_RESPONSE_RULE,
+				(weight++) + "");
 		return sceneRule;
 	}
 
