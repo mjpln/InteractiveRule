@@ -1339,15 +1339,21 @@ public class InteractiveSceneCallOutDAO {
 	 * 查询自定义识别规则
 	 */
 	public static Result queryPrivateRegnitionRule(String scenariosId) {
-		Result result = CommonLibServiceDAO.getParentNameByChildID(scenariosId);
+		// 获取场景信息
+		Result result = CommonLibServiceDAO.getServiceInfoByserviceid(scenariosId);
 		if (result == null || result.getRowCount() == 0) {
 			return null;
 		}
-		String parentScenariosName = result.getRows()[1].get("service") + "";
-		// 识别规则业务ID
-		String serviceId = getRegnitionRuleServiceId(parentScenariosName.trim());
-		String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.serviceid = ?";
-		result = Database.executeQuery(sql, serviceId);
+		// 获取父场景信息
+		String parentScenariosId = result.getRows()[0].get("PARENTID") + "";
+		result = CommonLibServiceDAO.getServiceInfoByserviceid(parentScenariosId);
+		if (result == null || result.getRowCount() == 0) {
+			return null;
+		}
+		String parentScenariosName = result.getRows()[0].get("service") + "";
+		// 识别规则业务
+		String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service = '识别规则业务' and s.parentname = ?";
+		result = Database.executeQuery(sql, parentScenariosName+"问题库");
 		return result;
 	}
 
