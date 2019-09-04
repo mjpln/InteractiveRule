@@ -441,7 +441,7 @@
 				<tr>
 					<td>对应词类:</td>
 					<td>
-						<input class="easyui-combobox" id="sceneElementEditForm-wordClass" name="sceneElementEditForm-wordClass" style="width: 300px;"></input>
+						<input class="easyui-combobox" id="sceneElementEditForm-wordClass" name="sceneElementEditForm-wordClass" style="width: 270px;"></input>
 						<a id="addWordClass" name="addWordClass" href="javascript:void(0)" class="easyui-linkbutton" 
 									data-options="iconCls:'icon-add'"></a> 
 					</td>
@@ -485,15 +485,14 @@
 			<a id="saveElement" href="javascript:void(0)" class="easyui-linkbutton"
 				data-options="iconCls:'icon-save'" plain="false" >保存</a>
 			<a href="javascript:void(0)" class="easyui-linkbutton"
-				data-options="iconCls:'icon-clear'" plain="false" onclick="clearElementNameForm()">清空</a>
+				data-options="iconCls:'icon-clear'" plain="false" onclick="clearElementEditForm()">清空</a>
 		</div>
 	</div>
 	<!-- 场景要素新增和编辑 window end -->
 	
 	<!-- 词类新增和编辑 window start -->
-	<div id="wordClassEditDiv" class="easyui-window" title="词类新增"
-		data-options="modal:true,closed:true,iconCls:'icon-save'"
-		style="width: 500px; height: 400px; padding: 10px;">
+	<div id="wordClassEditDiv" class="easyui-window" title="词类新增" data-options="modal:true,closed:true,iconCls:'icon-save'" style="width:900px;height:500px;">
+		<iframe id='standardIframe' width='100%' height='100%' frameborder='0' src='http://172.30.66.120:8082/KM/wordclass/app.html'></iframe>
 	</div>
 		
 	<!-- 添加用户答案 -->

@@ -129,8 +129,7 @@ function initSceneElements() {
 	});
 	// 添加词类编辑页面
 	$("#addWordClass").bind("click",function () {
-		//$('#wordClassEditDiv').window('refresh', 'http://172.30.66.120:8082/KM/wordclass/app.html');
-		$('#wordClassEditDiv').window('refresh', 'http://www.baidu.com');
+		$("#wordClassEditDiv").window('open');
 	});
 	
 }
