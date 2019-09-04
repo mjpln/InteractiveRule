@@ -1344,11 +1344,16 @@ public class InteractiveSceneCallOutDAO {
 		if (result == null || result.getRowCount() == 0) {
 			return null;
 		}
-		// 获取父场景ID
+		// 获取父场景信息
 		String parentScenariosId = result.getRows()[0].get("PARENTID") + "";
+		result = CommonLibServiceDAO.getServiceInfoByserviceid(parentScenariosId);
+		if (result == null || result.getRowCount() == 0) {
+			return null;
+		}
+		String parentScenariosName = result.getRows()[0].get("service") + "";
 		// 识别规则业务
-		String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service = '识别规则业务' and s.parentid = ?";
-		result = Database.executeQuery(sql, parentScenariosId);
+		String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service = '识别规则业务' and s.parentname = ?";
+		result = Database.executeQuery(sql, parentScenariosName+"问题库");
 		return result;
 	}
 
