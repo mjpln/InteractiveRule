@@ -1793,6 +1793,7 @@ function buttonClick() {
 
 	// 保存回复内容
 	$('#saveRule0').click(function() {
+		var nodeData = public_thisGraphObj.part.data;
 		var tts = $("#tts").val();
 		var code = $("#code").val();	
 		if(tts == '') {
@@ -1803,7 +1804,7 @@ function buttonClick() {
 	    $('[name=customerAnswer]:checkbox:checked').each(function() {
 	    	checkedArray.push({'text':$(this).val()});
 	    });
-	    if(checkedArray.length == 0) {
+	    if(nodeData.category == "Normal" && checkedArray.length == 0) {
 			$.messager.alert('提示', "请选择用户回答", "info");
 			return;
 		}
