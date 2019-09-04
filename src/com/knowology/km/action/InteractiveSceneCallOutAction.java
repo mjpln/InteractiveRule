@@ -21,6 +21,10 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 	private String ioa;
 	private String actionUrl;
 	private String actionName;
+	private String scenarioName;
+	private String sceneElementName;
+	private int page;
+	private int rows;
 
 	public Object execute() {
 		if ("saveConfig".equals(type)) { // 解析并保存流程图
@@ -59,16 +63,22 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 		}
 		if ("checkUrlActionName".equals(type)) {// 校验接口名称是否重复
 			m_result = InteractiveSceneCallOutDAO.checkUrlActionName(actionName);
-		}	
+		}
+		if ("listAllSceneElement".equals(type)) {// 查询全部场景要素
+			m_result = InteractiveSceneCallOutDAO.listAllElementName(scenariosid, sceneElementName);
+		}
+		if ("listPagingSceneElement".equals(type)) {// 查询全部场景要素
+			m_result = InteractiveSceneCallOutDAO.listPagingSceneElement(scenariosid, sceneElementName, page, rows);
+		}
 		return "success";
 	}
 
-	public String getM_request() {
+	public String getSceneJson() {
 		return sceneJson;
 	}
 
-	public void setM_request(String m_request) {
-		this.sceneJson = m_request;
+	public void setSceneJson(String sceneJson) {
+		this.sceneJson = sceneJson;
 	}
 
 	public Object getM_result() {
@@ -85,6 +95,14 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public HttpServletRequest getRequest() {
+		return request;
+	}
+
+	public void setRequest(HttpServletRequest request) {
+		this.request = request;
 	}
 
 	public String getScenariosid() {
@@ -111,14 +129,6 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 		this.robotName = robotName;
 	}
 
-	public String getCustomeranswer() {
-		return customeranswer;
-	}
-
-	public void setCustomeranswer(String customeranswer) {
-		this.customeranswer = customeranswer;
-	}
-
 	public String getAutowordpat() {
 		return autowordpat;
 	}
@@ -127,16 +137,20 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 		this.autowordpat = autowordpat;
 	}
 
+	public String getCustomeranswer() {
+		return customeranswer;
+	}
+
+	public void setCustomeranswer(String customeranswer) {
+		this.customeranswer = customeranswer;
+	}
+
 	public String getSimplewordpat() {
 		return simplewordpat;
 	}
 
 	public void setSimplewordpat(String simplewordpat) {
 		this.simplewordpat = simplewordpat;
-	}
-
-	public void setServletRequest(HttpServletRequest request) {
-		this.request = request;
 	}
 
 	public String getWordpattype() {
@@ -170,4 +184,37 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 	public void setActionName(String actionName) {
 		this.actionName = actionName;
 	}
+
+	public String getScenarioName() {
+		return scenarioName;
+	}
+
+	public void setScenarioName(String scenarioName) {
+		this.scenarioName = scenarioName;
+	}
+
+	public String getSceneElementName() {
+		return sceneElementName;
+	}
+
+	public void setSceneElementName(String sceneElementName) {
+		this.sceneElementName = sceneElementName;
+	}
+
+	public int getPage() {
+		return page;
+	}
+
+	public void setPage(int page) {
+		this.page = page;
+	}
+
+	public int getRows() {
+		return rows;
+	}
+
+	public void setRows(int rows) {
+		this.rows = rows;
+	}
+
 }

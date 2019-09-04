@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>scenariosCallOut.html</title>
+
+<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+<meta http-equiv="description" content="this is my page">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link rel="icon" href="../Images/favicon.ico">
+<link type="text/css" rel="stylesheet" href="../easyui/jquery-easyui-1.4.1/themes/default/easyui.css" />
+<link type="text/css" rel="stylesheet" href="../easyui/jquery-easyui-1.4.1/themes/icon.css" />
+<link type="text/css" rel="stylesheet" href="../umeditor1_2_2-utf8-jsp/themes/default/css/umeditor.css">
+<script type="text/javascript" src="../easyui/jquery-1.9.1.js"></script>
+<script type="text/javascript" src="../easyui/jquery-easyui-1.4.1/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../easyui/jquery-easyui-1.4.1/plugins/jquery.radiobutton.js"></script>
+<script type="text/javascript" src="../easyui/jquery-easyui-1.4.1/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../gojs/go.js"></script>
+<script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/umeditor.config.js"></script>
+<script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/umeditor.min.js"></script>
+<script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/lang/zh-cn/zh-cn.js"></script>
+<script type="text/javascript" src="./js/scenariosCallIn.js"></script>
+<script type="text/javascript" src="./js/validate.js"></script>
+<script type="text/javascript">
+	//获取浏览器页面可见高度和宽度
+	var _PageHeight = document.documentElement.clientHeight, _PageWidth = document.documentElement.clientWidth;
+	//计算loading框距离顶部和左部的距离（loading框的宽度为215px，高度为61px）
+	var _LoadingTop = _PageHeight > 61 ? (_PageHeight - 61) / 2 : 0, _LoadingLeft = _PageWidth > 215 ? (_PageWidth - 215) / 2
+			: 0;
+	//在页面未加载完毕之前显示的loading Html自定义内容
+	var _LoadingHtml = '<div id="loadingDiv" style="position:absolute;left:0;width:100%;height:'
+			+ _PageHeight
+			+ 'px;top:0;background:#f3f8ff;opacity:1;filter:alpha(opacity=80);z-index:10000;"><div style="position: absolute; cursor1: wait; left: '
+			+ _LoadingLeft
+			+ 'px; top:'
+			+ _LoadingTop
+			+ 'px; width: auto; height: 57px; line-height: 57px; padding-left: 50px; padding-right: 5px; background: #fff no-repeat scroll 5px 10px; border: 2px solid #95B8E7; color: #696969; font-family:\'Microsoft YaHei\';">页面加载中，请稍等。。。</div></div>';
+	//呈现loading效果
+	document.write(_LoadingHtml);
+
+	//监听加载状态改变
+	document.onreadystatechange = completeLoading;
+
+	//加载状态为complete时移除loading效果
+	function completeLoading() {
+		if (document.readyState == "complete") {
+			var loadingMask = document.getElementById('loadingDiv');
+			loadingMask.parentNode.removeChild(loadingMask);
+		}
+	}
+</script>
+<style type="text/css">
+    div.form-div {
+        margin-bottom: 5px;width: 100%;
+    }
+</style>
+</head>
+
+<body oncontextmenu="doNothing()" style="overflow:hidden;">
+	<div style="width: 100%; display: flex; overflow:hidden; justify-content:space-between;">
+		
+		<!-- 左侧内容 start -->
+		<div style="width: 160px;margin-right: 5px;">
+			<p style="margin: 0px"><label> 组件内容：</label></p>
+			<div id="myPaletteDiv"
+				style="width: 160px;  margin-right: 2px; background-color: whitesmoke; border: solid 1px black"></div>
+			<p style="margin: 0px "><label> 概括内容：</label></p>
+			<div id="myOverViewDiv"
+				style="width: 160px;  margin-right: 2px; background-color: whitesmoke; border: solid 1px black "></div>
+			<div style="text-align:center;margin-top:2px;">
+				<div >
+					<a id="saveBtSubmit" class="easyui-linkbutton" data-options="iconCls:'icon-save'">确认修改</a>
+				</div>
+				<div style = "margin-top:2px">
+					<a id="undoBtSubmit" class="easyui-linkbutton" data-options="iconCls:'icon-undo'">撤销修改</a>
+				</div>
+			</div>
+		</div>
+		<!-- 左侧内容 end -->
+				
+		<div id="myDiagramDiv" style="flex-grow: 1; height: 500px; overflow:hidden; box-shadow: 2px 2px 5px #888888;"></div>
+		
+		<!-- 编辑回复内容  window start -->
+		<div id="myNormalEditDiv" title="编辑回复内容" tabindex="0"
+			style="overflow:auto; position:absolute; z-index:999; right:0; top:1; width: 250px; height: 500px; background-color: whitesmoke; border: solid 1px black; display:none; ">
+			<form id="rule0form">
+		    	<table id="common-response-table" style="width:100%;">
+		    		<tr>
+						<td>
+							<span>话术文字：</span>
+							<span><textarea id="tts" style="width: 240px; height:100px; font-size: 12px;"></textarea></span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span>录音文件：</span>
+							<span><input id="code" class="easyui-textbox" style="width: 240px;"/></span>
+						</td>
+					</tr>
+				</table>
+				<a id="otherResponseShowBtn" href="javascript:void(0)" class="easyui-linkbutton">更多>></a>
+				<a id="otherResponseHideBtn" style="display:none;" href="javascript:void(0)" class="easyui-linkbutton">&lt;&lt;收起</a>
+				<table id="other-response-table" style="width:100%; display:none;">
+		    		<tr id="btd-display1">
+						<td>
+							<span id="otherResponse0name1"></span>
+							<span id="otherResponse01"><input id="otherResponse0value1" /></span>
+						</td>
+					</tr>
+					<tr id="btd-display2">
+						<td>
+							<span id="otherResponse0name2"></span>
+							<span id="otherResponse02"><input id="otherResponse0value2" /></span>
+						</td>
+					</tr>
+					<tr id="btd-display3">
+						<td>
+							<span id="otherResponse0name3"></span>
+							<span id="otherResponse03"><input id="otherResponse0value3"/> </span>
+						</td>
+					</tr>
+					<tr id="btd-display4">
+						<td>
+							<span id="otherResponse0name4"></span>
+							<span id="otherResponse04"><input id="otherResponse0value4" /></span>
+						</td>
+					</tr>
+					<tr id="btd-display5">
+						<td>
+							<span id="otherResponse0name5"></span>
+							<span id="otherResponse05"><input id="otherResponse0value5" /></span>
+						</td>
+					</tr>
+					<tr id="btd-display6">
+						<td>
+							<span id="otherResponse0name6"></span>
+							<span id="otherResponse06"><input id="otherResponse0value6" /></span>
+						</td>
+					</tr>
+					<tr id="btd-display7">
+						<td>									
+							<span id="otherResponse0name7"></span>
+							<span id="otherResponse07"><input id="otherResponse0value7" /></span>
+						</td>
+					</tr>
+					<tr id="btd-display8">
+						<td>
+							<span id="otherResponse0name8"></span>
+							<span id="otherResponse08"><input id="otherResponse0value8" /></span>
+						</td>
+					</tr>
+					<tr id="btd-display9">
+						<td>
+							<span id="otherResponse0name9"></span>
+							<span id="otherResponse09"><input id="otherResponse0value9" /></span>
+						</td>
+					</tr>
+					<tr id="btd-display10">
+						<td>
+							<span id="otherResponse0name10"></span>
+							<span id="otherResponse010"><input id="otherResponse0value10" /></span>
+						</td>
+					</tr>
+				</table>
+				<table id="customer-answer-table" style="width:100%;">
+					<tr>
+						<td>
+							<span>用户回答：
+								<a id="customerAnswerAdd-toPageBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-add'">添加</a>
+							</span>
+							<span id="customerAnswerSpan"></span>
+						</td>
+					</tr>					
+		    	</table>
+		    	<table id="other-action-table" style="width:100%;">
+					<tr>
+						<td>
+							<span>其他设置：</span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span>&nbsp;&nbsp;<input id="sms-checkbox" type="checkbox"/>发送短信</span>
+							<span id="sms-template-span" style="display:none;">
+								<br/><br/>
+								短信模板：
+								<input id="templateId" name="templateId" class="easyui-combobox" style="width: 200px;"/>
+								<br/>
+							</span>
+							<span id="sms-varibales-span">
+							</span>
+						</td>
+					</tr>
+		    	</table>
+		    </form>
+			<div style="text-align: center; padding: 10px">
+				<a id="saveRule0" href="javascript:void(0)" class="easyui-linkbutton" 
+					data-options="iconCls:'icon-save'">保存</a> 
+				<a id="closeRule0" href="javascript:void(0)" class="easyui-linkbutton" 
+					data-options="iconCls:'icon-clear'">关闭</a>
+			</div>
+		</div>
+		<!-- 编辑回复内容 window end -->
+		
+		<!-- 编辑信息收集 window start -->
+		<div id="myCollectionEditDiv" title="信息收集" tabindex="0"
+			style="overflow:auto; position:absolute; z-index:999; right:0; top:1; width: 250px; height: 500px; background-color: whitesmoke; border: solid 1px black; display:none; ">
+			<form id="collectionform">
+		    	<table id="collection-table" style="width:100%;">
+		    		<tr>
+						<td>
+							<span><span style='color:red'>*</span>节点名称：</span>
+							<span><input id="collectionName" class="easyui-textbox" style="width: 240px;"/></span>
+						</td>
+					</tr>
+					<tr id="collectionform-collectionParam-tr">
+						<td>
+							<span><span style='color:red'>*</span>参数名称：</span>
+							<span><input id="collectionParam" class="easyui-textbox" style="width: 240px;"/></span>
+						</td>
+					</tr>
+					<tr id="collectionform-collectionElement-tr">
+						<td>
+							<span><span style='color:red'>*</span>关联要素：</span>
+							<span>
+								<input id="collectionElement" name="collectionElement" class="easyui-combobox" style="width: 210px;"/>	
+								<a id="addSceneElement" name="addSceneElement" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-add'"></a> 
+							</span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span><span style='color:red'>*</span>信息类型：</span>
+							<span><input id="collectionType" class="easyui-combobox" style="width: 240px;"/></span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span><span style='color:red'>*</span>重复次数：</span>
+							<span><input id="collectionTimes" class="easyui-combobox" style="width: 240px;"/></span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span><span style='color:red'>*</span>反问话术：</span>
+							<span><textarea id="collectionWords" style="width: 240px; height:100px; font-size: 12px;"></textarea></span>
+						</td>
+					</tr>
+				</table>
+		    </form>
+			<div style="text-align: center; padding: 10px">
+				<a id="saveCollection" href="javascript:void(0)" class="easyui-linkbutton" 
+					data-options="iconCls:'icon-save'">保存</a> 
+				<a id="closeCollection" href="javascript:void(0)" class="easyui-linkbutton" 
+					data-options="iconCls:'icon-clear'">关闭</a>
+			</div>
+		</div>
+		<!-- 编辑信息收集 window end -->		
+		
+        <!-- DTMF按键收集 window start -->
+        <div id="myDTMFPressDiv" tabindex="0" 
+             style="padding-bottom: 10px;overflow:scroll; position:absolute; z-index:999; right:0px; top:1px; width:250px;height: 500px; background-color: whitesmoke;display:none; ">
+            <div><span>DTMF按键收集</span></div>
+            <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
+            <form id="dTMFPressform" style="padding-right: 5px;padding-left:5px;font-size: 13px;">
+                <div class="form-div">
+                    <div class="form-div">
+                    	<span style='color:red'>*</span>
+                    	<span>DTMF名称：</span>
+                    </div>
+                    <input class="easyui-textbox" name="txt_dtmf_name" data-options="prompt:'DTMF名称'" style="width: 240px;"/></div>
+                <div class="form-div">
+                    <div class="form-div">
+                    	<span style='color:red'>*</span>
+                    	<span title='1. DTMF别名用于给条件、动作、信息收集等组件传递参数时使用;<br>2. 非必填项目,别名只能使用英文字母,不能使用数字、符号、中文;' class='easyui-tooltip'>DTMF别名：</span>
+                    </div>
+                    <input class="easyui-textbox" name="txt_dtmf_alias" data-options="prompt:'别名只能使用英文字母,不能使用数字、符号、中文'" style="width: 240px;"/>
+                </div>
+                <div class="form-div">
+                    <div class="form-div">
+                        <span style='color:red'>*</span>
+                        <span>DTMF话术:</span>
+                    </div>
+                    <input class="easyui-textbox" name="txt_dtmf_answer" multiline="true" style="width: 240px;height: 100px;"
+                           data-options="prompt:'请输入AI无法识别时,反问用户的话术(&quot;*&quot;号请用&quot;星&quot;字替换，&quot;#&quot;字请用&quot;井&quot;字替换)'"/></div>
+                <div class="form-div" style="display:none;">
+                    <span width="30%">等待录音</span>
+                    <span style="float: right;"><input class="easyui-combobox" id="comb_sentence_var" data-options="prompt:'请选择变量'" editable="false" style="width: 150px;"/></span>
+                </div>
+                <div class="form-div"><span style='color:red'>*</span><span style="font-weight: bold ">DTMF设置</span></div>
+                <div class="form-div">
+                    <input name="presstype">
+                    <input name="presstype">
+                </div>
+                <div class="form-div" id="gather_numbers">
+                    <input class="easyui-textbox" name="txt_min_length" style="width:100px;" data-options="prompt:'18'" buttonText="位">
+                    <input class="easyui-textbox" name="txt_max_length" style="width:100px;" data-options="prompt:'20'" buttonText="位">
+                    <div class="form-div"><span style='color:red'>*</span>结束按键</div>
+                    <div class="form-div"><input class="easyui-combobox" id="comb_finish_press" name="comb_finish_press" data-options="prompt:'按#结束',valueField:'value',textField:'text',data: [ {'text': '按*号键', 'value': '*'},{'text': '按#号键', 'value': '#'}]" style="width: 240px;" editable="false"/></div>
+                </div>
+                <div class="form-div" id="press_numbers">
+                    <input class="easyui-textbox" name="txt_press_numbers" data-options="prompt:'按键值以逗号分隔0~9,*,#,不可重复'" style="width: 240px;"/>
+                </div>
+                <div class="form-div">
+                    <div class="form-div"><span style='color:red'>*</span>尝试次数</div>
+                    <div class="form-div"><input class="easyui-combobox" id="comb_attempt_limit" name="comb_attempt_limit" data-options="prompt:'请选择尝试次数',valueField:'value',textField:'text',data: [ {'text': '1次', 'value': '1'},{'text': '2次', 'value': '2'}]" style="width: 240px;" editable="false"/></div>
+                </div>
+                <div class="form-div">
+                    <div class="form-div"><span style='color:red'>*</span>按键超时</div>
+                    <input class="easyui-textbox" name="txt_press_timeout" data-options="prompt:'5'" style="width: 240px;" buttonText="秒"/>
+                </div>
+                <div class="form-div">
+                    <div class="form-div"><span style='color:red'>*</span>按键超时话术:</div>
+                    <input class="easyui-textbox" name="txt_press_timeout_answer" multiline="true" style="width: 240px;height: 100px" data-options="prompt:'请输入按键超时话术(&quot;*&quot;号请用&quot;星&quot;字替换，&quot;#&quot;字请用&quot;井&quot;字替换)'"/>
+                </div>
+                <div class="form-div" style="display:none;">
+                    <span width="30%">等待录音</span>
+                    <span style="float: right;"><input class="easyui-combobox" id="comb_press_timeout_answer_var" data-options="prompt:'请选择变量'" editable="false" style="width: 150px;"/></span>
+                </div>
+            </form>
+            <div style="text-align: center; padding: 10px">
+                <a id="saveDTMFPress" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
+                <a id="closeDTMFPress" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'">关闭</a>
+            </div>
+        </div>
+        <!-- DTMF按键收集 window end-->
+        
+        <!-- 转人工组件 window start -->
+        <div id="myTransferDiv" tabindex="0"
+             style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:240px;height: 500px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
+            <div><span>AI转人工</span></div>
+            <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
+
+            <form id="Transferform" style="padding-right: 10px;padding-left:10px;font-size: 13px;">
+                <div class="form-div">
+                    <div class="form-div">AI转人工名称<span style='color:red'>*</span>：</div>
+                    <input class="easyui-textbox" id="txt_transfer_name" name="txt_transfer_name" data-options="prompt:'请输入名称'" style="width: 100%;"/></div>
+                <div class="form-div">
+                    <div class="form-div">人工服务号码<span style='color:red'>*</span>：</div>
+                    <input class="easyui-textbox" id="txt_transfer_number" name="txt_transfer_number" data-options="prompt:'请输入人工电话号码'" style="width: 100%;"/></div>
+            </form>
+            <div style="text-align: center; padding: 10px">
+                <a id="saveTransfer" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
+                <a id="closeTransfer" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'">关闭</a>
+            </div>
+        </div>
+        <!-- 转人工组件 window end-->
+        
+        <!-- 动作组件 window start -->
+        <div id="myURLActionDiv" tabindex="0"
+             style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:240px;height: 500px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
+            <div><span>动作组件</span></div>
+            <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
+            <form id="URLActionform" style="padding-right: 10px;padding-left:10px;font-size: 13px;">
+                <div class="form-div">
+                    <div class="form-div">节点名称<span style='color:red'>*</span>：</div>
+                    <input class="easyui-textbox" id="txt_action_name" name="txt_action_name" data-options="prompt:'动作'" style="width: 100%;height: 30px"/></div>
+                <div class="form-div">
+                    <div class="form-div">接口地址<span style='color:red'>*</span>：</div>
+                    <input class="easyui-textbox" id="txt_action_url" name="txt_action_url" data-options="prompt:'URL'" style="width: 100%;height: 30px"/></div>
+                <div class="form-div">
+                    <div class="form-div">请求方法<span style='color:red'>*</span>：</div>
+                    <input class="easyui-combobox" id="txt_action_method" name="txt_action_method" data-options="prompt:'方法',valueField:'value',textField:'text',data: [ {'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}]" style="width: 100%;height: 30px"/></div>
+                <div class="form-div">
+                    <div class="form-div" id="in_key_vals_div">
+                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">入参</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+                    </div>
+                    <div class="form-div" id="out_key_vals_div">
+                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">出参</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+                    </div>
+                    <a id="testAction" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'">测试</a>
+                </div>
+            </form>
+            <div style="text-align: center; padding: 10px">
+                <a id="saveURLAction" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
+                <a id="closeURLAction" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'">关闭</a>
+            </div>
+        </div>
+        <!-- 动作组件 window end-->
+
+        <!-- 条件组件 window start -->
+        <div id="myConditionDiv" tabindex="0"
+             style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:240px;height: 500px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
+            <div><span>条件组件</span></div>
+            <hr style="width:240px; height:1px;border:none;border-top:1px solid #555555;"/>
+
+            <form id="Conditionform" style="padding-right: 1px;padding-left:1px;font-size: 13px;">
+                <div class="form-div" >
+                    <div class="form-div"><span style='color:red'>*</span>设置名称：</div>
+                    <input class="easyui-textbox" id="txt_condition_name" name="txt_condition_name" data-options="prompt:'请输入名称'" style="width: 240px;"/>
+                </div>
+                <div id="conditions" class="form-div" >
+                    <div class="form-div" style="padding-right: 1px;padding-left:1px;padding-top: 5px; ">
+
+                    </div>
+                    <div class="form-div">
+                        <a id="addCondition" style="width:240px; " href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add'">+添加</a>
+                    </div>
+                </div>
+            </form>
+            <div style="text-align: center; padding: 10px">
+                <a id="saveCondition" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
+                <a id="closeCondition" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'">关闭</a>
+            </div>
+        </div>
+        <!-- 条件组件 window end-->
+	</div>
+	
+	<!-- 场景要素编辑区 window start -->
+	<div id="sceneElementDiv" class="easyui-window" title="场景要素编辑区"
+		data-options="modal:true,closed:true,iconCls:'icon-save'"
+		style="width: 800px; height: 500px; padding: 10px;">
+		<form id="sceneElementQueryForm" class="easyui-form">
+			<div id="sceneElementTableDiv" style="height: 30px;">
+				<span style="font-size: 12px; margin-left: 10px">场景要素：</span>
+				<input id="sceneElementQueryForm-sceneElementName" name="sceneElementQueryForm-sceneElementName" type="text" class="easyui-textbox" style="width: 320px;" />
+				<a style="margin: 0 10px" class="easyui-linkbutton" plain="fasle" iconCls="icon-search" onclick="searchElementName()">查询</a>
+			</div>
+		</form>
+		<table id="sceneElementTable"></table>
+	</div>
+	<!-- 场景要素编辑区 window end -->
+	
+	<!-- 场景要素新增和编辑 window start -->
+	<div id="sceneElementEditDiv" class="easyui-window" title="场景要素新增"
+		data-options="modal:true,closed:true,iconCls:'icon-save'"
+		style="width: 500px; height: 400px; padding: 10px;">
+		<form id="sceneElementEditForm" class="easyui-form" method="post"
+			data-options="novalidate:true">
+			<table cellpadding="3" style="text-align: center; margin: 0 auto;">
+				<tr>
+					<td>场景要素:</td>
+					<td><input id="sceneElementEditForm-sceneElementName" name="sceneElementEditForm-sceneElementName" class="easyui-textbox" style="width: 300px;" type="text"
+						data-options="required:true,missingMessage:'场景要素名不能为空!'"></input></td>
+				</tr>
+				<tr>
+					<td>优先级&nbsp;&nbsp;:</td>
+					<td><input id="sceneElementEditForm-weight" name="sceneElementEditForm-weight" style="width: 300px;"></input></td>
+				</tr>
+				<tr>
+					<td>对应词类:</td>
+					<td>
+						<input class="easyui-combobox" id="sceneElementEditForm-wordClass" name="sceneElementEditForm-wordClass" style="width: 300px;"></input>
+						<a id="addWordClass" name="addWordClass" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-add'"></a> 
+					</td>
+				</tr>
+				<tr>
+					<td>对应信息表列:</td>
+					<td><input id="sceneElementEditForm-infoTalbePath" name="sceneElementEditForm-infoTalbePath" style="width: 300px;"></input></td>
+				</tr>
+				<tr>
+					<td>对应地市:</td>
+					<td><input id="sceneElementEditForm-city" name="sceneElementEditForm-city" style="width: 300px;" ></input></td>
+				</tr>
+				<tr>
+					<td>填写方式:</td>
+					<td>
+						<select class="easyui-combobox" id="sceneElementEditForm-itemMode" name="sceneElementEditForm-itemMode" style="width: 300px;">
+							<option value="勾选">勾选</option>
+							<option value="自定义">自定义</option>
+							<option value="勾选+自定义">勾选+自定义</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>归属:</td>
+					<td>
+						<select class="easyui-combobox" id="sceneElementEditForm-container" name="sceneElementEditForm-container" style="width: 300px;">
+							<option value="键值补全">菜单询问用户</option>
+							<option value="词模匹配">系统反问</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>交互口径:</td>
+					<td>
+						<textarea name="" cols="5" rows="5" id="sceneElementEditForm-interPattern" name="sceneElementEditForm-interPattern" style="width: 300px; font-size: 12px;"></textarea>
+					</td>
+				</tr>
+			</table>
+		</form>
+		<div style="text-align: center; padding: 5px">
+			<a id="saveElement" href="javascript:void(0)" class="easyui-linkbutton"
+				data-options="iconCls:'icon-save'" plain="false" >保存</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton"
+				data-options="iconCls:'icon-clear'" plain="false" onclick="clearElementNameForm()">清空</a>
+		</div>
+	</div>
+	<!-- 场景要素新增和编辑 window end -->
+	
+	<!-- 词类新增和编辑 window start -->
+	<div id="wordClassEditDiv" class="easyui-window" title="词类新增"
+		data-options="modal:true,closed:true,iconCls:'icon-save'"
+		style="width: 500px; height: 400px; padding: 10px;">
+	</div>
+		
+	<!-- 添加用户答案 -->
+	<div id="customerAnswerAddPage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
+		title="添加用户答案" style="width:650px;">
+		<form id="customerAnswerAddForm" class="easyui-form">
+		    <table style="width:100%;">
+		    	<tr>
+					<td><span class="span_class">标题:</span></td>
+					<td><span><input id="customerAnswerAdd-customerAnswer" class="easyui-textbox" style="width: 500px;" /></span></td>
+				</tr>
+				<tr>
+					<td><span class="span_class">词模类型:</span></td>
+					<td><span>
+						<select id="customerAnswerAdd-wordtype" class="easyui-combobox" style="width: 150px;">
+							<option value="0">简单词模</option>
+							<option value="1">排除词模</option>
+							<option value="2">选择词模</option>
+							<option value="3">特征词模</option>
+							<option value="4">等于词模</option>
+						</select>
+					</span></td>
+				</tr>
+				<tr>
+					<td><span class="span_class">生成词模:</span></td>
+					<td><span><input id="customerAnswerAdd-keywords" class="easyui-textbox" style="width: 500px;"></input></span></td>
+					<td><span><a id="customerAnswerAdd-analyzeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-save'">生成</a> </span></td>
+				</tr>
+				<tr>
+					<td class="span_class" valign="top">新增词模:</td>
+					<td>
+						<span>
+							<textarea id="customerAnswerAdd-wordclasses" style="width: 500px; height： 100px; font-size: 12px;"></textarea>
+						</span>
+					</td>
+				</tr>
+		    </table>
+		</form>
+		<div style="text-align: center; padding: 10px">
+			<a id="customerAnswerAdd-saveBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-save'">保存</a> 
+			<a id="customerAnswerAdd-closeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-clear'">关闭</a>
+		</div>
+	</div>
+	
+	<!-- 词模 -->
+	<div id="autoworrdpat" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
+		title="自学习词模" style="width:650px;">
+		<form id="autoworrdpatForm" class="easyui-form">
+		    <table style="width:100%;">
+		    	<tr>
+					<td><span class="span_class">词模条目:</span></td>
+					<td>
+						<div id="autoworrdpat-nextabs-div"></div>
+					</td>
+				</tr>
+				<tr>
+					<td><span class="span_class">针对问题:</span></td>
+					<td><span><input id="autoworrdpat-targetedquery" class="easyui-textbox" style="width: 500px;" /></span></td>
+				</tr>
+				<tr>
+					<td><span class="span_class">最大未匹配字数:</span></td>
+					<td><span><input id="autoworrdpat-matchcount" class="easyui-textbox" style="width: 500px;"></input></span></td>
+				</tr>
+				<tr>
+					<td colspan="2"><label id="autoworrdpat-errorInfo"></label></td>
+				</tr>
+		    </table>
+		</form>
+		<div style="text-align: center; padding: 10px">
+			<a id="autoworrdpat-saveBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-save'">保存</a> 
+			<a id="autoworrdpat-closeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-clear'">关闭</a>
+		</div>
+	</div>
+
+	<!-- 右键菜单(用于start) -->
+	<div id="startmenu" class="easyui-menu" style="width:120px;">
+		<div data-options="iconCls:'icon-edit'">编辑</div>
+	</div>
+		
+	<!-- 右键菜单(用于回复内容) -->
+	<div id="normalmenu" class="easyui-menu" style="width:120px;">
+		<div data-options="iconCls:'icon-edit'">编辑</div>
+	</div>
+	
+	<script type="text/javascript">
+	    // 实例化编辑器
+    	var um = UM.getEditor('myEditor');
+    </script>
+</body>
+</html>

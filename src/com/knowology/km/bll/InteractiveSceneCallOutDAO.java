@@ -1339,15 +1339,16 @@ public class InteractiveSceneCallOutDAO {
 	 * 查询自定义识别规则
 	 */
 	public static Result queryPrivateRegnitionRule(String scenariosId) {
-		Result result = CommonLibServiceDAO.getParentNameByChildID(scenariosId);
+		// 获取场景信息
+		Result result = CommonLibServiceDAO.getServiceInfoByserviceid(scenariosId);
 		if (result == null || result.getRowCount() == 0) {
 			return null;
 		}
-		String parentScenariosName = result.getRows()[1].get("service") + "";
-		// 识别规则业务ID
-		String serviceId = getRegnitionRuleServiceId(parentScenariosName.trim());
-		String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.serviceid = ?";
-		result = Database.executeQuery(sql, serviceId);
+		// 获取父场景ID
+		String parentScenariosId = result.getRows()[0].get("PARENTID") + "";
+		// 识别规则业务
+		String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service = '识别规则业务' and s.parentid = ?";
+		result = Database.executeQuery(sql, parentScenariosId);
 		return result;
 	}
 
@@ -2089,6 +2090,83 @@ public class InteractiveSceneCallOutDAO {
 			jsonObj.put("success", false);
 		}
 		return jsonObj;
+	}
+	
+	/**
+	 * 查询全部场景要素
+	 * 
+	 * @param scenariosId 场景ID
+	 * @param sceneElementName 场景要素名称
+	 * @return
+	 */
+	public static Object listAllElementName(String scenariosId, String sceneElementName) {
+		JSONObject jsonObj = (JSONObject) SceneElementDAO.listAllElementName(scenariosId, sceneElementName);
+		if(jsonObj.getIntValue("total") > 0) {
+			JSONArray newRows = new JSONArray();
+			JSONArray rows = jsonObj.getJSONArray("rows");
+			for(int i = 0; i < rows.size(); i++) {
+				JSONObject row = rows.getJSONObject(i);
+				if(!checkIfSystemSceneElements(row.getString("name"))) {
+					newRows.add(row);
+				}
+			}
+			jsonObj.put("rows", newRows);
+			jsonObj.put("total", newRows.size());
+		}
+		return jsonObj.getJSONArray("rows");
+	}
+
+	/**
+	 * 分页查询场景要素
+	 * 
+	 * @param scenariosId      场景ID
+	 * @param sceneElementName 场景要素名称
+	 * @param currentPage      当前页码
+	 * @param pageSize         分页条数
+	 * @return
+	 */
+	public static Object listPagingSceneElement(String scenariosId, String sceneElementName, int currentPage,
+			int pageSize) {
+		JSONObject jsonObj = new JSONObject();
+		JSONArray newRows = new JSONArray();
+		int totalCount = CommonLibInteractiveSceneDAO.getElementNameCount(scenariosId, sceneElementName);
+		if(totalCount > 10) {
+			int totalPage = totalCount / pageSize + 1;
+			while (currentPage <= totalPage) {
+				jsonObj = (JSONObject) SceneElementDAO.listPagingSceneElements(scenariosId, sceneElementName, currentPage,
+						pageSize);
+				JSONArray rows = jsonObj.getJSONArray("rows");
+				if (rows.size() > 0) {
+					for (int i = 0; i < rows.size(); i++) {
+						JSONObject row = rows.getJSONObject(i);
+						if (!checkIfSystemSceneElements(row.getString("name"))) {
+							newRows.add(row);
+						}
+					}
+					if (newRows.size() > 0) {
+						break;
+					}
+					listPagingSceneElement(scenariosId, sceneElementName, ++currentPage, pageSize);
+				}
+			}
+		}
+		jsonObj.put("rows", newRows);
+		jsonObj.put("total", newRows.size());
+		return jsonObj;
+	}
+	
+	/**
+	 * 判断系统场景要素
+	 * 
+	 * @param sceneElementName 场景要素名称
+	 * @return true 是 false 否
+	 */
+	private static boolean checkIfSystemSceneElements(String sceneElementName) {
+		Set<String> systemSceneElements = CallOutSceneElementConsts.getAllSceneElements();
+		if(systemSceneElements.contains(sceneElementName)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**

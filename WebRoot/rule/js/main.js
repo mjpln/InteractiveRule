@@ -3166,7 +3166,7 @@ function opengojs(){
         var title = "【" + sname + "-流程图】";
         opengojstab(title, node.id, sname)
     }
-    $(this).tree('beginEdit', node.target);
+    t.tree('beginEdit', node.target);
 }
 
 function opengojstab(title, id,sname) {
@@ -3187,7 +3187,11 @@ function opengojstab(title, id,sname) {
         success : function(data, textStatus, jqXHR) {
             var url;
             if (data.customer == "全行业") {
-                url = "./scenariosCallOut.html?scenariosid=" + id + '&scenariosname=' + sname + '&ioa=' + ioa + '&strategy=' + bb;
+            	if(sname.indexOf('【') > -1 && sname.indexOf('】') > -1) {
+            		url = "./scenariosCallIn.html?scenariosid=" + id + '&scenariosname=' + sname + '&ioa=' + ioa + '&strategy=' + bb;
+            	} else {
+            		url = "./scenariosCallOut.html?scenariosid=" + id + '&scenariosname=' + sname + '&ioa=' + ioa + '&strategy=' + bb;
+            	}
             } else {//非全行业，查询配置
                 $.ajax({
                     url : '../saveConfiguration.action',

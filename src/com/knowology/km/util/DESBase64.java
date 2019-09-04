@@ -60,7 +60,7 @@ public class DESBase64 {
 	public static void main(String[] args) {
 		String username = "znkf";
 		String password = "nkipwd";
-		String url = "jdbc:mysql://172.30.66.138:3306/znkf?useUnicode=true&characterEncoding=utf8&useOldAliasMetadataBehavior=true";
+		String url = "jdbc:mysql://10.249.11.23:3306/znkf?useUnicode=true&characterEncoding=utf8&useOldAliasMetadataBehavior=true";
 //		String value = "jdbc:mysql://222.186.101.210:3306/sdd?useUnicode=true&characterEncoding=utf8&useOldAliasMetadataBehavior=true";
 //		String value = "jdbc:mysql://222.186.101.210:3306/sdd?useUnicode=true&characterEncoding=utf8&useOldAliasMetadataBehavior=true";
 		
