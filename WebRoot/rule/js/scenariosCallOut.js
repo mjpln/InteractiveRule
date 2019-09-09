@@ -168,7 +168,7 @@ function diagramStyle() {
 // 初始化用户回答
 function initCustomerAnswer() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallOut.action',
 		type : "post",
 		data : {
 			type : 'queryCustomerAnswer',
@@ -194,7 +194,7 @@ function initCustomerAnswer() {
 // 初始化短信模板
 function initSmsTemplate() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallOut.action',
 		type : "post",
 		data : {
 			type : 'querySmsTemplate',
@@ -240,7 +240,7 @@ function initSmsTemplate() {
 // 初始化号码属性
 function initPhoneAttributeNames() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallOut.action',
 		type : "post",
 		data : {
 			type : 'queryPhoneAttributeNames'
@@ -258,10 +258,11 @@ function initPhoneAttributeNames() {
 // 初始化信息收集类型
 function initCollectionType() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallOut.action',
 		type : "post",
 		data : {
-			type : 'queryCollectionType'
+			type : 'queryCollectionType',
+			scenariosid: publicscenariosid
 		},
 		async : false,
 		dataType : "json",
@@ -349,8 +350,8 @@ var condition = "<div class=\"form-div\">" +
 "								 <a style='width: 20px;height: 10px' href=\"javascript:void(0)\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-remove'\">+移除</a>" +
 "							 </div>" +
 "                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_relation\" data-options=\"prompt:'比较关系',valueField: 'id',textField: 'text',data: [{id: '大于', text: '大于'},{ id: '小于', text: '小于'},{ id: '等于', text: '等于'},{ id: '不等于', text: '不等于'},{ id: '大于等于', text: '大于等于'},{ id: '小于等于', text: '小于等于'}]\" style=\"width: 200px; height: 25px;\"/></div>" +
-"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_type\" data-options=\"prompt:'类型',valueField: 'id',textField: 'text',data: [{id: 'String', text: 'String'},{ id: 'Integer', text: 'Integer'},{ id: 'Variable', text: 'Variable'}]\" style=\"width: 100px; height: 25px;\"/>" +
-"                                <input class=\"easyui-textbox\" name=\"param_value\" data-options=\"prompt:'name'\" style=\"width: 100px; height: 25px;\"/></div>" +
+"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_type\" data-options=\"prompt:'类型',valueField: 'id',textField: 'text',data: [{id: 'String', text: 'String'},{ id: 'Integer', text: 'Integer'},{ id: 'Variable', text: 'Variable'}]\" style=\"width: 200px; height: 25px;\"/>" +
+"                                <input class=\"easyui-textbox\" name=\"param_value\" data-options=\"prompt:'name'\" style=\"width: 200px; height: 25px;\"/></div>" +
 "                            <div class=\"form-div updown\">" +
 "                                <div style=\"padding:3px;float:left;width: 20%\"> <input type=\"checkbox\" name=\"isUpDown\"  style=\"width:30%\"><span style=\"width: 70%\">浮动</span></div>" +
 "                                <div style=\"width: 80%\">" +
@@ -562,7 +563,7 @@ function initURLAction(){
 	$('#testAction').click(function() {
 		var actionUrl = $("#txt_action_url").textbox("getValue");
 		$.ajax({
-			url : '../saveConfiguration.action',
+			url : '../interactiveSceneCallOut.action',
 			type : "post",
 			data : {
 				type : 'testUrl',
@@ -1225,7 +1226,7 @@ function makeGraphObject() {
 // 初始化流程图
 function loadDiagramData() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallOut.action',
 		type : 'post',
 		dataType : 'json',
 		data : {
@@ -2219,16 +2220,15 @@ function VerificationData() {
 
 // 提交已修改的数据
 function commitRevisedData(jsonStr) {
-	console.log(jsonStr);
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallOut.action',
 		type : 'post',
 		dataType : 'json',
 		data : {
 			scenariosid : publicscenariosid,
 			scenariosName : publicscenariosname,
 			type : "saveConfig",
-			m_request : jsonStr
+			sceneJson : jsonStr
 		},
 		success : function(data) {
 			$.messager.alert('系统提示', data.msg, "info");
@@ -2314,7 +2314,7 @@ function autowordpat() {
 	}
 	
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallOut.action',
 		type : 'post',
 		dataType : 'json',
 		data : {
@@ -2505,7 +2505,7 @@ function saveCustomerAnswer() {
 
     simplewordpat = simplewordpat.substr(0, simplewordpat.length - 1).replace(/[\[\s+]\]/g,']');
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallOut.action',
 		type : 'post',
 		dataType : 'json',
 		data : {

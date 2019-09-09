@@ -9,14 +9,11 @@ import javax.servlet.jsp.jstl.sql.Result;
 
 import org.apache.log4j.Logger;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.knowology.Bean.User;
 import com.knowology.UtilityOperate.GetConfigValue;
 import com.knowology.bll.CommonLibInteractiveSceneDAO;
 import com.knowology.bll.CommonLibMetafieldmappingDAO;
 import com.knowology.bll.CommonLibQueryManageDAO;
-import com.knowology.bll.CommonLibServiceDAO;
 import com.knowology.bll.ConstructSerialNum;
 import com.knowology.dal.Database;
 import com.knowology.km.pojo.SceneElement;
@@ -307,19 +304,18 @@ public class ScenariosDAO {
 	}
 	
 	/**
-	 * 查询信息收集类型
+	 * 查询公共信息类型
 	 */
-	public static Result queryCollectionType() {
+	public static Result queryPublicCollectionType() {
 		// 获取用户
 		User user = (User) GetSession.getSessionByKey("accessUser");
 		// 获取行业
 		String serviceType = user.getIndustryOrganizationApplication();
-		// 获取行业根问题库
-		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(),
-				serviceType.split("->")[0] + "->通用商家->多渠道应用", "", "全国", "");
+		// 获取根问题库
+		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), serviceType, "", "全国", "");
 		if (result != null && result.getRowCount() > 0) {
 			String commonQuestionServiceName = result.getRows()[0].get("service") + "";
-			String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and brand = ? and parentName='信息收集' ";
+			String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and s.parentName='信息收集' and s.brand = ? ";
 			Result rs = Database.executeQuery(sql, commonQuestionServiceName);
 			return rs;
 		}
@@ -327,7 +323,7 @@ public class ScenariosDAO {
 	}
 	
 	/**
-	 * 查询公共意图识别规则
+	 * 查询公共用户意图
 	 */
 	public static Result queryPublicRegnitionRule() {
 		// 获取用户
@@ -335,13 +331,11 @@ public class ScenariosDAO {
 		// 获取行业
 		String serviceType = user.getIndustryOrganizationApplication();
 		// 获取行业根问题库
-		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(),
-				serviceType.split("->")[0] + "->通用商家->多渠道应用", "", "全国", "");
+		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), serviceType, "", "全国", "");
 		if (result != null && result.getRowCount() > 0) {
 			String commonQuestionServiceName = result.getRows()[0].get("service") + "";
-			String commonQuestionServiceId = result.getRows()[0].get("serviceid") + "";
-			String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and brand = ? and parentid = ?";
-			Result rs = Database.executeQuery(sql, commonQuestionServiceName, commonQuestionServiceId);
+			String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and s.parentName='用户意图' and s.brand = ? ";
+			Result rs = Database.executeQuery(sql, commonQuestionServiceName);
 			return rs;
 		}
 		return null;

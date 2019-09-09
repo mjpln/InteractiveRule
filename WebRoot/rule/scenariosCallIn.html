@@ -219,32 +219,57 @@
 							<span><input id="collectionParam" class="easyui-textbox" style="width: 240px;"/></span>
 						</td>
 					</tr>
-					<tr id="collectionform-collectionElement-tr">
-						<td>
-							<span><span style='color:red'>*</span>关联要素：</span>
-							<span>
-								<input id="collectionElement" name="collectionElement" class="easyui-combobox" style="width: 210px;"/>	
-								<a id="addSceneElement" name="addSceneElement" href="javascript:void(0)" class="easyui-linkbutton" 
-									data-options="iconCls:'icon-add'"></a> 
-							</span>
-						</td>
-					</tr>
 					<tr>
 						<td>
-							<span><span style='color:red'>*</span>信息类型：</span>
+							<span>
+								<span style='color:red'>*</span>信息类型：
+								<a id="toAddCollectionTypePageBtn" name="toAddCollectionTypePageBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-add'">添加</a>
+							</span>
 							<span><input id="collectionType" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
-					<tr>
+					<tr id="collectionform-collectionTimes-tr">
 						<td>
 							<span><span style='color:red'>*</span>重复次数：</span>
 							<span><input id="collectionTimes" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
+					<tr id="collectionform-collectionElement-tr">
+						<td>
+							<span>
+								<span style='color:red'>*</span>关联要素：
+								<a id="addSceneElementBtn" name="addSceneElementBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-add'">添加</a>
+							</span>
+							<span>
+								<input id="collectionElement" name="collectionElement" class="easyui-combobox" style="width: 240px;"/>	
+							</span>
+						</td>
+					</tr>
 					<tr>
+						<td>
+							<span><span style='color:red'>*</span>交互类型：</span>
+							<span>
+								<input id="interactiveType" class="easyui-combobox" style="width: 240px;"
+									data-options="valueField:'id',textField:'text',data:[{'text':'菜单询问','id':'键值补全'},{'text':'系统反问','id':'词模匹配'}]"/>
+							</span>
+						</td>
+					</tr>
+					<tr id="collectionform-collectionWords-tr">
 						<td>
 							<span><span style='color:red'>*</span>反问话术：</span>
 							<span><textarea id="collectionWords" style="width: 240px; height:100px; font-size: 12px;"></textarea></span>
+						</td>
+					</tr>
+					<tr id="collectionform-menuItems-tr">
+						<td>
+							<span><span style='color:red'>*</span>开始话语：</span>
+							<span><textarea id="menuStartWords" style="width: 240px; height:30px; font-size: 12px;"></textarea></span>
+							<span><span style='color:red'>*</span>菜单选项：</span>
+							<span><textarea id="menuOptions" style="width: 240px; height:30px; font-size: 12px;" placeholder="多条值以|分隔开"></textarea></span>
+							<span><span style='color:red'>*</span>结束话语：</span>
+							<span><textarea id="menuEndWords" style="width: 240px; height:30px; font-size: 12px;"></textarea></span>
 						</td>
 					</tr>
 				</table>
@@ -451,7 +476,7 @@
 					<td><input id="sceneElementEditForm-infoTalbePath" name="sceneElementEditForm-infoTalbePath" style="width: 300px;"></input></td>
 				</tr>
 				<tr>
-					<td>对应地市:</td>
+					<td>对应区域:</td>
 					<td><input id="sceneElementEditForm-city" name="sceneElementEditForm-city" style="width: 300px;" ></input></td>
 				</tr>
 				<tr>
@@ -465,7 +490,7 @@
 					</td>
 				</tr>
 				<tr>
-					<td>归属:</td>
+					<td>交互类型:</td>
 					<td>
 						<select class="easyui-combobox" id="sceneElementEditForm-container" name="sceneElementEditForm-container" style="width: 300px;">
 							<option value="键值补全">菜单询问用户</option>
@@ -492,7 +517,7 @@
 	
 	<!-- 词类新增和编辑 window start -->
 	<div id="wordClassEditDiv" class="easyui-window" title="词类新增" data-options="modal:true,closed:true,iconCls:'icon-save'" style="width:900px;height:500px;">
-		<iframe id='standardIframe' width='100%' height='100%' frameborder='0' src='http://172.30.66.120:8082/KM/wordclass/app.html'></iframe>
+		<iframe id='standardIframe' scrolling="auto" width='100%' height='100%' frameborder='0' src='http://172.30.66.120:8082/KM/wordclass/app.html'></iframe>
 	</div>
 		
 	<!-- 添加用户答案 -->
@@ -540,6 +565,51 @@
 		</div>
 	</div>
 	
+	<!-- 添加信息类型 -->
+	<div id="collectionTypeAddPage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
+		title="添加信息类型" style="width:650px;">
+		<form id="collectionTypeAddForm" class="easyui-form">
+		    <table style="width:100%;">
+		    	<tr>
+					<td><span class="span_class">标题:</span></td>
+					<td><span><input id="collectionTypeAddForm-title" class="easyui-textbox" style="width: 500px;" /></span></td>
+				</tr>
+				<tr>
+					<td><span class="span_class">词模类型:</span></td>
+					<td><span>
+						<select id="collectionTypeAddForm-wordtype" class="easyui-combobox" style="width: 150px;">
+							<option value="0">简单词模</option>
+							<option value="1">排除词模</option>
+							<option value="2">选择词模</option>
+							<option value="3">特征词模</option>
+							<option value="4">等于词模</option>
+						</select>
+					</span></td>
+				</tr>
+				<tr>
+					<td><span class="span_class">生成词模:</span></td>
+					<td><span><input id="collectionTypeAddForm-keywords" class="easyui-textbox" style="width: 500px;"></input></span></td>
+					<td><span><a id="collectionTypeAddForm-analyzeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-save'">生成</a> </span></td>
+				</tr>
+				<tr>
+					<td class="span_class" valign="top">新增词模:</td>
+					<td>
+						<span>
+							<textarea id="collectionTypeAddForm-wordclasses" style="width: 500px; height： 100px; font-size: 12px;"></textarea>
+						</span>
+					</td>
+				</tr>
+		    </table>
+		</form>
+		<div style="text-align: center; padding: 10px">
+			<a id="collectionTypeAddForm-saveBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-save'">保存</a> 
+			<a id="collectionTypeAddForm-closeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-clear'">关闭</a>
+		</div>
+	</div>
+	
 	<!-- 词模 -->
 	<div id="autoworrdpat" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
 		title="自学习词模" style="width:650px;">
@@ -571,17 +641,7 @@
 				data-options="iconCls:'icon-clear'">关闭</a>
 		</div>
 	</div>
-
-	<!-- 右键菜单(用于start) -->
-	<div id="startmenu" class="easyui-menu" style="width:120px;">
-		<div data-options="iconCls:'icon-edit'">编辑</div>
-	</div>
 		
-	<!-- 右键菜单(用于回复内容) -->
-	<div id="normalmenu" class="easyui-menu" style="width:120px;">
-		<div data-options="iconCls:'icon-edit'">编辑</div>
-	</div>
-	
 	<script type="text/javascript">
 	    // 实例化编辑器
     	var um = UM.getEditor('myEditor');

@@ -1,71 +1,76 @@
 package com.knowology.km.action;
 
-import com.knowology.km.bll.InteractiveSceneCallOutDAO;
+import com.knowology.km.bll.InteractiveSceneCallInDAO;
 
-public class InteractiveSceneCallOutAction extends BaseAction {
-		
+public class InteractiveSceneCallInAction extends BaseAction {
+
 	private String sceneJson;
 	private Object m_result;
 	private String type;
-	
+
 	private String scenariosid;
+	private String scenariosName;
 	private String robotId;
 	private String robotName;
-	private String autowordpat;
+	private String autoWordPattern;
+	private String collectionType;
 	private String customeranswer;
-	private String simplewordpat;
-	private String wordpattype;
+	private String simpleWordPattern;
+	private String wordPatternType;
 	private String ioa;
 	private String actionUrl;
 	private String actionName;
-	private String scenarioName;
 	private String sceneElementName;
 	private int page;
 	private int rows;
 
 	public Object execute() {
 		if ("saveConfig".equals(type)) { // 解析并保存流程图
-			m_result = InteractiveSceneCallOutDAO.saveSceneRules(sceneJson, scenariosid);
+			m_result = InteractiveSceneCallInDAO.saveSceneRules(sceneJson, scenariosid);
 		}
 		if ("loadConfigData".equals(type)) {// 加载场景配置数据
-			m_result = InteractiveSceneCallOutDAO.loadData(scenariosid);
+			m_result = InteractiveSceneCallInDAO.loadData(scenariosid);
 		}
 		if ("configRobot".equals(type)) {// 配置机器人信息
-			m_result = InteractiveSceneCallOutDAO.configRobot(robotId, robotName, scenariosid);
+			m_result = InteractiveSceneCallInDAO.configRobot(robotId, robotName, scenariosid);
 		}
 		if ("getUrl".equals(type)) { // 要打开的场景页面
-			m_result = InteractiveSceneCallOutDAO.getUrl(ioa);
+			m_result = InteractiveSceneCallInDAO.getUrl(ioa);
 		}
-		if ("autowordpat".equals(type)) {// 生成词模
-			m_result = InteractiveSceneCallOutDAO.autoGenerateWordpat(scenariosid, autowordpat);
+		if ("autoWordPattern".equals(type)) {// 生成词模
+			m_result = InteractiveSceneCallInDAO.autoGenerateWordpat(scenariosid, autoWordPattern);
 		}
 		if ("saveCustomerAnswer".equals(type)) {// 新增用户回答
-			m_result = InteractiveSceneCallOutDAO.saveCustomerAnswer(scenariosid, customeranswer, simplewordpat,
-					wordpattype, super.httpRequest);
+			m_result = InteractiveSceneCallInDAO.saveCustomerAnswer(scenariosid, customeranswer, simpleWordPattern,
+					wordPatternType, super.httpRequest);
 		}
 		if ("queryCustomerAnswer".equals(type)) {// 查询用户回答
-			m_result = InteractiveSceneCallOutDAO.initCustomerAnswer(scenariosid);
+			m_result = InteractiveSceneCallInDAO.initCustomerAnswer(scenariosid);
 		}
 		if ("querySmsTemplate".equals(type)) {// 查询短信模板
-			m_result = InteractiveSceneCallOutDAO.querySmsTemplate(scenariosid);
+			m_result = InteractiveSceneCallInDAO.querySmsTemplate(scenariosid);
+		}
+		if ("saveCollectionType".equals(type)) {// 新增信息收集类型
+			m_result = InteractiveSceneCallInDAO.saveCollectionType(scenariosid, collectionType, simpleWordPattern,
+					wordPatternType, super.httpRequest);
 		}
 		if ("queryCollectionType".equals(type)) {// 查询信息收集类型
-			m_result = InteractiveSceneCallOutDAO.initCollectionType(scenariosid);
+			m_result = InteractiveSceneCallInDAO.initCollectionType(scenariosid);
 		}
 		if ("queryPhoneAttributeNames".equals(type)) {// 查询号码属性
-			m_result = InteractiveSceneCallOutDAO.queryPhoneAttributeNames();
+			m_result = InteractiveSceneCallInDAO.queryPhoneAttributeNames();
 		}
 		if ("testUrl".equals(type)) {// 测试URL
-			m_result = InteractiveSceneCallOutDAO.testURLAction(actionUrl);
+			m_result = InteractiveSceneCallInDAO.testURLAction(actionUrl);
 		}
 		if ("checkUrlActionName".equals(type)) {// 校验接口名称是否重复
-			m_result = InteractiveSceneCallOutDAO.checkUrlActionName(actionName);
+			m_result = InteractiveSceneCallInDAO.checkUrlActionName(actionName);
 		}
 		if ("listAllSceneElement".equals(type)) {// 查询全部场景要素
-			m_result = InteractiveSceneCallOutDAO.listAllElementName(scenariosid, sceneElementName);
+			m_result = InteractiveSceneCallInDAO.listAllElementName(scenariosid, sceneElementName);
 		}
 		if ("listPagingSceneElement".equals(type)) {// 查询全部场景要素
-			m_result = InteractiveSceneCallOutDAO.listPagingSceneElement(scenariosid, sceneElementName, page, rows);
+			m_result = InteractiveSceneCallInDAO.listPagingSceneElement(scenariosid, sceneElementName, page, rows);
 		}
 		return "success";
 	}
@@ -102,6 +107,14 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 		this.scenariosid = scenariosid;
 	}
 
+	public String getScenariosName() {
+		return scenariosName;
+	}
+
+	public void setScenariosName(String scenariosName) {
+		this.scenariosName = scenariosName;
+	}
+
 	public String getRobotId() {
 		return robotId;
 	}
@@ -118,12 +131,20 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 		this.robotName = robotName;
 	}
 
-	public String getAutowordpat() {
-		return autowordpat;
+	public String getAutoWordPattern() {
+		return autoWordPattern;
 	}
 
-	public void setAutowordpat(String autowordpat) {
-		this.autowordpat = autowordpat;
+	public void setAutoWordPattern(String autoWordPattern) {
+		this.autoWordPattern = autoWordPattern;
+	}
+
+	public String getCollectionType() {
+		return collectionType;
+	}
+
+	public void setCollectionType(String collectionType) {
+		this.collectionType = collectionType;
 	}
 
 	public String getCustomeranswer() {
@@ -134,20 +155,20 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 		this.customeranswer = customeranswer;
 	}
 
-	public String getSimplewordpat() {
-		return simplewordpat;
+	public String getSimpleWordPattern() {
+		return simpleWordPattern;
 	}
 
-	public void setSimplewordpat(String simplewordpat) {
-		this.simplewordpat = simplewordpat;
+	public void setSimpleWordPattern(String simpleWordPattern) {
+		this.simpleWordPattern = simpleWordPattern;
 	}
 
-	public String getWordpattype() {
-		return wordpattype;
+	public String getWordPatternType() {
+		return wordPatternType;
 	}
 
-	public void setWordpattype(String wordpattype) {
-		this.wordpattype = wordpattype;
+	public void setWordPatternType(String wordPatternType) {
+		this.wordPatternType = wordPatternType;
 	}
 
 	public String getIoa() {
@@ -172,14 +193,6 @@ public class InteractiveSceneCallOutAction extends BaseAction {
 
 	public void setActionName(String actionName) {
 		this.actionName = actionName;
-	}
-
-	public String getScenarioName() {
-		return scenarioName;
-	}
-
-	public void setScenarioName(String scenarioName) {
-		this.scenarioName = scenarioName;
 	}
 
 	public String getSceneElementName() {

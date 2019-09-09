@@ -21,6 +21,7 @@ var sceneElementIdForUpdate;
 var oldSceneElementName;
 var oldWeight;
 var saveOrUpdateFlag;
+var autoWordPattern;
 
 //用于定义模板的简洁性
 var $GO = go.GraphObject.make;
@@ -93,6 +94,12 @@ $(function() {
 
 // 初始化信息收集组件
 function initCollection() {
+	$('#collectionform-collectionParam-tr').show();
+	$('#collectionform-collectionTimes-tr').hide();
+	$('#collectionform-collectionWords-tr').hide();
+	$('#collectionform-menuItems-tr').hide();
+	$('#interactiveType').combobox('disable'); 
+	
 	// 初始化信息收集类型
 	initCollectionType();
 	
@@ -109,12 +116,9 @@ function initSceneElements() {
 	// 加载关联要素
 	loadCollectionElement();
 	// 关联要素添加按钮
-	$("#addSceneElement").bind("click",function () {
+	$("#addSceneElementBtn").bind("click",function () {
 		openElement();
-		loadElementName();
-		loadCollectionElement();
 	});
-	
 	// 保存场景要素
 	$("#sceneElementEditDiv #saveElement").click(function() {
 		$('#sceneElementEditForm').form('submit', {
@@ -131,15 +135,59 @@ function initSceneElements() {
 	$("#addWordClass").bind("click",function () {
 		$("#wordClassEditDiv").window('open');
 	});
-	
+	// 关闭之前触发的事件
+	$('#wordClassEditDiv').window({
+        onBeforeClose: function () { 
+        	// 刷新词类下拉框
+        	createWordClassCombobox();
+        }
+    });
+	$('#sceneElementDiv').window({
+        onBeforeClose: function () { 
+        	// 刷新关联要素下拉框
+        	loadCollectionElement();
+        	$('#interactiveType').combobox('setValue','');
+        	$('#collectionform-collectionWords-tr').hide();
+			$('#collectionform-menuItems-tr').hide();
+        }
+    });
 }
 // 加载关联要素
 function loadCollectionElement() {
-	$('#collectionElement').combobox({
-		url : '../saveConfiguration.action?type=listAllSceneElement&scenariosid=' + publicscenariosid,
-		valueField : 'id',
-		textField : 'text',
-		panelHeight : '150px'
+	$.ajax({
+		url : '../interactiveSceneCallIn.action',
+		type : "post",
+		data : {
+			type : 'listAllSceneElement',
+			scenariosid : publicscenariosid
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.total > 0) {
+				$('#collectionElement').combobox({
+					valueField : 'id',
+					textField : 'text',
+					data : data.rows,
+					onChange: function(newVal, oldVal) {
+						var rows = data.rows;
+			        	for(var i=0; i<rows.length;i++) {
+			        		var row = rows[i];
+			        		if(row.name == newVal) {
+			        			$('#interactiveType').combobox('setValue',row.container);
+			        			if(row.container == '词模匹配') { // 系统反问
+			        				$('#collectionform-collectionWords-tr').show();
+			        				$('#collectionform-menuItems-tr').hide();
+			        			} else if (row.container == '键值补全'){ // 菜单询问用户
+			        				$('#collectionform-collectionWords-tr').hide();
+			        				$('#collectionform-menuItems-tr').show();
+								}
+			        		}
+			        	}
+			        } 
+				});
+			}
+		}
 	});
 }
 // 打开场景要素编辑区
@@ -164,7 +212,7 @@ function loadElementName() {
 	var sceneElementName = $("#sceneElementQueryForm-sceneElementName").val();
 	$("#sceneElementTable").datagrid({
 		title : '场景要素显示区',
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallIn.action',
 		width : 900,
 		height : 395,
 		toolbar : "#sceneElementTableDiv",
@@ -255,7 +303,7 @@ function loadElementName() {
 				},
 				{
 					field : 'container',
-					title : '归属',
+					title : '交互类型',
 					width : 60,
 					formatter : function(value, row, index) {
 						if (value != "" && value != null) {
@@ -264,7 +312,7 @@ function loadElementName() {
 							if (value == '词模匹配'){
 								value='系统反问';
 							} else if (value == '键值补全'){
-								value = '菜单询问用户';
+								value='菜单询问';
 							}
 							var val = "<a title='" + value + "'>" + value + "</a>";
 							return val;
@@ -655,7 +703,7 @@ function diagramStyle() {
 // 初始化用户回答
 function initCustomerAnswer() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallIn.action',
 		type : "post",
 		data : {
 			type : 'queryCustomerAnswer',
@@ -681,7 +729,7 @@ function initCustomerAnswer() {
 // 初始化短信模板
 function initSmsTemplate() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallIn.action',
 		type : "post",
 		data : {
 			type : 'querySmsTemplate',
@@ -727,7 +775,7 @@ function initSmsTemplate() {
 // 初始化号码属性
 function initPhoneAttributeNames() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallIn.action',
 		type : "post",
 		data : {
 			type : 'queryPhoneAttributeNames'
@@ -744,11 +792,35 @@ function initPhoneAttributeNames() {
 
 // 初始化信息收集类型
 function initCollectionType() {
+	// 添加信息收集类型页面
+	$('#toAddCollectionTypePageBtn').click(function() {
+		$('#collectionTypeAddForm-wordclasses').val('');
+		$('#collectionTypeAddPage').window('open');
+	});
+	// 添加信息收集类型
+	$('#collectionTypeAddForm-saveBtn').click(function() {
+		saveCollectionType();
+	});
+	// 关闭信息收集类型
+	$('#collectionTypeAddForm-closeBtn').click(function() {
+		$('#collectionTypeAddPage').window('close');
+	});
+	// 生成词模
+	$('#collectionTypeAddForm-analyzeBtn').click(function() {	
+		var collectionTypeKeyWords = $.trim($("#collectionTypeAddForm-keywords").textbox('getValue'));
+		autoGenerateWordPattern(collectionTypeKeyWords);
+	});
+	// 加载信息收集类型下拉框
+	loadCollectionTypes();
+}
+// 加载信息收集类型下拉框
+function loadCollectionTypes() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallIn.action',
 		type : "post",
 		data : {
-			type : 'queryCollectionType'
+			type : 'queryCollectionType',
+			scenariosid: publicscenariosid
 		},
 		async : false,
 		dataType : "json",
@@ -836,8 +908,8 @@ var condition = "<div class=\"form-div\">" +
 "								 <a style='width: 20px;height: 10px' href=\"javascript:void(0)\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-remove'\">+移除</a>" +
 "							 </div>" +
 "                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_relation\" data-options=\"prompt:'比较关系',valueField: 'id',textField: 'text',data: [{id: '大于', text: '大于'},{ id: '小于', text: '小于'},{ id: '等于', text: '等于'},{ id: '不等于', text: '不等于'},{ id: '大于等于', text: '大于等于'},{ id: '小于等于', text: '小于等于'}]\" style=\"width: 200px; height: 25px;\"/></div>" +
-"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_type\" data-options=\"prompt:'类型',valueField: 'id',textField: 'text',data: [{id: 'String', text: 'String'},{ id: 'Integer', text: 'Integer'},{ id: 'Variable', text: 'Variable'}]\" style=\"width: 100px; height: 25px;\"/>" +
-"                                <input class=\"easyui-textbox\" name=\"param_value\" data-options=\"prompt:'name'\" style=\"width: 100px; height: 25px;\"/></div>" +
+"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_type\" data-options=\"prompt:'类型',valueField: 'id',textField: 'text',data: [{id: 'String', text: 'String'},{ id: 'Integer', text: 'Integer'},{ id: 'Variable', text: 'Variable'}]\" style=\"width: 200px; height: 25px;\"/></div>" +
+"                            <div class=\"form-div\"> <input class=\"easyui-textbox\" name=\"param_value\" multiline=\"true\" data-options=\"prompt:'多个值以|分隔'\" style=\"width: 200px; height: 50px;\"/></div>" +
 "                            <div class=\"form-div updown\">" +
 "                                <div style=\"padding:3px;float:left;width: 20%\"> <input type=\"checkbox\" name=\"isUpDown\"  style=\"width:30%\"><span style=\"width: 70%\">浮动</span></div>" +
 "                                <div style=\"width: 80%\">" +
@@ -1049,7 +1121,7 @@ function initURLAction(){
 	$('#testAction').click(function() {
 		var actionUrl = $("#txt_action_url").textbox("getValue");
 		$.ajax({
-			url : '../saveConfiguration.action',
+			url : '../interactiveSceneCallIn.action',
 			type : "post",
 			data : {
 				type : 'testUrl',
@@ -1351,26 +1423,32 @@ function makeGraphObject() {
 	                    new go.Binding("figure"),
 	                    new go.Binding("stroke", 'border'),
 	                    new go.Binding("fill")),
-					$GO(go.TextBlock, "Collection", {
+					$GO(go.TextBlock, {
 						font: "12px sans-serif",
 	                    maxSize : new go.Size(200, 200),
 	                    maxLines: 10,
-	                    verticalAlignment: go.Spot.Center,
+	                    verticalAlignment: go.Spot.Top,
 	                    editable: false,
-	                    alignment: go.Spot.Center,
+	                    alignment: go.Spot.Top,
 	                    overflow: go.TextBlock.OverflowEllipsis,
 	                    stroke: '#000'
 					},
-					new go.Binding("text").makeTwoWay(),
 					new go.Binding("width", "width"),
 					new go.Binding("height", "height"),
-					new go.Binding("margin", "margin"))), 
+					new go.Binding("margin", "collectionNameMargin"),
+					new go.Binding("text", "collectionName").makeTwoWay()),
 					$GO(go.TextBlock, {
-						margin : 0,
-						maxSize : new go.Size(0, 0),
-						editable : false,
-						visible : false
-					}, new go.Binding("text", "collectionName").makeTwoWay()), 
+						font: "8px sans-serif",
+	                    maxSize : new go.Size(200, 200),
+	                    maxLines: 10,
+	                    verticalAlignment: go.Spot.Left,
+	                    editable: false,
+	                    alignment: go.Spot.Left,
+	                    overflow: go.TextBlock.OverflowEllipsis,
+	                    stroke: '#000'
+					},
+					new go.Binding("margin", "collectionTextMargin"),
+					new go.Binding("text", "collectionText").makeTwoWay())),
 					$GO(go.TextBlock, {
 						margin : 0,
 						maxSize : new go.Size(0, 0),
@@ -1395,6 +1473,36 @@ function makeGraphObject() {
 						editable : false,
 						visible : false
 					}, new go.Binding("text", "collectionWords").makeTwoWay()),
+					$GO(go.TextBlock, {
+						margin : 0,
+						maxSize : new go.Size(0, 0),
+						editable : false,
+						visible : false
+					}, new go.Binding("text", "collectionElement").makeTwoWay()),
+					$GO(go.TextBlock, {
+						margin : 0,
+						maxSize : new go.Size(0, 0),
+						editable : false,
+						visible : false
+					}, new go.Binding("text", "interactiveType").makeTwoWay()),
+					$GO(go.TextBlock, {
+						margin : 0,
+						maxSize : new go.Size(0, 0),
+						editable : false,
+						visible : false
+					}, new go.Binding("text", "menuStartWords").makeTwoWay()),
+					$GO(go.TextBlock, {
+						margin : 0,
+						maxSize : new go.Size(0, 0),
+						editable : false,
+						visible : false
+					}, new go.Binding("text", "menuOptions").makeTwoWay()),
+					$GO(go.TextBlock, {
+						margin : 0,
+						maxSize : new go.Size(0, 0),
+						editable : false,
+						visible : false
+					}, new go.Binding("text", "menuEndWords").makeTwoWay()),
 					makePort("T", go.Spot.Top, go.Spot.Top, false, true),
 					makePort("B", go.Spot.Bottom, go.Spot.Bottom, true, false)));
 	
@@ -1712,7 +1820,7 @@ function makeGraphObject() {
 // 初始化流程图
 function loadDiagramData() {
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallIn.action',
 		type : 'post',
 		dataType : 'json',
 		data : {
@@ -1769,14 +1877,21 @@ function makePalette() {
 		}, {
 			key : "Collection",
 			category : "Collection",
-			text : "信息收集",
 			width: 50,
 			height: 20,
-			margin: 0,
+			collectionNameMargin: 0,
+			collectionTextMargin: 0,
+			collectionName: '信息收集',
+			collectionText: '',
 			collectionParam: '',
 			collectionType: '',
 			collectionTimes: '',
-			collectionWords: ''
+			collectionWords: '',
+			collectionElement: '',
+			interactiveType: '',
+			menuStartWords: '',
+			menuOptions: '',
+			menuEndWords: ''
 		},{
 			key : "DTMFPress",
 			category : "DTMFPress",
@@ -1873,7 +1988,8 @@ function addListenerEvents() {
 				if (nodeData.category == "Collection") {
 					myDiagram.model.setDataProperty(nodeData, 'width', 200);
 					myDiagram.model.setDataProperty(nodeData, 'height', NaN);
-					myDiagram.model.setDataProperty(nodeData, 'margin', 10);
+					myDiagram.model.setDataProperty(nodeData, 'collectionNameMargin', new go.Margin(5, 10, 40, 10));
+					myDiagram.model.setDataProperty(nodeData, 'collectionTextMargin', new go.Margin(30, 10, 2, 10));
 				}
 				if (nodeData.category == "DTMFPress") {
 					myDiagram.model.setDataProperty(nodeData, 'width', 200);
@@ -1949,11 +2065,24 @@ function addListenerEvents() {
 		if (nodeData.category == "Collection") {
 			$('#collectionform').form('clear');
 			// 信息收集内容赋值
-			$("#collectionName").textbox('setValue', nodeData.text);
+			$("#collectionName").textbox('setValue', nodeData.collectionName);
 			$("#collectionParam").textbox('setValue', nodeData.collectionParam);
 			$("#collectionType").combobox('setValue', nodeData.collectionType);
 			$("#collectionTimes").combobox('setValue', nodeData.collectionTimes);
+			$("#collectionElement").combobox('setValue', nodeData.collectionElement);
+			$("#interactiveType").combobox('setValue', nodeData.interactiveType);
 			$("#collectionWords").val(nodeData.collectionWords);
+			$("#menuStartWords").val(nodeData.menuStartWords);
+			$("#menuOptions").val(nodeData.menuOptions);
+			$("#menuEndWords").val(nodeData.menuEndWords);
+			if(nodeData.interactiveType == '词模匹配') { // 系统反问
+				$('#collectionform-collectionWords-tr').show();
+				$('#collectionform-menuItems-tr').hide();
+			}
+			if(nodeData.interactiveType == '键值补全') { // 菜单询问
+				$('#collectionform-collectionWords-tr').hide();
+				$('#collectionform-menuItems-tr').show();
+			}
 			$('#myCollectionEditDiv').show();
 			$('#myNormalEditDiv').hide();
 			$('#myConditionDiv').hide();
@@ -2243,6 +2372,7 @@ function buttonClick() {
 	
 	// 添加用户答案页面
 	$('#customerAnswerAdd-toPageBtn').click(function() {
+		$('#customerAnswerAdd-wordclasses').val('');
 		$('#customerAnswerAddPage').window('open');
 		
 	});
@@ -2254,8 +2384,9 @@ function buttonClick() {
 	});
 	
 	// 生成词模
-	$('#customerAnswerAdd-analyzeBtn').click(function() {		
-		autowordpat();
+	$('#customerAnswerAdd-analyzeBtn').click(function() {
+		var customerAnswerKeywords = $.trim($("#customerAnswerAdd-keywords").textbox('getValue'));
+		autoGenerateWordPattern(customerAnswerKeywords);
 	});
 	
 	// 保存用户答案
@@ -2266,11 +2397,13 @@ function buttonClick() {
 	// 保存自学习词模
 	$('#autoworrdpat-saveBtn').click(function() {
 		addAutoWordpat();
+		$('#customerAnswerAdd-wordclasses').val(autoWordPattern);
+		$('#collectionTypeAddForm-wordclasses').val(autoWordPattern);
 	});
 	
 	// 关闭自学习词模页面
 	$('#autoworrdpat-closeBtn').click(function() {
-		$('#"autoworrdpat"').window('close');
+		$('#autoworrdpat').window('close');
 	});
 	
 	// 保存流程图
@@ -2351,7 +2484,12 @@ function buttonClick() {
 		var collectionParam = $("#collectionParam").textbox('getValue');
 		var collectionType = $("#collectionType").combobox('getValue');
 		var collectionTimes = $("#collectionTimes").combobox('getValue');
+		var collectionElement = $("#collectionElement").combobox('getValue');
+		var interactiveType = $("#interactiveType").combobox('getValue');
 		var collectionWords = $("#collectionWords").val();
+		var menuStartWords = $("#menuStartWords").val();
+		var menuOptions = $("#menuOptions").val();
+		var menuEndWords = $("#menuEndWords").val();
 		if(collectionName == '') {
 			$.messager.alert('提示', "请填写信息名称", "info");
 			return;
@@ -2364,23 +2502,51 @@ function buttonClick() {
 			$.messager.alert('提示', "请选择信息类型", "info");
 			return;
 		}
-		if(collectionTimes == '') {
-			$.messager.alert('提示', "请填写重复次数", "info");
+		if(collectionElement == '') {
+			$.messager.alert('提示', "请选择关联要素", "info");
 			return;
 		}
-		if(collectionWords == '') {
+		if(interactiveType == '词模匹配' && collectionWords == '') {
 			$.messager.alert('提示', "请填写反问话术", "info");
+			return;
+		}
+		if(interactiveType == '键值补全' && menuStartWords == '') {
+			$.messager.alert('提示', "请填写开始话语", "info");
+			return;
+		}
+		if(interactiveType == '键值补全' && menuOptions == '') {
+			$.messager.alert('提示', "请填写菜单选项", "info");
+			return;
+		}
+		if(interactiveType == '键值补全' && menuEndWords == '') {
+			$.messager.alert('提示', "请填写结束话语", "info");
 			return;
 		}
 		if(!isEnglish(collectionParam)) {
 			$.messager.alert('提示', "参数名称请填写英文", "info");
 			return;
 		}
-		myDiagram.model.setDataProperty(nodeData, 'text', collectionName);
+		var collectionText = "";
+		if(interactiveType == '词模匹配') {
+			collectionText += "询问文本：" + collectionWords + "\n";
+		}
+		if(interactiveType == '键值补全') {
+			collectionText += "菜单选项：" + menuOptions + "\n";
+		}
+		collectionText += "关联要素：" + collectionElement + "\n";
+		collectionText += "信息类型：" + collectionType + "\n";
+		myDiagram.model.setDataProperty(nodeData, 'collectionName', collectionName);
+		myDiagram.model.setDataProperty(nodeData, 'collectionText', collectionText);
 		myDiagram.model.setDataProperty(nodeData, 'collectionParam', collectionParam);
 		myDiagram.model.setDataProperty(nodeData, 'collectionType', collectionType);
 		myDiagram.model.setDataProperty(nodeData, 'collectionTimes', collectionTimes);
+		myDiagram.model.setDataProperty(nodeData, 'collectionElement', collectionElement);
+		myDiagram.model.setDataProperty(nodeData, 'interactiveType', interactiveType);
+		myDiagram.model.setDataProperty(nodeData, 'collectionElement', collectionElement);
 		myDiagram.model.setDataProperty(nodeData, 'collectionWords', collectionWords);
+		myDiagram.model.setDataProperty(nodeData, 'menuStartWords', menuStartWords);
+		myDiagram.model.setDataProperty(nodeData, 'menuOptions', menuOptions);
+		myDiagram.model.setDataProperty(nodeData, 'menuEndWords', menuEndWords);
 		$('#myCollectionEditDiv').hide();
 	});
 	
@@ -2707,14 +2873,14 @@ function VerificationData() {
 function commitRevisedData(jsonStr) {
 	console.log(jsonStr);
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallIn.action',
 		type : 'post',
 		dataType : 'json',
 		data : {
 			scenariosid : publicscenariosid,
 			scenariosName : publicscenariosname,
 			type : "saveConfig",
-			m_request : jsonStr
+			sceneJson : jsonStr
 		},
 		success : function(data) {
 			$.messager.alert('系统提示', data.msg, "info");
@@ -2792,21 +2958,20 @@ function replaceSpace(str) {
 	return str;
 }
 
-function autowordpat() {
-	var autowordpat = $.trim($("#customerAnswerAdd-keywords").textbox('getValue'));
-	if (autowordpat == '' || autowordpat == null) {
+function autoGenerateWordPattern(wordPattern) {
+	if (wordPattern == '' || wordPattern == null) {
 		$.messager.alert('提示', "请在生成词模的输入框填写内容！", "warning");
 		return;
 	}
 	
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallIn.action',
 		type : 'post',
 		dataType : 'json',
 		data : {
 			scenariosid : publicscenariosid,
-			autowordpat : autowordpat,
-			type : "autowordpat",
+			autoWordPattern : wordPattern,
+			type : "autoWordPattern",
 		},
 		success : function(data) {
 			var resultStr = data.result;
@@ -2870,8 +3035,7 @@ function addAutoWordpat() {
         rvalue = '&针对问题="' + targetedquery + '"';
     }
     var inputValue = $("#autoworrdpat-nextabs-div input[name='autoworrdpat-radio']:checked").next("span").text();
-    var wordpat = inputValue.replace(/\s*/g,"") + rvalue;
-    $("#customerAnswerAdd-wordclasses").val(wordpat);
+    autoWordPattern = inputValue.replace(/\s*/g,"") + rvalue;
     // 关闭自学习词模页面
 	$('#autoworrdpat').window('close');
 }
@@ -2895,32 +3059,32 @@ function saveCustomerAnswer() {
 		$.messager.alert('提示', "请在标题的输入框填写内容！", "warning");
 		return;
 	}
-	var simplewordpat = $("#customerAnswerAdd-wordclasses").val().replace(new RegExp(' ', 'g'), '');
-	if (simplewordpat === "") {
+	var simpleWordPattern = $("#customerAnswerAdd-wordclasses").val().replace(new RegExp(' ', 'g'), '');
+	if (simpleWordPattern === "") {
         $.messager.alert('提示', "词模不能为空！", "warning");
         return;
-    } else if (simplewordpat.split('#')[0].indexOf("~") != -1) {
+    } else if (simpleWordPattern.split('#')[0].indexOf("~") != -1) {
         $.messager.alert('提示', "词模中有非法字符 ~ 存在", "warning");
         return;
-    } else if (simplewordpat.split('#')[0].indexOf("+") != -1) {
+    } else if (simpleWordPattern.split('#')[0].indexOf("+") != -1) {
         $.messager.alert('提示', "词模中有非法字符 + 存在", "warning");
         return;
     }
 	
-	var wordpattypename = $("#customerAnswerAdd-wordtype").numberbox('getText');
-	if (wordpattypename != "等于词模" && wordpattypename == "普通词模") {
-        if (simplewordpat.indexOf("类-") != -1 && simplewordpat.indexOf("类*") == -1) {
+	var wordPatternTypeName = $("#customerAnswerAdd-wordtype").numberbox('getText');
+	if (wordPatternTypeName != "等于词模" && wordPatternTypeName == "普通词模") {
+        if (simpleWordPattern.indexOf("类-") != -1 && simpleWordPattern.indexOf("类*") == -1) {
             $.messager.alert('提示', "请确认词模格式是否和词模类型一致", "warning");
             return;
         }
     }
 
-    if (wordpattypename == "等于词模") {
-        if (simplewordpat.indexOf("类-") == -1) {
+    if (wordPatternTypeName == "等于词模") {
+        if (simpleWordPattern.indexOf("类-") == -1) {
             $.messager.alert('提示', "请确认词模格式是否和词模类型一致", "warning");
             return;
         } else {
-            if (simplewordpat.indexOf("类*") != -1) {
+            if (simpleWordPattern.indexOf("类*") != -1) {
                 $.messager.alert('提示', "请确认词模格式是否和词模类型一致", "warning");
                 return;
             }
@@ -2928,48 +3092,48 @@ function saveCustomerAnswer() {
     }
     
     // 排除词模，如果只有一个必选项，并且该必选项是子句时，不允许添加
-    if (wordpattypename == "排除词模" && simplewordpat.indexOf("子句") != -1) {
-        if (simplewordpat.indexOf("*") == -1 && simplewordpat.indexOf("-") == -1) {
+    if (wordPatternTypeName == "排除词模" && simpleWordPattern.indexOf("子句") != -1) {
+        if (simpleWordPattern.indexOf("*") == -1 && simpleWordPattern.indexOf("-") == -1) {
             $.messager.alert('提示', "系统不支持单子句排除词模，建议附加另一个不带\"[]\"的近类或父类", "warning");
             return;
         }
     }
 
-    if (simplewordpat.indexOf('(OOV)') != -1) {
+    if (simpleWordPattern.indexOf('(OOV)') != -1) {
         $.messager.alert('提示', "（OOV）为系统未识别词类，需新增对应词词类!", "warning");
         return;
     }
 
-    if (simplewordpat.indexOf("@") != -1) {
+    if (simpleWordPattern.indexOf("@") != -1) {
         $.messager.alert('提示', "存在非法字符 '@'", "warning");
         return;
     }
-    if (simplewordpat.indexOf("#无序#") == -1 && simplewordpat.indexOf("#有序#") == -1) {
+    if (simpleWordPattern.indexOf("#无序#") == -1 && simpleWordPattern.indexOf("#有序#") == -1) {
         $.messager.alert('提示', "请输入正确格式序列：'#无序#' 或 '#有序#'", "warning");
         return;
     }
 
     var wordpattype = 0;
-    if (wordpattypename == "等于词模") {
+    if (wordPatternTypeName == "等于词模") {
         wordpattype = "1";
-    } else if (wordpattypename == "排除词模") {
+    } else if (wordPatternTypeName == "排除词模") {
         wordpattype = "2";
-    } else if (wordpattypename =="选择词模") {
+    } else if (wordPatternTypeName =="选择词模") {
         wordpattype = "3";
-    } else if (wordpattypename == "特征词模") {
+    } else if (wordPatternTypeName == "特征词模") {
         wordpattype = "4";
-    } else if (wordpattypename == "自学习词模") {
+    } else if (wordPatternTypeName == "自学习词模") {
         wordpattype = "5";
     } else {
         wordpattype = "0";
     }
     
-    simplewordpat = simplewordpat.replace(new RegExp("\r\n",'g'),"\n");
-    simplewordpat = simplewordpat.replace(/^\n+|\n+$/g,"");
-    var temp = simplewordpat.split('\n');
+    simpleWordPattern = simpleWordPattern.replace(new RegExp("\r\n",'g'),"\n");
+    simpleWordPattern = simpleWordPattern.replace(/^\n+|\n+$/g,"");
+    var temp = simpleWordPattern.split('\n');
 
     temp = quchong(temp);
-    simplewordpat = "";
+    simpleWordPattern = "";
     for (var i = 0; i < temp.length; i++) {
         if (temp[i] != '' && temp[i] != '\n') {
             if (endWith('&', temp[i])) {
@@ -2977,28 +3141,28 @@ function saveCustomerAnswer() {
                 return;
             }
 
-            if (wordpattypename == "选择词模") {
-                simplewordpat += "++*" + temp[i] + '\n';
-            } else if (wordpattypename == "排除词模") {
-                simplewordpat += "~*" + temp[i] + '\n';
-            } else if (wordpattypename == "特征词模") {
-                simplewordpat += "+*" + temp[i] + '\n';
+            if (wordPatternTypeName == "选择词模") {
+                simpleWordPattern += "++*" + temp[i] + '\n';
+            } else if (wordPatternTypeName == "排除词模") {
+                simpleWordPattern += "~*" + temp[i] + '\n';
+            } else if (wordPatternTypeName == "特征词模") {
+                simpleWordPattern += "+*" + temp[i] + '\n';
             } else {
-                simplewordpat += temp[i] + '\n';
+                simpleWordPattern += temp[i] + '\n';
             }
         }
     }
 
-    simplewordpat = simplewordpat.substr(0, simplewordpat.length - 1).replace(/[\[\s+]\]/g,']');
+    simpleWordPattern = simpleWordPattern.substr(0, simpleWordPattern.length - 1).replace(/[\[\s+]\]/g,']');
 	$.ajax({
-		url : '../saveConfiguration.action',
+		url : '../interactiveSceneCallIn.action',
 		type : 'post',
 		dataType : 'json',
 		data : {
 			scenariosid : publicscenariosid,
 			customeranswer : customeranswer,
 			wordpattype : wordpattype,
-			simplewordpat : simplewordpat,
+			simpleWordPattern : simpleWordPattern,
 			type : "saveCustomerAnswer",
 		},
 		success : function(data) {
@@ -3008,6 +3172,134 @@ function saveCustomerAnswer() {
 	    		initCustomerAnswer();
 	    		// 关闭用户答案页面
 	    		$('#customerAnswerAddPage').window('close');
+        	}
+		},
+		error : function(xhr, status, error) {
+			$.messager.alert('系统异常', "请求数据失败!", "error");
+		}
+	});
+}
+
+// 保存信息类型
+function saveCollectionType() {
+	var collectionType = $.trim($("#collectionTypeAddForm-title").textbox('getValue'));
+	if (collectionType == '' || collectionType == null) {
+		$.messager.alert('提示', "请在标题的输入框填写内容！", "warning");
+		return;
+	}
+	var simpleWordPattern = $("#collectionTypeAddForm-wordclasses").val().replace(new RegExp(' ', 'g'), '');
+	if (simpleWordPattern === "") {
+        $.messager.alert('提示', "词模不能为空！", "warning");
+        return;
+    } else if (simpleWordPattern.split('#')[0].indexOf("~") != -1) {
+        $.messager.alert('提示', "词模中有非法字符 ~ 存在", "warning");
+        return;
+    } else if (simpleWordPattern.split('#')[0].indexOf("+") != -1) {
+        $.messager.alert('提示', "词模中有非法字符 + 存在", "warning");
+        return;
+    }
+	
+	var wordPatternTypeName = $("#collectionTypeAddForm-wordtype").numberbox('getText');
+	if (wordPatternTypeName != "等于词模" && wordPatternTypeName == "普通词模") {
+        if (simpleWordPattern.indexOf("类-") != -1 && simpleWordPattern.indexOf("类*") == -1) {
+            $.messager.alert('提示', "请确认词模格式是否和词模类型一致", "warning");
+            return;
+        }
+    }
+
+    if (wordPatternTypeName == "等于词模") {
+        if (simpleWordPattern.indexOf("类-") == -1) {
+            $.messager.alert('提示', "请确认词模格式是否和词模类型一致", "warning");
+            return;
+        } else {
+            if (simpleWordPattern.indexOf("类*") != -1) {
+                $.messager.alert('提示', "请确认词模格式是否和词模类型一致", "warning");
+                return;
+            }
+        }
+    }
+    
+    // 排除词模，如果只有一个必选项，并且该必选项是子句时，不允许添加
+    if (wordPatternTypeName == "排除词模" && simpleWordPattern.indexOf("子句") != -1) {
+        if (simpleWordPattern.indexOf("*") == -1 && simpleWordPattern.indexOf("-") == -1) {
+            $.messager.alert('提示', "系统不支持单子句排除词模，建议附加另一个不带\"[]\"的近类或父类", "warning");
+            return;
+        }
+    }
+
+    if (simpleWordPattern.indexOf('(OOV)') != -1) {
+        $.messager.alert('提示', "（OOV）为系统未识别词类，需新增对应词词类!", "warning");
+        return;
+    }
+
+    if (simpleWordPattern.indexOf("@") != -1) {
+        $.messager.alert('提示', "存在非法字符 '@'", "warning");
+        return;
+    }
+    if (simpleWordPattern.indexOf("#无序#") == -1 && simpleWordPattern.indexOf("#有序#") == -1) {
+        $.messager.alert('提示', "请输入正确格式序列：'#无序#' 或 '#有序#'", "warning");
+        return;
+    }
+
+    var wordPatternType = 0;
+    if (wordPatternTypeName == "等于词模") {
+    	wordPatternType = "1";
+    } else if (wordPatternTypeName == "排除词模") {
+    	wordPatternType = "2";
+    } else if (wordPatternTypeName =="选择词模") {
+    	wordPatternType = "3";
+    } else if (wordPatternTypeName == "特征词模") {
+    	wordPatternType = "4";
+    } else if (wordPatternTypeName == "自学习词模") {
+    	wordPatternType = "5";
+    } else {
+    	wordPatternType = "0";
+    }
+    
+    simpleWordPattern = simpleWordPattern.replace(new RegExp("\r\n",'g'),"\n");
+    simpleWordPattern = simpleWordPattern.replace(/^\n+|\n+$/g,"");
+    var temp = simpleWordPattern.split('\n');
+
+    temp = quchong(temp);
+    simpleWordPattern = "";
+    for (var i = 0; i < temp.length; i++) {
+        if (temp[i] != '' && temp[i] != '\n') {
+            if (endWith('&', temp[i])) {
+                $.messager.alert('提示', "词模语法有误,勿以&结尾!", "warning");
+                return;
+            }
+
+            if (wordPatternTypeName == "选择词模") {
+                simpleWordPattern += "++*" + temp[i] + '\n';
+            } else if (wordPatternTypeName == "排除词模") {
+                simpleWordPattern += "~*" + temp[i] + '\n';
+            } else if (wordPatternTypeName == "特征词模") {
+                simpleWordPattern += "+*" + temp[i] + '\n';
+            } else {
+                simpleWordPattern += temp[i] + '\n';
+            }
+        }
+    }
+
+    simpleWordPattern = simpleWordPattern.substr(0, simpleWordPattern.length - 1).replace(/[\[\s+]\]/g,']');
+	$.ajax({
+		url : '../interactiveSceneCallIn.action',
+		type : 'post',
+		dataType : 'json',
+		data : {
+			scenariosid : publicscenariosid,
+			collectionType : collectionType,
+			wordPatternType : wordPatternType,
+			simpleWordPattern : simpleWordPattern,
+			type : "saveCollectionType",
+		},
+		success : function(data) {
+        	$.messager.alert('系统提示', data.checkInfo, "warning");
+        	if (data.checkInfo == '插入成功!') {
+	        	// 刷新信息类型下拉框
+        		loadCollectionTypes();
+	    		// 关闭用户答案页面
+	    		$('#collectionTypeAddPage').window('close');
         	}
 		},
 		error : function(xhr, status, error) {
