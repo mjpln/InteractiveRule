@@ -94,9 +94,10 @@ $(function() {
 
 // 初始化信息收集组件
 function initCollection() {
-	$('#collectionform-collectionParam-tr').show();
+	$('#collectionform-collectionWords-tr').show();
+	$('#collectionform-collectionParam-tr').hide();
+	$('#collectionform-interactiveType-tr').show();
 	$('#collectionform-collectionTimes-tr').hide();
-	$('#collectionform-collectionWords-tr').hide();
 	$('#collectionform-menuItems-tr').hide();
 	$('#interactiveType').combobox('disable'); 
 	
@@ -903,13 +904,20 @@ function initTransfer()
 var condition = "<div class=\"form-div\">" +
 "                            <div class=\"form-div\"> " +
 "								 <input class=\"easyui-combobox\" name=\"variable_type\" data-options=\"prompt:'变量类型'\" style=\"width: 200px; height: 25px;\"/>" +
-"								 <input class=\"easyui-combobox\" name=\"param_name_combobox\" data-options=\"prompt:'客户属性'\" style=\"width: 200px; height: 25px;\"/>" +
-"								 <input class=\"easyui-textbox\" name=\"param_name_textbox\" data-options=\"prompt:'其他变量'\" style=\"width: 200px; height: 25px;\"/>" +
 "								 <a style='width: 20px;height: 10px' href=\"javascript:void(0)\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-remove'\">+移除</a>" +
+"							 </div> " +
+"                            <div class=\"form-div\"> " +
+"								 <input class=\"easyui-textbox\" name=\"param_name_other\" data-options=\"prompt:'其他变量'\" style=\"width: 200px; height: 25px;\"/>" +
+"								 <input class=\"easyui-combobox\" name=\"param_name_attr\" data-options=\"prompt:'客户属性'\" style=\"width: 200px; height: 25px;\"/>" +
+"								 <input class=\"easyui-combobox\" name=\"param_name_element\" data-options=\"prompt:'关联要素'\" style=\"width: 200px; height: 25px;\"/>" +
 "							 </div>" +
 "                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_relation\" data-options=\"prompt:'比较关系',valueField: 'id',textField: 'text',data: [{id: '大于', text: '大于'},{ id: '小于', text: '小于'},{ id: '等于', text: '等于'},{ id: '不等于', text: '不等于'},{ id: '大于等于', text: '大于等于'},{ id: '小于等于', text: '小于等于'}]\" style=\"width: 200px; height: 25px;\"/></div>" +
-"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_type\" data-options=\"prompt:'类型',valueField: 'id',textField: 'text',data: [{id: 'String', text: 'String'},{ id: 'Integer', text: 'Integer'},{ id: 'Variable', text: 'Variable'}]\" style=\"width: 200px; height: 25px;\"/></div>" +
-"                            <div class=\"form-div\"> <input class=\"easyui-textbox\" name=\"param_value\" multiline=\"true\" data-options=\"prompt:'多个值以|分隔'\" style=\"width: 200px; height: 50px;\"/></div>" +
+"                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_type\" data-options=\"prompt:'比较值类型',valueField: 'id',textField: 'text',data: [{id: 'String', text: 'String'},{ id: 'Integer', text: 'Integer'},{ id: 'Variable', text: 'Variable'}]\" style=\"width: 200px; height: 25px;\"/></div>" +
+"                            <div class=\"form-div\"> " +
+"								 <input class=\"easyui-combobox\" name=\"element_value\" data-options=\"prompt:'关联要素值'\" style=\"width: 200px; height: 25px;\"/>" +
+"								 <a href=\"javascript:void(0)\" name=\"element_value_insert_btn\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-save'\">插入</a>" +
+"							 </div>" +
+"                            <div class=\"form-div\"> <input class=\"easyui-textbox\" name=\"param_value\" multiline=\"true\" data-options=\"prompt:'比较值'\" style=\"width: 200px; height: 50px;\"/></div>" +
 "                            <div class=\"form-div updown\">" +
 "                                <div style=\"padding:3px;float:left;width: 20%\"> <input type=\"checkbox\" name=\"isUpDown\"  style=\"width:30%\"><span style=\"width: 70%\">浮动</span></div>" +
 "                                <div style=\"width: 80%\">" +
@@ -940,9 +948,9 @@ function addOneCondition(conditionIdx, variableIdx) {
 		var cpCondition = $($.parseHTML(condition));//$($.parseHTML(this.linkTemplate))
 		var cphr=$("</br></br><hr style=\"width:200px;height:1px;border:none;border-top:1px dashed #FFFFFF;\" />");
 	    if(variableIdx==0) { 
-	    	cpCondition.find("a").remove();
+	    	cpCondition.find("a").eq(0).remove();
 	    } else {
-	    	cpCondition.find("a").bind("click",function () {
+	    	cpCondition.find("a").eq(0).bind("click",function () {
 	    		cphr.remove();
 	    		cpCondition.remove();
 	    	})
@@ -963,31 +971,40 @@ function addOneCondition(conditionIdx, variableIdx) {
 	    cpUpdown.prop("checked",false);
 	    
 	    var variableTypeInput = "variable_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
-	    var paramNameComboboxInput = "param_name_combobox" + "_cdt"+conditionIdx + "_and"+variableIdx;
-	    var paramNameTextboxInput = "param_name_textbox" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    var paramNameAttrInput = "param_name_attr" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    var paramNameElementInput = "param_name_element" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    var paramNameOtherInput = "param_name_other" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var paramRelationInput = "param_relation" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var paramTypeInput = "param_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    var elementValueInput = "element_value" + "_cdt"+conditionIdx + "_and"+variableIdx; 
+	    var elementValueInsertBtn = "element_value_insert_btn" + "_cdt"+conditionIdx + "_and"+variableIdx; 
 	    var paramValueInput = "param_value" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var isUpDownInput = "isUpDown" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var upDownTypeInput = "upDownType" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var updownRatioInput = "updownRatio" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    
 	    cpCondition.find("input[name='variable_type']").attr("name", variableTypeInput);
-	    cpCondition.find("input[name='param_name_combobox']").attr("name", paramNameComboboxInput);
-	    cpCondition.find("input[name='param_name_textbox']").attr("name", paramNameTextboxInput);
+	    cpCondition.find("input[name='param_name_attr']").attr("name", paramNameAttrInput);
+	    cpCondition.find("input[name='param_name_element']").attr("name", paramNameElementInput);
+	    cpCondition.find("input[name='param_name_other']").attr("name", paramNameOtherInput);
 	    cpCondition.find("input[name='param_relation']").attr("name", paramRelationInput);
 	    cpCondition.find("input[name='param_type']").attr("name", paramTypeInput);
+	    cpCondition.find("input[name='element_value']").attr("name", elementValueInput);
+	    cpCondition.find("a[name='element_value_insert_btn']").attr("name", elementValueInsertBtn);
 	    cpCondition.find("input[name='param_value']").attr("name", paramValueInput);
 	    cpCondition.find("input[name='isUpDown']").attr("name", isUpDownInput);
 	    cpCondition.find("input[name='upDownType']").attr("name", upDownTypeInput);
 	    cpCondition.find("input[name='updownRatio']").attr("name", updownRatioInput);
 	    
 	    cpCondition.find("input[name='"+variableTypeInput+"']").attr("id", variableTypeInput);
-	    cpCondition.find("input[name='"+paramNameComboboxInput+"']").attr("id", paramNameComboboxInput);
-	    cpCondition.find("input[name='"+paramNameTextboxInput+"']").attr("id", paramNameTextboxInput);
+	    cpCondition.find("input[name='"+paramNameAttrInput+"']").attr("id", paramNameAttrInput);
+	    cpCondition.find("input[name='"+paramNameElementInput+"']").attr("id", paramNameElementInput);
+	    cpCondition.find("input[name='"+paramNameOtherInput+"']").attr("id", paramNameOtherInput);
 	    cpCondition.find("input[name='"+paramRelationInput+"']").attr("id", paramRelationInput);
 	    cpCondition.find("input[name='"+paramTypeInput+"']").attr("id", paramTypeInput);
 	    cpCondition.find("input[name='"+paramValueInput+"']").attr("id", paramValueInput);
+	    cpCondition.find("input[name='"+elementValueInput+"']").attr("id", elementValueInput);
+	    cpCondition.find("a[name='"+elementValueInsertBtn+"']").attr("id", elementValueInsertBtn);
 	    cpCondition.find("input[name='"+isUpDownInput+"']").attr("id", isUpDownInput);
 	    cpCondition.find("input[name='"+upDownTypeInput+"']").attr("id", upDownTypeInput);
 	    cpCondition.find("input[name='"+updownRatioInput+"']").attr("id", updownRatioInput);
@@ -998,31 +1015,91 @@ function addOneCondition(conditionIdx, variableIdx) {
 	    $.parser.parse(cpCondition);
 		$.parser.parse(cphr);
 		
-		$("#"+paramNameComboboxInput).combobox({
+		$("#"+paramNameAttrInput).combobox({
 			valueField: 'attributeName',    
 	        textField: 'attributeDesc',
 	        data : phoneAttributeNames
 		});
 		
 		$(".updown").hide();
-		$("#"+paramNameComboboxInput).next().hide();
-		$("#"+paramNameTextboxInput).next().hide();
+		$("#"+paramNameAttrInput).next().hide();
+		$("#"+paramNameElementInput).next().hide();
+		$("#"+paramNameOtherInput).next().hide();
+		$("#"+elementValueInput).next().hide();
+		$("#"+elementValueInsertBtn).hide();
 		
 		// 初始化变量类型
 		$("#"+variableTypeInput).combobox({
 			valueField: 'id',    
 	        textField: 'text',
-	        data : [{'text': '号码属性', 'id': 'phoneAttr'},{'text': '其他变量', 'id': 'otherAttr'}],
+	        data : [{'text': '号码属性', 'id': 'attr'},{'text': '关联要素', 'id': 'element'},{'text': '其他变量', 'id': 'other'}],
 	        onChange: function(newVal, oldVal) {
-				if(newVal == "phoneAttr") {
-					$("#"+paramNameComboboxInput).next().show();
-					$("#"+paramNameTextboxInput).next().hide();
+				if(newVal == "attr") {
+					$("#"+paramNameAttrInput).next().show();
+					$("#"+paramNameElementInput).next().hide();
+					$("#"+paramNameOtherInput).next().hide();
+					$("#"+elementValueInput).next().hide();
+					$("#"+elementValueInsertBtn).hide();
+					$("#"+paramValueInput).next().show();
 				} 
-				if(newVal == "otherAttr") {
-					$("#"+paramNameComboboxInput).next().hide();
-					$("#"+paramNameTextboxInput).next().show();
+				if(newVal == "element") {
+					$("#"+paramNameAttrInput).next().hide();
+					$("#"+paramNameElementInput).next().show();
+					$("#"+paramNameOtherInput).next().hide();
+					$("#"+elementValueInput).next().show();
+					$("#"+elementValueInsertBtn).hide();
+					$("#"+paramValueInput).next().hide();
+				}
+				if(newVal == "other") {
+					$("#"+paramNameAttrInput).next().hide();
+					$("#"+paramNameElementInput).next().hide();
+					$("#"+paramNameOtherInput).next().show();
+					$("#"+elementValueInput).next().hide();
+					$("#"+elementValueInsertBtn).hide();
+					$("#"+paramValueInput).next().show();
 				}
 	        } 
+		});
+		// 插入比较值
+		$("#"+elementValueInsertBtn).bind("click",function () {
+			var paramValue = $("#"+paramValueInput).textbox('getValue');
+			var elementValue = $("#"+elementValueInput).combobox('getValue');
+			if(!(paramValue.indexOf(elementValue) > -1)) {
+				if(paramValue == '') {
+					$("#"+paramValueInput).textbox('setValue',elementValue);
+				} else {
+					$("#"+paramValueInput).textbox('setValue',paramValue+'|'+elementValue);
+				}
+			}
+		});
+		
+		// 初始化关联要素
+		$.ajax({
+			url : '../interactiveSceneCallIn.action',
+			type : "post",
+			data : {
+				type : 'listAllSceneElement',
+				scenariosid : publicscenariosid
+			},
+			async : false,
+			dataType : "json",
+			success : function(data, textStatus, jqXHR) {
+				if(data.total > 0) {
+					$("#"+paramNameElementInput).combobox({
+						valueField: 'id',    
+				        textField: 'text',
+				        data : data.rows,
+				        onChange: function(newVal, oldVal) {
+				        	// 加载场景要素值
+		        			$("#"+elementValueInput).combobox({
+		        				url : '../interactiveSceneCallIn.action?type=listAllElementValue&scenariosid='+publicscenariosid+'&sceneElementName='+newVal,
+								valueField: 'id',    
+						        textField: 'text'
+							});
+				        } 
+					});
+				}
+			}
 		});
 	};
 
@@ -2153,19 +2230,38 @@ function addListenerEvents() {
 					var andCondition = andConditions[j];
 					var variableType = andCondition.variable_type;
 					$("#variable_type_cdt"+i+"_and"+j).combobox('setValue', andCondition.variable_type);
-					if(variableType == "phoneAttr") {
-						$("#param_name_combobox_cdt"+i+"_and"+j).next().show();
-						$("#param_name_textbox_cdt"+i+"_and"+j).next().hide();
-						$("#param_name_combobox_cdt"+i+"_and"+j).combobox('setValue', andCondition.param_name);
+					if(variableType == "attr") {
+						$("#param_name_attr_cdt"+i+"_and"+j).next().show();
+						$("#param_name_element_cdt"+i+"_and"+j).next().hide();
+						$("#param_name_other_cdt"+i+"_and"+j).next().hide();
+						$("#element_value_cdt"+i+"_and"+j).next().hide();
+						$("#element_value_insert_btn_cdt"+i+"_and"+j).hide();
+						$("#param_value_cdt"+i+"_and"+j).show();
+						$("#param_name_attr_cdt"+i+"_and"+j).combobox('setValue', andCondition.param_name);
+						$("#param_value_cdt"+i+"_and"+j).textbox('setValue', andCondition.param_value);
+					} 
+					if(variableType == "element") {
+						$("#param_name_attr_cdt"+i+"_and"+j).next().hide();
+						$("#param_name_element_cdt"+i+"_and"+j).next().show();
+						$("#param_name_other_cdt"+i+"_and"+j).next().hide();
+						$("#element_value_cdt"+i+"_and"+j).next().show();
+						$("#element_value_insert_btn_cdt"+i+"_and"+j).hide();
+						$("#param_value_cdt"+i+"_and"+j).hide();
+						$("#param_name_element_cdt"+i+"_and"+j).combobox('setValue', andCondition.param_name);
+						$("#element_value_cdt"+i+"_and"+j).combobox('setValue', andCondition.param_value);
 					}
-					if(variableType == "otherAttr") {
-						$("#param_name_combobox_cdt"+i+"_and"+j).next().hide();
-						$("#param_name_textbox_cdt"+i+"_and"+j).next().show();
-						$("#param_name_textbox_cdt"+i+"_and"+j).textbox('setValue', andCondition.param_name);
+					if(variableType == "other") {
+						$("#param_name_attr_cdt"+i+"_and"+j).next().hide();
+						$("#param_name_element_cdt"+i+"_and"+j).next().hide();
+						$("#param_name_other_cdt"+i+"_and"+j).next().show();
+						$("#element_value_cdt"+i+"_and"+j).next().hide();
+						$("#element_value_insert_btn_cdt"+i+"_and"+j).hide();
+						$("#param_value_cdt"+i+"_and"+j).show();
+						$("#param_name_other_cdt"+i+"_and"+j).textbox('setValue', andCondition.param_name);
+						$("#param_value_cdt"+i+"_and"+j).textbox('setValue', andCondition.param_value);
 					}
 					$("#param_relation_cdt"+i+"_and"+j).combobox('setValue', andCondition.param_relation);
 					$("#param_type_cdt"+i+"_and"+j).combobox('setValue', andCondition.param_type);
-					$("#param_value_cdt"+i+"_and"+j).textbox('setValue', andCondition.param_value);
 				}
 			}
 			$('#myNormalEditDiv').hide();
@@ -2413,6 +2509,7 @@ function buttonClick() {
 
 	// 保存回复内容
 	$('#saveRule0').click(function() {
+		var nodeData = public_thisGraphObj.part.data;
 		var tts = $("#tts").val();
 		var code = $("#code").val();	
 		if(tts == '') {
@@ -2423,7 +2520,7 @@ function buttonClick() {
 	    $('[name=customerAnswer]:checkbox:checked').each(function() {
 	    	checkedArray.push({'text':$(this).val()});
 	    });
-	    if(checkedArray.length == 0) {
+	    if(nodeData.category == "Normal" && checkedArray.length == 0) {
 			$.messager.alert('提示', "请选择用户回答", "info");
 			return;
 		}
@@ -2494,10 +2591,6 @@ function buttonClick() {
 			$.messager.alert('提示', "请填写信息名称", "info");
 			return;
 		}
-		if(collectionParam == '') {
-			$.messager.alert('提示', "请填写参数名称", "info");
-			return;
-		}
 		if(collectionType == '') {
 			$.messager.alert('提示', "请选择信息类型", "info");
 			return;
@@ -2520,10 +2613,6 @@ function buttonClick() {
 		}
 		if(interactiveType == '键值补全' && menuEndWords == '') {
 			$.messager.alert('提示', "请填写结束话语", "info");
-			return;
-		}
-		if(!isEnglish(collectionParam)) {
-			$.messager.alert('提示', "参数名称请填写英文", "info");
 			return;
 		}
 		var collectionText = "";
@@ -2760,13 +2849,23 @@ function buttonClick() {
 				} 
 				if(this.name.indexOf("variable_type") > -1) {
 					andConditions[andIndex].variable_type = this.value;
-					if(this.value == "phoneAttr") {
-						var paramNameCombobox = "param_name_combobox" + "_cdt"+conditionIndex+"_and"+andIndex;
-						andConditions[andIndex].param_name = $("#"+paramNameCombobox).combobox("getValue");
+					if(this.value == "attr") {
+						var paramNameAttr = "param_name_attr" + "_cdt"+conditionIndex+"_and"+andIndex;
+						var paramValue = "param_value" + "_cdt"+conditionIndex+"_and"+andIndex;
+						andConditions[andIndex].param_name = $("#"+paramNameAttr).combobox("getValue");
+						andConditions[andIndex].param_value = $("#"+paramValue).textbox("getValue");
 					} 
-					if(this.value == "otherAttr") {
-						var paramNameTextbox = "param_name_textbox" + "_cdt"+conditionIndex+"_and"+andIndex;
-						andConditions[andIndex].param_name = $("#"+paramNameTextbox).textbox("getValue");
+					if(this.value == "element") {
+						var paramNameElement = "param_name_element" + "_cdt"+conditionIndex+"_and"+andIndex;
+						var paramValue = "element_value" + "_cdt"+conditionIndex+"_and"+andIndex;
+						andConditions[andIndex].param_name = $("#"+paramNameElement).combobox("getValue");
+						andConditions[andIndex].param_value = $("#"+paramValue).combobox("getValue");
+					} 
+					if(this.value == "other") {
+						var paramNameOther = "param_name_other" + "_cdt"+conditionIndex+"_and"+andIndex;
+						var paramValue = "param_value" + "_cdt"+conditionIndex+"_and"+andIndex;
+						andConditions[andIndex].param_name = $("#"+paramNameOther).textbox("getValue");
+						andConditions[andIndex].param_value = $("#"+paramValue).textbox("getValue");
 					} 
 				}
 				if(this.name.indexOf("param_relation") > -1) {
@@ -2774,9 +2873,6 @@ function buttonClick() {
 				}
 				if(this.name.indexOf("param_type") > -1) {
 					andConditions[andIndex].param_type = this.value;
-				}
-				if(this.name.indexOf("param_value") > -1) {
-					andConditions[andIndex].param_value = this.value;
 				}
 			} else {
 				myDiagram.model.setDataProperty(nodeData, this.name, this.value);

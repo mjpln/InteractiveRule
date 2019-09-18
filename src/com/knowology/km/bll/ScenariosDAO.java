@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import javax.servlet.jsp.jstl.sql.Result;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.knowology.Bean.User;
@@ -23,6 +24,8 @@ import com.knowology.km.util.GetSession;
 public class ScenariosDAO {
 
 	private static Logger logger = Logger.getLogger("ScenariosDAO");
+	
+	private static final int SceneElementCount = 100;
 
 	/**
 	 * 保存规则
@@ -127,7 +130,7 @@ public class ScenariosDAO {
 	 */
 	public static String[] getSceneConditions(String scenariosid, List<SceneElement> sceneElementValues) {
 		List<SceneElement> scenariosElementList = getSceneElements(scenariosid);
-		String[] conditions = new String[21];
+		String[] conditions = new String[SceneElementCount];
 		for (SceneElement sceneElement : scenariosElementList) {
 			String elementName = sceneElement.getElementName();
 			int weight = Integer.parseInt(sceneElement.getWeight());
@@ -145,7 +148,7 @@ public class ScenariosDAO {
 	 */
 	public static List<SceneElement> getSceneElements(String scenariosid) {
 		List<SceneElement> scenariosElementList = new ArrayList<SceneElement>();
-		Result result = CommonLibInteractiveSceneDAO.getElementName(scenariosid, "", 1, 100);
+		Result result = CommonLibInteractiveSceneDAO.getElementName(scenariosid, "", 1, SceneElementCount);
 		if (result != null && result.getRowCount() > 0) {
 			for (int i = 0; i < result.getRowCount(); i++) {
 				SceneElement sceneElement = new SceneElement();
@@ -301,6 +304,37 @@ public class ScenariosDAO {
 	}
 	public static String getRuleResponse(String condition, String result) {
 		return condition + "==>" + result;
+	}
+	
+	public static String getMenuRuleResponse(String menuStartWords, String menuOptions, String menuEndWords) {
+		StringBuffer ruleResponse = new StringBuffer();
+		ruleResponse.append(menuStartWords).append("<br/>");
+		if(StringUtils.isNotBlank(menuOptions)) {
+			String[] options = menuOptions.split("\\|");
+			for(int i = 0; i < options.length; i++) {
+				ruleResponse.append("["+(i+1)+"]").append(options[i]).append("<br/>");
+			}
+		}
+		ruleResponse.append(menuEndWords);
+		return ruleResponse.toString();
+	}
+	
+	public static String getMenuRuleResponseTemplate(String menuStartWords, String menuOptions, String menuEndWords) {
+		StringBuffer ruleResponseTemplate = new StringBuffer();
+		ruleResponseTemplate.append("菜单询问(\"");
+		ruleResponseTemplate.append(menuStartWords).append("<@选项文本>");
+		ruleResponseTemplate.append(menuEndWords).append("\",");
+		if(StringUtils.isNotBlank(menuOptions)) {
+			String[] options = menuOptions.split("\\|");
+			for(int i = 0; i < options.length; i++) {
+				ruleResponseTemplate.append(options[i]);
+				if(i<options.length-1) {
+					ruleResponseTemplate.append("||");
+				}
+			}
+		}
+		ruleResponseTemplate.append(")");
+		return ruleResponseTemplate.toString();
 	}
 	
 	/**

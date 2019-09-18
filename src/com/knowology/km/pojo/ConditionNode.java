@@ -12,7 +12,7 @@ public class ConditionNode extends NodeData {
 	 * 条件组件名称
 	 */
 	private String conditionName;
-
+	
 	/**
 	 * 条件集合
 	 */

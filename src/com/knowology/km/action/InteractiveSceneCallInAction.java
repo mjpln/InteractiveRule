@@ -1,4 +1,4 @@
-package com.knowology.km.action;
+  package com.knowology.km.action;
 
 import com.knowology.km.bll.InteractiveSceneCallInDAO;
 
@@ -21,6 +21,8 @@ public class InteractiveSceneCallInAction extends BaseAction {
 	private String actionUrl;
 	private String actionName;
 	private String sceneElementName;
+	private String sceneElementId;
+
 	private int page;
 	private int rows;
 
@@ -69,8 +71,11 @@ public class InteractiveSceneCallInAction extends BaseAction {
 		if ("listAllSceneElement".equals(type)) {// 查询全部场景要素
 			m_result = InteractiveSceneCallInDAO.listAllElementName(scenariosid, sceneElementName);
 		}
-		if ("listPagingSceneElement".equals(type)) {// 查询全部场景要素
+		if ("listPagingSceneElement".equals(type)) {// 分页查询场景要素
 			m_result = InteractiveSceneCallInDAO.listPagingSceneElement(scenariosid, sceneElementName, page, rows);
+		}
+		if ("listAllElementValue".equals(type)) {// 查询场景要素值
+			m_result = InteractiveSceneCallInDAO.listAllElementValue(scenariosid, sceneElementName);
 		}
 		return "success";
 	}
@@ -201,6 +206,14 @@ public class InteractiveSceneCallInAction extends BaseAction {
 
 	public void setSceneElementName(String sceneElementName) {
 		this.sceneElementName = sceneElementName;
+	}
+	
+	public String getSceneElementId() {
+		return sceneElementId;
+	}
+
+	public void setSceneElementId(String sceneElementId) {
+		this.sceneElementId = sceneElementId;
 	}
 
 	public int getPage() {
