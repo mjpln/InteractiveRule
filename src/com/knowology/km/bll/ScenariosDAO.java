@@ -10,6 +10,8 @@ import javax.servlet.jsp.jstl.sql.Result;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.knowology.Bean.User;
 import com.knowology.UtilityOperate.GetConfigValue;
 import com.knowology.bll.CommonLibInteractiveSceneDAO;
@@ -17,15 +19,159 @@ import com.knowology.bll.CommonLibMetafieldmappingDAO;
 import com.knowology.bll.CommonLibQueryManageDAO;
 import com.knowology.bll.ConstructSerialNum;
 import com.knowology.dal.Database;
+import com.knowology.km.constant.UrlActionInvocationTypeConsts;
 import com.knowology.km.pojo.SceneElement;
 import com.knowology.km.pojo.SceneRule;
+import com.knowology.km.pojo.URLActionNode;
+import com.knowology.km.pojo.URLActionParam;
 import com.knowology.km.util.GetSession;
+import com.knowology.km.util.MyUtil;
+
+import oracle.sql.CLOB;
 
 public class ScenariosDAO {
 
 	private static Logger logger = Logger.getLogger("ScenariosDAO");
 	
 	private static final int SceneElementCount = 100;
+	
+	/**
+	 * 初始化流程图
+	 */
+	public static Object loadData(String scenariosid) {
+		JSONObject jsonObj = new JSONObject();
+		JSONArray jsonArr = new JSONArray();
+		String sql = "select * from scene_configuration where relationserviceid=" + scenariosid;
+		logger.info("加载数据执行sql=" + sql);
+		Result result = Database.executeQuery(sql);
+		if (result != null && result.getRowCount() > 0) {
+			for (int i = 0; i < result.getRowCount(); i++) {
+				JSONObject obj = new JSONObject();
+				obj.put("id", result.getRows()[i].get("sceneid"));
+				obj.put("relationserviceid", result.getRows()[i].get("relationserviceid"));
+				String sceneJsonData = MyUtil.oracleClob2Str((CLOB) result.getRows()[i].get("scenejsondata"));
+				obj.put("scenejsondata", sceneJsonData);
+				jsonArr.add(obj);
+			}
+			jsonObj.put("success", true);
+			jsonObj.put("rowdata", jsonArr);
+		} else {
+			jsonObj.put("success", false);
+		}
+		return jsonObj;
+	}
+
+	/**
+	 * 获取流程图URL地址
+	 * 
+	 */
+	public static Object getUrl(String ioa) {
+		JSONObject jsonObj = new JSONObject();
+		Result rs = CommonLibMetafieldmappingDAO.getConfigValue("场景页面配置TEST", ioa);
+		if (rs != null && rs.getRowCount() > 0) {
+			jsonObj.put("success", true);
+			jsonObj.put("url", rs.getRows()[0].get("name").toString());
+		} else {
+			jsonObj.put("success", true);
+			jsonObj.put("url", "./scenariosCall.html");
+		}
+		return jsonObj;
+	}
+
+	/**
+	 * 配置机器人信息
+	 */
+	public static Object configRobot(String robotId, String robotName, String scenariosId) {
+		// 配置场景与机器人ID对应关系
+		JSONObject jsonObj = new JSONObject();
+		jsonObj.put("success", false);
+		jsonObj.put("msg", "提交失败");
+		boolean result = configSceneRobotRelation(robotId, scenariosId);
+		if (!result) {
+			logger.info("配置场景与机器人ID对应关系失败, robotID=" + robotId + ",scenariosId=" + scenariosId);
+			return jsonObj;
+		}
+		// 配置地市编码
+		int hashcode = Math.abs(robotId.hashCode());
+		String cityCode = hashcode + "0000";
+		result = addCityCode(cityCode, robotId);
+		if (!result) {
+			logger.info("配置地市编码失败, robotID=" + robotId);
+			return jsonObj;
+		}
+		// 机器人ID参数配置
+		result = configRobotStandardValues(robotId, robotName, cityCode);
+		if (!result) {
+			logger.info("机器人ID参数配置失败, robotID=" + robotId + ",robotName=" + robotName);
+			return jsonObj;
+		}
+
+		jsonObj.put("success", true);
+		jsonObj.put("msg", "提交成功");
+		return jsonObj;
+	}
+
+	/**
+	 * 配置场景机器人对应关系
+	 */
+	private static boolean configSceneRobotRelation(String robotId, String scenariosId) {
+		// 获取用户
+		User user = (User) GetSession.getSessionByKey("accessUser");
+		// 获取行业
+		String serviceType = user.getIndustryOrganizationApplication();
+		// 配置键是否存在
+		String standardKeyId = MetafieldDao.getStandardKeyId("场景机器人ID对应关系", serviceType);
+		List<String> standardKeys = new ArrayList<String>();
+		if (standardKeyId == null || "".equals(standardKeyId)) {
+			// 插入配置键
+			MetafieldDao.insertKey("场景机器人ID对应关系", standardKeys);
+		}
+		JSONObject jsonObj = new JSONObject();
+		List<String> standardValues = new ArrayList<String>();
+		standardValues.add(scenariosId + "::" + robotId);
+		jsonObj = (JSONObject) MetafieldDao.insertConfigValue("场景机器人ID对应关系", serviceType, standardValues);
+		return jsonObj.getBooleanValue("success");
+	}
+
+	/**
+	 * 机器人ID参数配置
+	 */
+	private static boolean configRobotStandardValues(String robotId, String robotName, String cityCode) {
+		JSONObject jsonObj = new JSONObject();
+		// 配置参数键
+		List<String> standardKeys = new ArrayList<String>();
+		standardKeys.add(robotId);
+		jsonObj = (JSONObject) MetafieldDao.insertKey("实体机器人ID配置", standardKeys);
+		if (jsonObj.getBooleanValue("success")) {
+			List<String> standardValues = new ArrayList<String>();
+			// 配置参数值
+			standardValues.add("Name:" + robotName);
+			standardValues.add("City:" + robotId);
+			standardValues.add("CityCode:" + cityCode);
+			standardValues.add("MAC:abc");
+			standardValues.add("servicePosition:北京演示");
+			jsonObj = (JSONObject) MetafieldDao.insertConfigValue("实体机器人ID配置", robotId, standardValues);
+		}
+		return jsonObj.getBooleanValue("success");
+	}
+
+	/**
+	 * 添加地市编码
+	 */
+	public static boolean addCityCode(String cityCode, String cityName) {
+		JSONObject jsonObj = new JSONObject();
+		// 配置参数键
+		List<String> standardKeys = new ArrayList<String>();
+		standardKeys.add(cityCode);
+		jsonObj = (JSONObject) MetafieldDao.insertKey("地市编码配置", standardKeys);
+		if (jsonObj.getBooleanValue("success")) {
+			List<String> standardValues = new ArrayList<String>();
+			// 配置参数值
+			standardValues.add(cityName);
+			jsonObj = (JSONObject) MetafieldDao.insertConfigValue("地市编码配置", cityCode, standardValues);
+		}
+		return jsonObj.getBooleanValue("success");
+	}
 
 	/**
 	 * 保存规则
@@ -345,8 +491,9 @@ public class ScenariosDAO {
 		User user = (User) GetSession.getSessionByKey("accessUser");
 		// 获取行业
 		String serviceType = user.getIndustryOrganizationApplication();
-		// 获取根问题库
-		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), serviceType, "", "全国", "");
+		// 获取X行业->通用商家->多渠道应用根问题库
+		String businsessServiceType = serviceType.split("->")[0] + "->通用商家->多渠道应用";
+		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), businsessServiceType, "", "全国", "");
 		if (result != null && result.getRowCount() > 0) {
 			String commonQuestionServiceName = result.getRows()[0].get("service") + "";
 			String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and s.parentName='信息收集' and s.brand = ? ";
@@ -364,8 +511,10 @@ public class ScenariosDAO {
 		User user = (User) GetSession.getSessionByKey("accessUser");
 		// 获取行业
 		String serviceType = user.getIndustryOrganizationApplication();
+		// 获取X行业->通用商家->多渠道应用根问题库
+		String businsessServiceType = serviceType.split("->")[0] + "->通用商家->多渠道应用";
 		// 获取行业根问题库
-		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), serviceType, "", "全国", "");
+		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), businsessServiceType, "", "全国", "");
 		if (result != null && result.getRowCount() > 0) {
 			String commonQuestionServiceName = result.getRows()[0].get("service") + "";
 			String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and s.parentName='用户意图' and s.brand = ? ";
@@ -373,6 +522,124 @@ public class ScenariosDAO {
 			return rs;
 		}
 		return null;
+	}
+	
+	/**
+	 * 配置接口信息
+	 * 
+	 * @param urlActionNode 动作组件
+	 */
+	public static boolean configInterfaceInfo(URLActionNode urlActionNode) {
+		// 配置接口信息
+		List<String> standardKeys = buildInterfaceInfo(urlActionNode);
+		// 插入接口配置
+		JSONObject jsonObj = insertInterfaceConfigInfo(standardKeys, urlActionNode.getInterfaceName());
+		return jsonObj.getBooleanValue("success");
+	}
+
+	/**
+	 * 插入接口配置
+	 * 
+	 * @param standardValues 配置信息
+	 * @param interfaceName 接口名称
+	 * @return
+	 */
+	private static JSONObject insertInterfaceConfigInfo(List<String> standardValues, String interfaceName) {
+		// 插入接口配置键
+		User user = (User) GetSession.getSessionByKey("accessUser"); // 获取用户
+		String serviceType = user.getIndustryOrganizationApplication(); // 获取行业
+		String standardKey = serviceType + "::" + interfaceName;
+		List<String> standardKeys = new ArrayList<String>();
+		standardKeys.add(standardKey);
+		JSONObject jsonObj = (JSONObject) MetafieldDao.insertKey("第三方接口信息配制", standardKeys);
+		if(jsonObj.getBooleanValue("success")) {
+			// 插入接口配置值
+			jsonObj = (JSONObject) MetafieldDao.insertConfigValue("第三方接口信息配制", standardKey, standardValues);
+		}
+		return jsonObj;
+	}
+
+	/**
+	 * 配置接口信息
+	 */
+	private static List<String> buildInterfaceInfo(URLActionNode urlActionNode) {
+		String actionUrl = urlActionNode.getActionUrl();
+		String invocationWay = urlActionNode.getInvocationWay();
+		String actionMethod = urlActionNode.getActionMethod();
+		String nameSpace = urlActionNode.getNameSpace();
+		List<URLActionParam> inParams = urlActionNode.getInParams();
+		List<URLActionParam> outParams = urlActionNode.getOutParams();
+		// 组装参数顺序
+		String paramOrder = buildInterfaceParamOrders(inParams);
+		// 组装参数转换
+		List<URLActionParam> params = inParams;
+		params.addAll(outParams);
+		List<String> inner2calledParams = buildInterfaceCalledParamMaps(params);
+		// 配置接口信息
+		List<String> standardValues = getInterfaceConfigInfo(nameSpace, actionUrl, invocationWay, actionMethod, paramOrder, inner2calledParams);
+		return standardValues;
+	}
+
+	/**
+	 * 获取接口配置
+	 * 
+	 * @param nameSpace          命名空间
+	 * @param actionUrl          接口地址
+	 * @param invocationWay      调用方式
+	 * @param actionMethod       调用方法
+	 * @param paramOrder         参数顺序
+	 * @param inner2calledParams 参数转换
+	 * @return
+	 */
+	private static List<String> getInterfaceConfigInfo(String nameSpace, String actionUrl, String invocationWay,
+			String actionMethod, String paramOrder, List<String> inner2calledParams) {
+		List<String> standardValues = new ArrayList<String>();
+		standardValues.add("NameSpace:="+nameSpace);
+		standardValues.add("URL:="+actionUrl);
+		standardValues.add("ParasType:=Json_KeyValue");
+		standardValues.add("ReturnParasType:=Json_KeyValue");
+		standardValues.add("BufferType:=close");
+		if(UrlActionInvocationTypeConsts.WEBSERVICE.equals(invocationWay)) {
+			standardValues.add("CallFuncName:="+actionMethod);
+		} 
+		if(UrlActionInvocationTypeConsts.HTTP.equals(invocationWay)) {
+			standardValues.add("CallType:="+actionMethod);
+		} 
+		standardValues.add("ParasOrder:="+paramOrder);
+		standardValues.addAll(inner2calledParams);
+		return standardValues;
+	}
+
+	/**
+	 * 组装参数转换
+	 */
+	private static List<String> buildInterfaceCalledParamMaps(List<URLActionParam> params) {
+		List<String> inner2calledParams = new ArrayList<String>();
+		if(!params.isEmpty()) {
+			for(URLActionParam param : params) {
+				String innerParamName = param.getParamName();
+				String outerParamName = param.getParamValue();
+				inner2calledParams.add("Inner2CalledParasMap:="+innerParamName+"<-"+outerParamName);
+			}
+		}
+		return inner2calledParams;
+	}
+
+	/**
+	 * 组装参数顺序
+	 */
+	private static String buildInterfaceParamOrders(List<URLActionParam> inParams) {
+		StringBuffer paramOrderBuffer = new StringBuffer();
+		if(!inParams.isEmpty()) {
+			for(int i=0; i < inParams.size(); i++) {
+				URLActionParam inParam = inParams.get(i);
+				paramOrderBuffer.append(inParam.getParamName());
+				if (i < inParams.size() - 1) {
+					paramOrderBuffer.append("#");
+				}
+			}
+		}
+		return paramOrderBuffer.toString();
 	}
 
 }

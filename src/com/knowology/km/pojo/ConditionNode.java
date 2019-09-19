@@ -18,8 +18,7 @@ public class ConditionNode extends NodeData {
 	 */
 	private List<ArrayList<AndCondition>> conditions;
 
-	public ConditionNode() {
-	}
+	public ConditionNode() {}
 
 	public ConditionNode(NodeData nodeData) {
 		super.setKey(nodeData.getKey());

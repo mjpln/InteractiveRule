@@ -25,6 +25,7 @@ public class SceneRule {
 	 * 场景要素值2
 	 */
 	private String condition2;
+
 	/**
 	 * 场景要素值3
 	 */
@@ -161,6 +162,8 @@ public class SceneRule {
 	 * 当前节点值
 	 */
 	private String currentNode;
+	
+	public SceneRule() {}
 
 	public String getRuleId() {
 		return ruleId;

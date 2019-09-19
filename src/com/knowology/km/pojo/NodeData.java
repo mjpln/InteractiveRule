@@ -33,6 +33,8 @@ public class NodeData {
 	 * 节点底部连线
 	 */
 	private List<LinkData> toLinks;
+	
+	public NodeData() {}
 
 	public String getKey() {
 		return key;

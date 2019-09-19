@@ -1,8 +1,10 @@
   package com.knowology.km.action;
 
+import com.knowology.km.bll.InteractiveSceneCallDAO;
 import com.knowology.km.bll.InteractiveSceneCallInDAO;
+import com.knowology.km.bll.ScenariosDAO;
 
-public class InteractiveSceneCallInAction extends BaseAction {
+public class InteractiveSceneCallAction extends BaseAction {
 
 	private String sceneJson;
 	private Object m_result;
@@ -22,51 +24,53 @@ public class InteractiveSceneCallInAction extends BaseAction {
 	private String actionName;
 	private String sceneElementName;
 	private String sceneElementId;
+	private String sceneType;
 
 	private int page;
 	private int rows;
+	
 
 	public Object execute() {
 		if ("saveConfig".equals(type)) { // 解析并保存流程图
-			m_result = InteractiveSceneCallInDAO.saveSceneRules(sceneJson, scenariosid);
+			m_result = InteractiveSceneCallDAO.saveSceneRules(sceneJson, scenariosid, sceneType);
 		}
 		if ("loadConfigData".equals(type)) {// 加载场景配置数据
-			m_result = InteractiveSceneCallInDAO.loadData(scenariosid);
+			m_result = ScenariosDAO.loadData(scenariosid);
 		}
 		if ("configRobot".equals(type)) {// 配置机器人信息
-			m_result = InteractiveSceneCallInDAO.configRobot(robotId, robotName, scenariosid);
+			m_result = ScenariosDAO.configRobot(robotId, robotName, scenariosid);
 		}
 		if ("getUrl".equals(type)) { // 要打开的场景页面
-			m_result = InteractiveSceneCallInDAO.getUrl(ioa);
+			m_result = ScenariosDAO.getUrl(ioa);
 		}
 		if ("autoWordPattern".equals(type)) {// 生成词模
-			m_result = InteractiveSceneCallInDAO.autoGenerateWordpat(scenariosid, autoWordPattern);
+			m_result = InteractiveSceneCallDAO.autoGenerateWordpat(scenariosid, autoWordPattern);
 		}
 		if ("saveCustomerAnswer".equals(type)) {// 新增用户回答
-			m_result = InteractiveSceneCallInDAO.saveCustomerAnswer(scenariosid, customeranswer, simpleWordPattern,
+			m_result = InteractiveSceneCallDAO.saveCustomerAnswer(scenariosid, customeranswer, simpleWordPattern,
 					wordPatternType, super.httpRequest);
 		}
 		if ("queryCustomerAnswer".equals(type)) {// 查询用户回答
-			m_result = InteractiveSceneCallInDAO.initCustomerAnswer(scenariosid);
+			m_result = InteractiveSceneCallDAO.initCustomerAnswer(scenariosid);
 		}
 		if ("querySmsTemplate".equals(type)) {// 查询短信模板
-			m_result = InteractiveSceneCallInDAO.querySmsTemplate(scenariosid);
+			m_result = InteractiveSceneCallDAO.querySmsTemplate(scenariosid);
 		}
 		if ("saveCollectionType".equals(type)) {// 新增信息收集类型
 			m_result = InteractiveSceneCallInDAO.saveCollectionType(scenariosid, collectionType, simpleWordPattern,
 					wordPatternType, super.httpRequest);
 		}
-		if ("queryCollectionType".equals(type)) {// 查询信息收集类型
-			m_result = InteractiveSceneCallInDAO.initCollectionType(scenariosid);
-		}
 		if ("queryPhoneAttributeNames".equals(type)) {// 查询号码属性
-			m_result = InteractiveSceneCallInDAO.queryPhoneAttributeNames();
+			m_result = InteractiveSceneCallDAO.queryPhoneAttributeNames();
 		}
 		if ("testUrl".equals(type)) {// 测试URL
-			m_result = InteractiveSceneCallInDAO.testURLAction(actionUrl);
+			m_result = InteractiveSceneCallDAO.testURLAction(actionUrl);
 		}
 		if ("checkUrlActionName".equals(type)) {// 校验接口名称是否重复
-			m_result = InteractiveSceneCallInDAO.checkUrlActionName(actionName);
+			m_result = InteractiveSceneCallDAO.checkUrlActionName(actionName);
+		}
+		if ("queryCollectionType".equals(type)) {// 查询信息收集类型
+			m_result = InteractiveSceneCallDAO.initCollectionType(scenariosid);
 		}
 		if ("listAllSceneElement".equals(type)) {// 查询全部场景要素
 			m_result = InteractiveSceneCallInDAO.listAllElementName(scenariosid, sceneElementName);
@@ -214,6 +218,14 @@ public class InteractiveSceneCallInAction extends BaseAction {
 
 	public void setSceneElementId(String sceneElementId) {
 		this.sceneElementId = sceneElementId;
+	}
+
+	public String getSceneType() {
+		return sceneType;
+	}
+
+	public void setSceneType(String sceneType) {
+		this.sceneType = sceneType;
 	}
 
 	public int getPage() {

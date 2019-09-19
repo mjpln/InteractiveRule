@@ -32,8 +32,7 @@ public class TTSNode extends NodeData {
 	 */
 	private List<OtherResponse> otherResponses;
 
-	public TTSNode() {
-	}
+	public TTSNode() {}
 
 	public TTSNode(NodeData nodeData) {
 		super.setKey(nodeData.getKey());

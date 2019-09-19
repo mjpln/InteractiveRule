@@ -68,8 +68,9 @@
 		<div  id ="cm" class="menu-sep"></div> 
 		<div id ="r" onclick="reload()" data-options="iconCls:'icon-reload'">刷新场景</div>
 		<div  id ="rm" class="menu-sep"></div> 
-		<div id = "a" onclick="append(false)" data-options="iconCls:'icon-add'">添加场景</div>
-		<div id = "a" onclick="append(true)" data-options="iconCls:'icon-add'">添加外呼场景</div>
+		<div id = "a" onclick="append('')" data-options="iconCls:'icon-add'">添加场景</div>
+		<div id = "a" onclick="append('callout')" data-options="iconCls:'icon-add'">添加外呼场景</div>
+		<div id = "a" onclick="append('callin')" data-options="iconCls:'icon-add'">添加呼入场景</div>
 		<div id ="am" class="menu-sep"></div> 
 		<div id="d" onclick="removeit()" data-options="iconCls:'icon-remove'">删除场景</div>
 		<div id ="dm" class="menu-sep"></div> 
@@ -84,16 +85,16 @@
 	    <!--场景名称右击菜单 end -->
 	    
 	     <!-- 菜单添加区 window start-->
-		 <div id="menu_add" class="easyui-window" title="添加" data-options="modal:true,closed:true,iconCls:'icon-add'" style="width:500px;height:200px;padding:5px;">
-            <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">上级目录：</span><input id="menu_super" type="text" class="easyui-textbox" style="width:320px;" readOnly="true"/></div>
-            <div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">输入名称：</span><input id="menu_name" type="text" class="easyui-textbox" style="width:320px;"/></div>
+		 <div id="menu_add" class="easyui-window" title="添加" data-options="modal:true,closed:true,iconCls:'icon-add'" style="width:500px;height:250px;padding:5px;">
+            <div style="padding:10px;"><span style="font-size:12px;margin-left:10px">上级目录：</span><input id="menu_super" type="text" class="easyui-textbox" style="width:320px;" readOnly="true"/></div>
+            <div style="padding:10px;"><span style="font-size:12px;margin-left:10px">输入名称：</span><input id="menu_name" type="text" class="easyui-textbox" style="width:320px;"/></div>
 			<div robot="roboid">
-				<div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">机器人名称：</span><input id="menu_robot_name" type="text" class="easyui-textbox" style="width:320px;"/></div>
-				<div style="padding:10px;" > <span style="font-size:12px;margin-left:10px">机器人ID：</span><input id="menu_robot_ID" type="text" class="easyui-textbox" style="width:320px;"/></div>
+				<div style="padding:10px;"><span style="font-size:12px;margin-left:0px">机器人名称：</span><input id="menu_robot_name" type="text" class="easyui-textbox" style="width:320px;"/></div>
+				<div style="padding:10px;"><span style="font-size:12px;margin-left:10px">机器人ID：</span><input id="menu_robot_ID" type="text" class="easyui-textbox" style="width:320px;"/></div>
 			</div>
-            <div style='text-align:center' >
-            <a href="javascript:void(0)" class="easyui-linkbutton"    data-options="iconCls:'icon-save'" plain="false" onclick="addmenu()">保存</a>
-			<a href="javascript:void(0)" class="easyui-linkbutton"   data-options="iconCls:'icon-clear'" plain="false" onclick="clearmenu()">清空</a>
+            <div style='text-align:center'>
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'" plain="false" onclick="addmenu()">保存</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" plain="false" onclick="clearmenu()">清空</a>
 		    </div>
          </div>
          <!-- 菜单添加区 window end--> 

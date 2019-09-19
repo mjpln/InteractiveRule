@@ -8,6 +8,8 @@ public class SceneElement {
 	private String elementName;
 	private String elementValue;
 	private String weight;
+	
+	public SceneElement() {}
 
 	public String getElementName() {
 		return elementName;

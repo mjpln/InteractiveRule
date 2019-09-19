@@ -36,6 +36,8 @@ public class AndCondition {
 	 * 上浮值
 	 */
 	private String updownRation;
+	
+	public AndCondition() {}
 
 	public String getParamName() {
 		return paramName;

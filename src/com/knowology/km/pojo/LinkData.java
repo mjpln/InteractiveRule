@@ -21,6 +21,8 @@ public class LinkData {
 	 * 目标端口
 	 */
 	private NodePort toPort;
+	
+	public LinkData() {}
 
 	public NodeData getFromNode() {
 		return fromNode;

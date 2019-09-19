@@ -26,6 +26,8 @@ public class CallInCollectionNode extends CollectionNode {
 	 * 菜单询问结束语
 	 */
 	private String menuEndWords;
+	
+	public CallInCollectionNode() {}
 
 	public CallInCollectionNode(NodeData nodeData) {
 		super(nodeData);

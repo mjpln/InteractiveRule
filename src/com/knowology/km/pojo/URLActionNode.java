@@ -11,32 +11,42 @@ public class URLActionNode extends NodeData {
 	 * 节点名称
 	 */
 	private String actionName;
-	
+
 	/**
 	 * 接口名称
 	 */
 	private String interfaceName;
-
+	
 	/**
 	 * 接口地址
 	 */
 	private String actionUrl;
 
 	/**
-	 * 请求方法, Http-get/Http-post
+	 * 调用方式：http|webservice
+	 */
+	private String invocationWay;
+
+	/**
+	 * 命名空间
+	 */
+	private String nameSpace;
+
+	/**
+	 * 请求方法, Http-get|Http-post|functionName
 	 */
 	private String actionMethod;
 
 	/**
 	 * 入参
 	 */
-	private List<URLActionInParam> inParams;
+	private List<URLActionParam> inParams;
 
 	/**
 	 * 出参
 	 */
-	private List<URLActionOutParam> outParams;
-	
+	private List<URLActionParam> outParams;
+
 	public URLActionNode() {}
 
 	public URLActionNode(NodeData nodeData) {
@@ -55,13 +65,29 @@ public class URLActionNode extends NodeData {
 	public void setActionName(String actionName) {
 		this.actionName = actionName;
 	}
-	
+
 	public String getInterfaceName() {
 		return interfaceName;
 	}
 
 	public void setInterfaceName(String interfaceName) {
 		this.interfaceName = interfaceName;
+	}
+
+	public String getInvocationWay() {
+		return invocationWay;
+	}
+
+	public void setInvocationWay(String invocationWay) {
+		this.invocationWay = invocationWay;
+	}
+	
+	public String getNameSpace() {
+		return nameSpace;
+	}
+
+	public void setNameSpace(String nameSpace) {
+		this.nameSpace = nameSpace;
 	}
 
 	public String getActionUrl() {
@@ -80,19 +106,19 @@ public class URLActionNode extends NodeData {
 		this.actionMethod = actionMethod;
 	}
 
-	public List<URLActionInParam> getInParams() {
+	public List<URLActionParam> getInParams() {
 		return inParams;
 	}
 
-	public void setInParams(List<URLActionInParam> inParams) {
+	public void setInParams(List<URLActionParam> inParams) {
 		this.inParams = inParams;
 	}
 
-	public List<URLActionOutParam> getOutParams() {
+	public List<URLActionParam> getOutParams() {
 		return outParams;
 	}
 
-	public void setOutParams(List<URLActionOutParam> outParams) {
+	public void setOutParams(List<URLActionParam> outParams) {
 		this.outParams = outParams;
 	}
 
@@ -105,6 +131,10 @@ public class URLActionNode extends NodeData {
 		builder.append(interfaceName);
 		builder.append(", actionUrl=");
 		builder.append(actionUrl);
+		builder.append(", invocationWay=");
+		builder.append(invocationWay);
+		builder.append(", nameSpace=");
+		builder.append(nameSpace);
 		builder.append(", actionMethod=");
 		builder.append(actionMethod);
 		builder.append(", inParams=");

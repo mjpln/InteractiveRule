@@ -14,6 +14,8 @@ public class OtherResponse {
 	 */
 	private String otherResponseValue;
 
+	public OtherResponse() {}
+
 	public String getOtherResponseName() {
 		return otherResponseName;
 	}

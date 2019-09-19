@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.knowology.Bean.User;
 import com.knowology.bll.CommonLibMetafieldmappingDAO;
 import com.knowology.km.access.UserManager;
+import com.knowology.km.bll.InteractiveSceneCallDAO;
 import com.knowology.km.bll.InteractiveSceneCallOutDAO;
 import com.knowology.km.bll.InteractiveSceneDAO;
 import com.knowology.km.bll.QuestionManageDAO;
@@ -348,7 +349,7 @@ public class InteractiveSceneAction extends BaseAction {
 		}
 		
 		//添加参数配置
-		res= (JSONObject) InteractiveSceneCallOutDAO.configRobot(robotID,robotName,scenarioID);
+		res= (JSONObject) ScenariosDAO.configRobot(robotID,robotName,scenarioID);
 		if(res.getBooleanValue("success")!=true)
 		{
 			createSD.put("errorCode", "300003");

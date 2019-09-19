@@ -15,9 +15,7 @@ public class TransferNode extends NodeData {
 	 */
 	private String transferNumber;
 
-	public TransferNode() {
-
-	}
+	public TransferNode() {}
 
 	public TransferNode(NodeData nodeData) {
 		super.setKey(nodeData.getKey());

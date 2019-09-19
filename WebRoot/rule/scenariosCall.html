@@ -18,7 +18,7 @@
 <script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/umeditor.config.js"></script>
 <script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/umeditor.min.js"></script>
 <script type="text/javascript" src="../umeditor1_2_2-utf8-jsp/lang/zh-cn/zh-cn.js"></script>
-<script type="text/javascript" src="./js/scenariosCallOut.js"></script>
+<script type="text/javascript" src="./js/scenariosCall.js"></script>
 <script type="text/javascript" src="./js/validate.js"></script>
 <script type="text/javascript">
 	//获取浏览器页面可见高度和宽度
@@ -203,39 +203,73 @@
 		<!-- 编辑回复内容 window end -->
 		
 		<!-- 编辑信息收集 window start -->
-		<div id="myCollectionEditDiv" title="编辑信息收集" tabindex="0"
+		<div id="myCollectionEditDiv" title="信息收集" tabindex="0"
 			style="overflow:auto; position:absolute; z-index:999; right:0; top:1; width: 250px; height: 500px; background-color: whitesmoke; border: solid 1px black; display:none; ">
 			<form id="collectionform">
 		    	<table id="collection-table" style="width:100%;">
 		    		<tr>
 						<td>
-							<span><span style='color:red'>*</span>信息名称：</span>
+							<span><span style='color:red'>*</span>节点名称：</span>
 							<span><input id="collectionName" class="easyui-textbox" style="width: 240px;"/></span>
 						</td>
 					</tr>
-					<tr>
+					<tr id="collectionform-collectionParam-tr">
 						<td>
 							<span><span style='color:red'>*</span>参数名称：</span>
-							<span><input id="collectionParam" class="easyui-textbox" style="width: 240px;"
-									data-options="prompt:'参数名称只能使用英文字母,不能使用数字、符号、中文'"/></span>
+							<span><input id="collectionParam" class="easyui-textbox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<span><span style='color:red'>*</span>信息类型：</span>
+							<span>
+								<span style='color:red'>*</span>信息类型：
+								<a id="toAddCollectionTypePageBtn" name="toAddCollectionTypePageBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-add'">添加</a>
+							</span>
 							<span><input id="collectionType" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
-					<tr>
+					<tr id="collectionform-collectionTimes-tr">
 						<td>
 							<span><span style='color:red'>*</span>重复次数：</span>
 							<span><input id="collectionTimes" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
-					<tr>
+					<tr id="collectionform-collectionElement-tr">
 						<td>
-							<span><span style='color:red'>*</span>反问话术：</span>
+							<span>
+								<span style='color:red'>*</span>关联要素：
+								<a id="addSceneElementBtn" name="addSceneElementBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-add'">添加</a>
+							</span>
+							<span>
+								<input id="collectionElement" name="collectionElement" class="easyui-combobox" style="width: 240px;"/>	
+							</span>
+						</td>
+					</tr>
+					<tr id="collectionform-interactiveType-tr">
+						<td>
+							<span><span style='color:red'>*</span>交互类型：</span>
+							<span>
+								<input id="interactiveType" class="easyui-combobox" style="width: 240px;"
+									data-options="valueField:'id',textField:'text',data:[{'text':'菜单询问','id':'键值补全'},{'text':'系统反问','id':'词模匹配'}]"/>
+							</span>
+						</td>
+					</tr>
+					<tr id="collectionform-collectionWords-tr">
+						<td>
+							<span><span style='color:red'>*</span>询问文本：</span>
 							<span><textarea id="collectionWords" style="width: 240px; height:100px; font-size: 12px;"></textarea></span>
+						</td>
+					</tr>
+					<tr id="collectionform-menuItems-tr">
+						<td>
+							<span><span style='color:red'>*</span>开始话语：</span>
+							<span><textarea id="menuStartWords" style="width: 240px; height:30px; font-size: 12px;"></textarea></span>
+							<span><span style='color:red'>*</span>菜单选项：</span>
+							<span><textarea id="menuOptions" style="width: 240px; height:30px; font-size: 12px;" placeholder="多条值以|分隔开"></textarea></span>
+							<span><span style='color:red'>*</span>结束话语：</span>
+							<span><textarea id="menuEndWords" style="width: 240px; height:30px; font-size: 12px;"></textarea></span>
 						</td>
 					</tr>
 				</table>
@@ -260,20 +294,20 @@
                     	<span style='color:red'>*</span>
                     	<span>DTMF名称：</span>
                     </div>
-                    <input class="easyui-textbox" name="txt_dtmf_name" data-options="prompt:'DTMF名称'" style="width: 240px;"/></div>
+                    <input class="easyui-textbox" id="dtmfName" name="dtmfName" data-options="prompt:'DTMF名称'" style="width: 240px;"/></div>
                 <div class="form-div">
                     <div class="form-div">
                     	<span style='color:red'>*</span>
                     	<span title='1. DTMF别名用于给条件、动作、信息收集等组件传递参数时使用;<br>2. 非必填项目,别名只能使用英文字母,不能使用数字、符号、中文;' class='easyui-tooltip'>DTMF别名：</span>
                     </div>
-                    <input class="easyui-textbox" name="txt_dtmf_alias" data-options="prompt:'别名只能使用英文字母,不能使用数字、符号、中文'" style="width: 240px;"/>
+                    <input class="easyui-textbox" name="dtmfAlias" data-options="prompt:'别名只能使用英文字母,不能使用数字、符号、中文'" style="width: 240px;"/>
                 </div>
                 <div class="form-div">
                     <div class="form-div">
                         <span style='color:red'>*</span>
                         <span>DTMF话术:</span>
                     </div>
-                    <input class="easyui-textbox" name="txt_dtmf_answer" multiline="true" style="width: 240px;height: 100px;"
+                    <input class="easyui-textbox" id="dtmfAnswer" name="dtmfAnswer" multiline="true" style="width: 240px;height: 100px;"
                            data-options="prompt:'请输入AI无法识别时,反问用户的话术(&quot;*&quot;号请用&quot;星&quot;字替换，&quot;#&quot;字请用&quot;井&quot;字替换)'"/></div>
                 <div class="form-div" style="display:none;">
                     <span width="30%">等待录音</span>
@@ -281,29 +315,29 @@
                 </div>
                 <div class="form-div"><span style='color:red'>*</span><span style="font-weight: bold ">DTMF设置</span></div>
                 <div class="form-div">
-                    <input name="presstype">
-                    <input name="presstype">
+                    <input name="pressType">
+                    <input name="pressType">
                 </div>
                 <div class="form-div" id="gather_numbers">
-                    <input class="easyui-textbox" name="txt_min_length" style="width:100px;" data-options="prompt:'18'" buttonText="位">
-                    <input class="easyui-textbox" name="txt_max_length" style="width:100px;" data-options="prompt:'20'" buttonText="位">
+                    <input class="easyui-textbox" id="minLength" name="minLength" style="width:100px;" data-options="prompt:'18'" buttonText="位">
+                    <input class="easyui-textbox" id="maxLength" name="maxLength" style="width:100px;" data-options="prompt:'20'" buttonText="位">
                     <div class="form-div"><span style='color:red'>*</span>结束按键</div>
-                    <div class="form-div"><input class="easyui-combobox" id="comb_finish_press" name="comb_finish_press" data-options="prompt:'按#结束',valueField:'value',textField:'text',data: [ {'text': '按*号键', 'value': '*'},{'text': '按#号键', 'value': '#'}]" style="width: 240px;" editable="false"/></div>
+                    <div class="form-div"><input class="easyui-combobox" id="endPressNumber" name="endPressNumber" data-options="prompt:'按#结束',valueField:'value',textField:'text',data: [ {'text': '按*号键', 'value': '*'},{'text': '按#号键', 'value': '#'}]" style="width: 240px;" editable="false"/></div>
                 </div>
                 <div class="form-div" id="press_numbers">
-                    <input class="easyui-textbox" name="txt_press_numbers" data-options="prompt:'按键值以逗号分隔0~9,*,#,不可重复'" style="width: 240px;"/>
+                    <input class="easyui-textbox" id="pressNumbers" name="pressNumbers" data-options="prompt:'按键值以逗号分隔0~9,*,#,不可重复'" style="width: 240px;"/>
                 </div>
                 <div class="form-div">
                     <div class="form-div"><span style='color:red'>*</span>尝试次数</div>
-                    <div class="form-div"><input class="easyui-combobox" id="comb_attempt_limit" name="comb_attempt_limit" data-options="prompt:'请选择尝试次数',valueField:'value',textField:'text',data: [ {'text': '1次', 'value': '1'},{'text': '2次', 'value': '2'}]" style="width: 240px;" editable="false"/></div>
+                    <div class="form-div"><input class="easyui-combobox" id="attemptLimit" name="attemptLimit" data-options="prompt:'请选择尝试次数',valueField:'value',textField:'text',data: [ {'text': '1次', 'value': '1'},{'text': '2次', 'value': '2'}]" style="width: 240px;" editable="false"/></div>
                 </div>
                 <div class="form-div">
                     <div class="form-div"><span style='color:red'>*</span>按键超时</div>
-                    <input class="easyui-textbox" name="txt_press_timeout" data-options="prompt:'5'" style="width: 240px;" buttonText="秒"/>
+                    <input class="easyui-textbox" id="pressTimeOut" name="pressTimeOut" data-options="prompt:'5'" style="width: 240px;" buttonText="秒"/>
                 </div>
                 <div class="form-div">
                     <div class="form-div"><span style='color:red'>*</span>按键超时话术:</div>
-                    <input class="easyui-textbox" name="txt_press_timeout_answer" multiline="true" style="width: 240px;height: 100px" data-options="prompt:'请输入按键超时话术(&quot;*&quot;号请用&quot;星&quot;字替换，&quot;#&quot;字请用&quot;井&quot;字替换)'"/>
+                    <input class="easyui-textbox" id="pressTimeOutAnswer" name="pressTimeOutAnswer" multiline="true" style="width: 240px;height: 100px" data-options="prompt:'请输入按键超时话术(&quot;*&quot;号请用&quot;星&quot;字替换，&quot;#&quot;字请用&quot;井&quot;字替换)'"/>
                 </div>
                 <div class="form-div" style="display:none;">
                     <span width="30%">等待录音</span>
@@ -326,10 +360,10 @@
             <form id="Transferform" style="padding-right: 10px;padding-left:10px;font-size: 13px;">
                 <div class="form-div">
                     <div class="form-div">AI转人工名称<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="txt_transfer_name" name="txt_transfer_name" data-options="prompt:'请输入名称'" style="width: 100%;"/></div>
+                    <input class="easyui-textbox" id="transferName" name="transferName" data-options="prompt:'请输入名称'" style="width: 100%;"/></div>
                 <div class="form-div">
                     <div class="form-div">人工服务号码<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="txt_transfer_number" name="txt_transfer_number" data-options="prompt:'请输入人工电话号码'" style="width: 100%;"/></div>
+                    <input class="easyui-textbox" id="transferNumber" name="transferNumber" data-options="prompt:'请输入人工电话号码'" style="width: 100%;"/></div>
             </form>
             <div style="text-align: center; padding: 10px">
                 <a id="saveTransfer" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
@@ -346,19 +380,19 @@
             <form id="URLActionform" style="padding-right: 10px;padding-left:10px;font-size: 13px;">
                 <div class="form-div">
                     <div class="form-div">节点名称<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="txt_action_name" name="txt_action_name" data-options="prompt:'动作'" style="width: 100%;height: 30px"/></div>
+                    <input class="easyui-textbox" id="actionName" name="actionName" data-options="prompt:'动作'" style="width: 100%;height: 30px"/></div>
                 <div class="form-div">
                     <div class="form-div">接口地址<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="txt_action_url" name="txt_action_url" data-options="prompt:'URL'" style="width: 100%;height: 30px"/></div>
+                    <input class="easyui-textbox" id="actionUrl" name="actionUrl" data-options="prompt:'URL'" style="width: 100%;height: 30px"/></div>
                 <div class="form-div">
                     <div class="form-div">请求方法<span style='color:red'>*</span>：</div>
-                    <input class="easyui-combobox" id="txt_action_method" name="txt_action_method" data-options="prompt:'方法',valueField:'value',textField:'text',data: [ {'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}]" style="width: 100%;height: 30px"/></div>
+                    <input class="easyui-combobox" id="actionMethod" name="actionMethod" data-options="prompt:'方法',valueField:'value',textField:'text',data: [ {'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}]" style="width: 100%;height: 30px"/></div>
                 <div class="form-div">
                     <div class="form-div" id="in_key_vals_div">
-                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">入参</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">请求参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
                     </div>
                     <div class="form-div" id="out_key_vals_div">
-                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">出参</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">返回参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
                     </div>
                     <a id="testAction" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'">测试</a>
                 </div>
@@ -379,7 +413,7 @@
             <form id="Conditionform" style="padding-right: 1px;padding-left:1px;font-size: 13px;">
                 <div class="form-div" >
                     <div class="form-div"><span style='color:red'>*</span>设置名称：</div>
-                    <input class="easyui-textbox" id="txt_condition_name" name="txt_condition_name" data-options="prompt:'请输入名称'" style="width: 240px;"/>
+                    <input class="easyui-textbox" id="conditionName" name="conditionName" data-options="prompt:'请输入名称'" style="width: 240px;"/>
                 </div>
                 <div id="conditions" class="form-div" >
                     <div class="form-div" style="padding-right: 1px;padding-left:1px;padding-top: 5px; ">
@@ -396,9 +430,96 @@
             </div>
         </div>
         <!-- 条件组件 window end-->
-		
 	</div>
 	
+	<!-- 场景要素编辑区 window start -->
+	<div id="sceneElementDiv" class="easyui-window" title="场景要素编辑区"
+		data-options="modal:true,closed:true,iconCls:'icon-save'"
+		style="width: 800px; height: 500px; padding: 10px;">
+		<form id="sceneElementQueryForm" class="easyui-form">
+			<div id="sceneElementTableDiv" style="height: 30px;">
+				<span style="font-size: 12px; margin-left: 10px">场景要素：</span>
+				<input id="sceneElementQueryForm-sceneElementName" name="sceneElementQueryForm-sceneElementName" type="text" class="easyui-textbox" style="width: 320px;" />
+				<a style="margin: 0 10px" class="easyui-linkbutton" plain="fasle" iconCls="icon-search" onclick="searchElementName()">查询</a>
+			</div>
+		</form>
+		<table id="sceneElementTable"></table>
+	</div>
+	<!-- 场景要素编辑区 window end -->
+	
+	<!-- 场景要素新增和编辑 window start -->
+	<div id="sceneElementEditDiv" class="easyui-window" title="场景要素新增"
+		data-options="modal:true,closed:true,iconCls:'icon-save'"
+		style="width: 500px; height: 400px; padding: 10px;">
+		<form id="sceneElementEditForm" class="easyui-form" method="post"
+			data-options="novalidate:true">
+			<table cellpadding="3" style="text-align: center; margin: 0 auto;">
+				<tr>
+					<td>场景要素:</td>
+					<td><input id="sceneElementEditForm-sceneElementName" name="sceneElementEditForm-sceneElementName" class="easyui-textbox" style="width: 300px;" type="text"
+						data-options="required:true,missingMessage:'场景要素名不能为空!'"></input></td>
+				</tr>
+				<tr>
+					<td>优先级&nbsp;&nbsp;:</td>
+					<td><input id="sceneElementEditForm-weight" name="sceneElementEditForm-weight" style="width: 300px;"></input></td>
+				</tr>
+				<tr>
+					<td>对应词类:</td>
+					<td>
+						<input class="easyui-combobox" id="sceneElementEditForm-wordClass" name="sceneElementEditForm-wordClass" style="width: 270px;"></input>
+						<a id="addWordClass" name="addWordClass" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-add'"></a> 
+					</td>
+				</tr>
+				<tr>
+					<td>对应信息表列:</td>
+					<td><input id="sceneElementEditForm-infoTalbePath" name="sceneElementEditForm-infoTalbePath" style="width: 300px;"></input></td>
+				</tr>
+				<tr>
+					<td>对应区域:</td>
+					<td><input id="sceneElementEditForm-city" name="sceneElementEditForm-city" style="width: 300px;" ></input></td>
+				</tr>
+				<tr>
+					<td>填写方式:</td>
+					<td>
+						<select class="easyui-combobox" id="sceneElementEditForm-itemMode" name="sceneElementEditForm-itemMode" style="width: 300px;">
+							<option value="勾选">勾选</option>
+							<option value="自定义">自定义</option>
+							<option value="勾选+自定义">勾选+自定义</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>交互类型:</td>
+					<td>
+						<select class="easyui-combobox" id="sceneElementEditForm-container" name="sceneElementEditForm-container" style="width: 300px;">
+							<option value="键值补全">菜单询问用户</option>
+							<option value="词模匹配">系统反问</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>交互口径:</td>
+					<td>
+						<textarea name="" cols="5" rows="5" id="sceneElementEditForm-interPattern" name="sceneElementEditForm-interPattern" style="width: 300px; font-size: 12px;"></textarea>
+					</td>
+				</tr>
+			</table>
+		</form>
+		<div style="text-align: center; padding: 5px">
+			<a id="saveElement" href="javascript:void(0)" class="easyui-linkbutton"
+				data-options="iconCls:'icon-save'" plain="false" >保存</a>
+			<a href="javascript:void(0)" class="easyui-linkbutton"
+				data-options="iconCls:'icon-clear'" plain="false" onclick="clearElementEditForm()">清空</a>
+		</div>
+	</div>
+	<!-- 场景要素新增和编辑 window end -->
+	
+	<!-- 词类新增和编辑 window start -->
+	<div id="wordClassEditDiv" class="easyui-window" title="词类新增" data-options="modal:true,closed:true,iconCls:'icon-save'" style="width:900px;height:500px;">
+		<iframe id='standardIframe' scrolling="auto" width='100%' height='100%' frameborder='0' src='http://172.30.66.120:8082/KM/wordclass/app.html'></iframe>
+	</div>
+		
 	<!-- 添加用户答案 -->
 	<div id="customerAnswerAddPage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
 		title="添加用户答案" style="width:650px;">
@@ -444,6 +565,51 @@
 		</div>
 	</div>
 	
+	<!-- 添加信息类型 -->
+	<div id="collectionTypeAddPage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
+		title="添加信息类型" style="width:650px;">
+		<form id="collectionTypeAddForm" class="easyui-form">
+		    <table style="width:100%;">
+		    	<tr>
+					<td><span class="span_class">标题:</span></td>
+					<td><span><input id="collectionTypeAddForm-title" class="easyui-textbox" style="width: 500px;" /></span></td>
+				</tr>
+				<tr>
+					<td><span class="span_class">词模类型:</span></td>
+					<td><span>
+						<select id="collectionTypeAddForm-wordtype" class="easyui-combobox" style="width: 150px;">
+							<option value="0">简单词模</option>
+							<option value="1">排除词模</option>
+							<option value="2">选择词模</option>
+							<option value="3">特征词模</option>
+							<option value="4">等于词模</option>
+						</select>
+					</span></td>
+				</tr>
+				<tr>
+					<td><span class="span_class">生成词模:</span></td>
+					<td><span><input id="collectionTypeAddForm-keywords" class="easyui-textbox" style="width: 500px;"></input></span></td>
+					<td><span><a id="collectionTypeAddForm-analyzeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-save'">生成</a> </span></td>
+				</tr>
+				<tr>
+					<td class="span_class" valign="top">新增词模:</td>
+					<td>
+						<span>
+							<textarea id="collectionTypeAddForm-wordclasses" style="width: 500px; height： 100px; font-size: 12px;"></textarea>
+						</span>
+					</td>
+				</tr>
+		    </table>
+		</form>
+		<div style="text-align: center; padding: 10px">
+			<a id="collectionTypeAddForm-saveBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-save'">保存</a> 
+			<a id="collectionTypeAddForm-closeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-clear'">关闭</a>
+		</div>
+	</div>
+	
 	<!-- 词模 -->
 	<div id="autoworrdpat" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
 		title="自学习词模" style="width:650px;">
@@ -475,17 +641,7 @@
 				data-options="iconCls:'icon-clear'">关闭</a>
 		</div>
 	</div>
-
-	<!-- 右键菜单(用于start) -->
-	<div id="startmenu" class="easyui-menu" style="width:120px;">
-		<div data-options="iconCls:'icon-edit'">编辑</div>
-	</div>
 		
-	<!-- 右键菜单(用于回复内容) -->
-	<div id="normalmenu" class="easyui-menu" style="width:120px;">
-		<div data-options="iconCls:'icon-edit'">编辑</div>
-	</div>
-	
 	<script type="text/javascript">
 	    // 实例化编辑器
     	var um = UM.getEditor('myEditor');

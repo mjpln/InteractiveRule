@@ -443,21 +443,27 @@ function append(flag) {
     var text = node.text;
     $('#menu_super').textbox('setValue', text);
     $('#menu_add').find("a:first").removeAttr("onclick");
-    if(flag)
+    if(flag == 'callout')
     {
         $('#menu_add').first().css("height","250px");
         $('#menu_add').find("div[robot=\"roboid\"]").show();
         $('#menu_add').find("a:first").unbind("click").bind("click",addmenuCallOut);
     }
-    else
+    else if(flag == 'callin')
     {
-        $('#menu_add').first().css("height","150px");
+        $('#menu_add').first().css("height","250px");
+        $('#menu_add').find("div[robot=\"roboid\"]").show();
+        $('#menu_add').find("a:first").first().unbind("click").bind("click",addmenuCallIn);
+    } 
+    else 
+    {
+    	$('#menu_add').first().css("height","150px");
         $('#menu_add').find("div[robot=\"roboid\"]").hide();
         $('#menu_add').find("a:first").first().unbind("click").bind("click",addmenu);
-    }  
+    }
     
     $('#menu_add').window('open');
-    $(this).tree('beginEdit', node.target);
+    //t.tree('beginEdit', node.target);
 }
 
 // 打开上传文档操作框
@@ -594,29 +600,19 @@ function addmenuCallOut()
     var text = node.text;
     var name = replaceSpace($("#menu_name").val());
     var scenariosid = node.id;
-
-    var  robotname = replaceSpace($("#menu_robot_name").val());
-    var  robotid = replaceSpace($("#menu_robot_ID").val());
-   
-    if(!validateName("机器人名称",robotname) || !validateName("机器人ID",robotid))
+    var robotname = replaceSpace($("#menu_robot_name").val());
+    var robotid = replaceSpace($("#menu_robot_ID").val());
+    
+    if(!validateName("机器人名称",robotname) 
+    		|| !validateName("机器人ID",robotid) 
+    		|| !validateName("场景名称",name))
     {
         return;
     }    
 
-    //对场景名进行特殊字符验证
-    if(name.indexOf('=')>-1 || name.indexOf('/')>-1 || name.indexOf('%')>-1
-            || name.indexOf('>')>-1 || name.indexOf('<')>-1 || name.indexOf('*')>-1
-            || name.indexOf('Contain')>-1 || name.indexOf('@')>-1 
-            || name.indexOf('!')>-1 || name.indexOf('$')>-1 || name.indexOf('包含')>-1){
-        $.messager.alert('系统提示', "存在非法字符串!", "info");
-        return;
-    }
-
     $('#menu_add').window('close');
     $('#waihu_msg').window('open');
-    $('#waihu_msg_content').text("创建场景.......");
-
-
+    $('#waihu_msg_content').text("正在创建外呼场景...");
 
     var createScen = function(scname,scid) {
         return $.ajax({
@@ -632,11 +628,9 @@ function addmenuCallOut()
                 robotName: robotname,
                 robotID: robotid
             },
-            //async : false,
             dataType : "json",
         });
     };
-    
     createScen(name,scenariosid).done(function(data) {
         if (data.success != true) {
             $('#waihu_msg').window('close');
@@ -666,7 +660,78 @@ function addmenuCallOut()
         clearmenu();
         t.load();
         $('#waihu_msg').window('close');
-        $.messager.alert('提示', "插入外呼场景成功" , "info");
+        $.messager.alert('提示', "外呼场景创建成功" , "info");
+    });
+}
+
+function addmenuCallIn()
+{
+    var t = $('#tt');
+    var node = t.tree('getSelected');
+    var text = node.text;
+    var name = replaceSpace($("#menu_name").val());
+    var scenariosid = node.id;
+    var robotname = replaceSpace($("#menu_robot_name").val());
+    var robotid = replaceSpace($("#menu_robot_ID").val());
+    
+    if(!validateName("机器人名称",robotname) 
+    		|| !validateName("机器人ID",robotid) 
+    		|| !validateName("场景名称",name))
+    {
+        return;
+    }    
+
+    $('#menu_add').window('close');
+    $('#waihu_msg').window('open');
+    $('#waihu_msg_content').text("正在创建呼入场景...");
+
+    var createScen = function(scname,scid) {
+        return $.ajax({
+            url : '../interactiveScene.action',
+            type : "post",
+            data : {
+                type : 'addmenuCallOut',
+                scenariosid : scid,
+                name : "【" + scname + "】",
+                resourcetype : 'scenariosrules',
+                operationtype : 'A',
+                resourceid : scid,
+                robotName: robotname,
+                robotID: robotid
+            },
+            dataType : "json",
+        });
+    };
+    createScen(name,scenariosid).done(function(data) {
+        if (data.success != true) {
+            $('#waihu_msg').window('close');
+            $.messager.alert('系统提示', data.msg, "info");
+            return;
+        }
+        var res1= data.childIds;
+        var names = data.childNames;
+        t.tree('append', {
+            parent : (node ? node.target : null),
+            data : [ {
+                    id : data.id,
+                    text : name,
+                    leaf : false,
+                    children:[
+                    { 
+                        id : res1[0],
+                        text : names[0],
+                        leaf : true,
+                    },{ 
+                        id : res1[0],
+                        text : names[1],
+                        leaf : true,
+                    }]
+                }]
+            });
+        clearmenu();
+        t.load();
+        $('#waihu_msg').window('close');
+        $.messager.alert('提示', "呼入场景创建成功" , "info");
     });
 }
 
@@ -3166,7 +3231,7 @@ function opengojs(){
         var title = "【" + sname + "-流程图】";
         opengojstab(title, node.id, sname)
     }
-    t.tree('beginEdit', node.target);
+    //t.tree('beginEdit', node.target);
 }
 
 function opengojstab(title, id,sname) {
@@ -3188,9 +3253,9 @@ function opengojstab(title, id,sname) {
             var url;
             if (data.customer == "全行业") {
             	if(sname.indexOf('【') > -1 && sname.indexOf('】') > -1) {
-            		url = "./scenariosCallIn.html?scenariosid=" + id + '&scenariosname=' + sname + '&ioa=' + ioa + '&strategy=' + bb;
+            		url = "./scenariosCall.html?scenariosid=" + id + '&scenariosname=' + sname + '&ioa=' + ioa + '&strategy=' + bb + '&sceneType=callIn';
             	} else {
-            		url = "./scenariosCallOut.html?scenariosid=" + id + '&scenariosname=' + sname + '&ioa=' + ioa + '&strategy=' + bb;
+            		url = "./scenariosCall.html?scenariosid=" + id + '&scenariosname=' + sname + '&ioa=' + ioa + '&strategy=' + bb + '&sceneType=callOut';
             	}
             } else {//非全行业，查询配置
                 $.ajax({

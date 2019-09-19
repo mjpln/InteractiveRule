@@ -1,19 +1,21 @@
 package com.knowology.km.pojo;
 
 /**
- * 动作组件出参
+ * 动作组件参数
  */
-public class URLActionOutParam {
+public class URLActionParam {
 
 	/**
-	 * 出参名称
+	 * 入参名称
 	 */
 	private String paramName;
 
 	/**
-	 * 出参值
+	 * 入参值
 	 */
 	private String paramValue;
+	
+	public URLActionParam() {}
 
 	public String getParamName() {
 		return paramName;
@@ -34,7 +36,7 @@ public class URLActionOutParam {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("URLActionOutParam [paramName=");
+		builder.append("URLActionInParam [paramName=");
 		builder.append(paramName);
 		builder.append(", paramValue=");
 		builder.append(paramValue);
