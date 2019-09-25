@@ -1,7 +1,6 @@
   package com.knowology.km.action;
 
 import com.knowology.km.bll.InteractiveSceneCallDAO;
-import com.knowology.km.bll.InteractiveSceneCallInDAO;
 import com.knowology.km.bll.ScenariosDAO;
 
 public class InteractiveSceneCallAction extends BaseAction {
@@ -15,7 +14,7 @@ public class InteractiveSceneCallAction extends BaseAction {
 	private String robotId;
 	private String robotName;
 	private String autoWordPattern;
-	private String collectionType;
+	private String collectionIntention;
 	private String customeranswer;
 	private String simpleWordPattern;
 	private String wordPatternType;
@@ -56,9 +55,18 @@ public class InteractiveSceneCallAction extends BaseAction {
 		if ("querySmsTemplate".equals(type)) {// 查询短信模板
 			m_result = InteractiveSceneCallDAO.querySmsTemplate(scenariosid);
 		}
-		if ("saveCollectionType".equals(type)) {// 新增信息收集类型
-			m_result = InteractiveSceneCallInDAO.saveCollectionType(scenariosid, collectionType, simpleWordPattern,
+		if ("queryCollectionIntention".equals(type)) {// 查询关联意图
+			m_result = InteractiveSceneCallDAO.initCollectionIntention(scenariosid);
+		}
+		if ("saveCollectionIntention".equals(type)) {// 新增关联意图
+			m_result = InteractiveSceneCallDAO.saveCollectionIntention(scenariosid, collectionIntention, simpleWordPattern,
 					wordPatternType, super.httpRequest);
+		}
+		if ("deleteCollectionIntention".equals(type)) {// 删除关联意图
+			m_result = ScenariosDAO.deleteRegnitionRule(scenariosid, collectionIntention);
+		}
+		if ("deleteCustomerAnswer".equals(type)) {// 删除用户答案
+			m_result = ScenariosDAO.deleteRegnitionRule(scenariosid, customeranswer);
 		}
 		if ("queryPhoneAttributeNames".equals(type)) {// 查询号码属性
 			m_result = InteractiveSceneCallDAO.queryPhoneAttributeNames();
@@ -69,17 +77,14 @@ public class InteractiveSceneCallAction extends BaseAction {
 		if ("checkUrlActionName".equals(type)) {// 校验接口名称是否重复
 			m_result = InteractiveSceneCallDAO.checkUrlActionName(actionName);
 		}
-		if ("queryCollectionType".equals(type)) {// 查询信息收集类型
-			m_result = InteractiveSceneCallDAO.initCollectionType(scenariosid);
-		}
 		if ("listAllSceneElement".equals(type)) {// 查询全部场景要素
-			m_result = InteractiveSceneCallInDAO.listAllElementName(scenariosid, sceneElementName);
+			m_result = InteractiveSceneCallDAO.listAllElementName(scenariosid, sceneElementName);
 		}
 		if ("listPagingSceneElement".equals(type)) {// 分页查询场景要素
-			m_result = InteractiveSceneCallInDAO.listPagingSceneElement(scenariosid, sceneElementName, page, rows);
+			m_result = InteractiveSceneCallDAO.listPagingSceneElement(scenariosid, sceneElementName, page, rows);
 		}
 		if ("listAllElementValue".equals(type)) {// 查询场景要素值
-			m_result = InteractiveSceneCallInDAO.listAllElementValue(scenariosid, sceneElementName);
+			m_result = InteractiveSceneCallDAO.listAllElementValue(scenariosid, sceneElementName);
 		}
 		return "success";
 	}
@@ -148,12 +153,12 @@ public class InteractiveSceneCallAction extends BaseAction {
 		this.autoWordPattern = autoWordPattern;
 	}
 
-	public String getCollectionType() {
-		return collectionType;
+	public String getCollectionIntention() {
+		return collectionIntention;
 	}
 
-	public void setCollectionType(String collectionType) {
-		this.collectionType = collectionType;
+	public void setCollectionIntention(String collectionIntention) {
+		this.collectionIntention = collectionIntention;
 	}
 
 	public String getCustomeranswer() {

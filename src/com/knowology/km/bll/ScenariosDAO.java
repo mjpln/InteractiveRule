@@ -17,6 +17,7 @@ import com.knowology.UtilityOperate.GetConfigValue;
 import com.knowology.bll.CommonLibInteractiveSceneDAO;
 import com.knowology.bll.CommonLibMetafieldmappingDAO;
 import com.knowology.bll.CommonLibQueryManageDAO;
+import com.knowology.bll.CommonLibServiceDAO;
 import com.knowology.bll.ConstructSerialNum;
 import com.knowology.dal.Database;
 import com.knowology.km.constant.UrlActionInvocationTypeConsts;
@@ -484,16 +485,16 @@ public class ScenariosDAO {
 	}
 	
 	/**
-	 * 查询公共信息类型
+	 * 查询公共关联意图
 	 */
-	public static Result queryPublicCollectionType() {
+	public static Result queryPublicCollectionIntention() {
 		// 获取用户
 		User user = (User) GetSession.getSessionByKey("accessUser");
 		// 获取行业
 		String serviceType = user.getIndustryOrganizationApplication();
 		// 获取X行业->通用商家->多渠道应用根问题库
-		String businsessServiceType = serviceType.split("->")[0] + "->通用商家->多渠道应用";
-		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), businsessServiceType, "", "全国", "");
+		String businessServiceType = serviceType.split("->")[0] + "->通用商家->多渠道应用";
+		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), businessServiceType, "", "全国", "");
 		if (result != null && result.getRowCount() > 0) {
 			String commonQuestionServiceName = result.getRows()[0].get("service") + "";
 			String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and s.parentName='信息收集' and s.brand = ? ";
@@ -525,6 +526,22 @@ public class ScenariosDAO {
 	}
 	
 	/**
+	 * 获取识别规则业务ID
+	 * 
+	 * @param parentName 父业务名
+	 * @return 识别规则业务ID
+	 */
+	public static String getRegnitionRuleServiceId(String parentName) {
+		String sql = "select SERVICEID from service s where s.service='识别规则业务' and PARENTNAME like ?";
+		Result rs = Database.executeQuery(sql, parentName);
+		if (rs != null && rs.getRowCount() > 0) {
+			String serviceId = rs.getRows()[0].get("SERVICEID") + "";
+			return serviceId;
+		}
+		return "";
+	}
+	
+	/**
 	 * 配置接口信息
 	 * 
 	 * @param urlActionNode 动作组件
@@ -545,10 +562,15 @@ public class ScenariosDAO {
 	 * @return
 	 */
 	private static JSONObject insertInterfaceConfigInfo(List<String> standardValues, String interfaceName) {
-		// 插入接口配置键
 		User user = (User) GetSession.getSessionByKey("accessUser"); // 获取用户
 		String serviceType = user.getIndustryOrganizationApplication(); // 获取行业
 		String standardKey = serviceType + "::" + interfaceName;
+		// 存在则先删除
+		String standardKeyId = MetafieldDao.getStandardKeyId("第三方接口信息配制", standardKey);
+		if(StringUtils.isNotBlank(standardKeyId)) {
+			MetafieldDao.deleteKey(standardKeyId, "第三方接口信息配制", standardKey);
+		}
+		// 插入接口配置键
 		List<String> standardKeys = new ArrayList<String>();
 		standardKeys.add(standardKey);
 		JSONObject jsonObj = (JSONObject) MetafieldDao.insertKey("第三方接口信息配制", standardKeys);
@@ -565,61 +587,95 @@ public class ScenariosDAO {
 	private static List<String> buildInterfaceInfo(URLActionNode urlActionNode) {
 		String actionUrl = urlActionNode.getActionUrl();
 		String invocationWay = urlActionNode.getInvocationWay();
-		String actionMethod = urlActionNode.getActionMethod();
-		String nameSpace = urlActionNode.getNameSpace();
+		String httpMethod = urlActionNode.getHttpMethod();
+		String functionName = urlActionNode.getFunctionName();
+		String nameSpace = urlActionNode.getNamespace();
 		List<URLActionParam> inParams = urlActionNode.getInParams();
 		List<URLActionParam> outParams = urlActionNode.getOutParams();
 		// 组装参数顺序
 		String paramOrder = buildInterfaceParamOrders(inParams);
 		// 组装参数转换
-		List<URLActionParam> params = inParams;
-		params.addAll(outParams);
-		List<String> inner2calledParams = buildInterfaceCalledParamMaps(params);
+		List<String> inner2calledParams = buildInner2CalledParamMaps(inParams);
+		List<String> calledRes2InnerResParams = buildCalledRes2InnerResParas(outParams);
 		// 配置接口信息
-		List<String> standardValues = getInterfaceConfigInfo(nameSpace, actionUrl, invocationWay, actionMethod, paramOrder, inner2calledParams);
+		List<String> standardValues = getInterfaceConfigInfo(nameSpace, actionUrl, invocationWay, httpMethod,
+				functionName, paramOrder, inner2calledParams, calledRes2InnerResParams);
 		return standardValues;
 	}
 
 	/**
 	 * 获取接口配置
 	 * 
-	 * @param nameSpace          命名空间
-	 * @param actionUrl          接口地址
-	 * @param invocationWay      调用方式
-	 * @param actionMethod       调用方法
-	 * @param paramOrder         参数顺序
-	 * @param inner2calledParams 参数转换
+	 * @param nameSpace                命名空间
+	 * @param actionUrl                接口地址
+	 * @param invocationWay            调用方式
+	 * @param httpMethod               HTTP方法
+	 * @param functionName             函数名称
+	 * @param paramOrder               参数顺序
+	 * @param inner2calledParams       输入参数
+	 * @param calledRes2InnerResParams 输出参数
 	 * @return
 	 */
 	private static List<String> getInterfaceConfigInfo(String nameSpace, String actionUrl, String invocationWay,
-			String actionMethod, String paramOrder, List<String> inner2calledParams) {
+			String httpMethod, String functionName, String paramOrder, List<String> inner2calledParams,
+			List<String> calledRes2InnerResParams) {
 		List<String> standardValues = new ArrayList<String>();
-		standardValues.add("NameSpace:="+nameSpace);
-		standardValues.add("URL:="+actionUrl);
+		if(StringUtils.isNotBlank(nameSpace)) {
+			standardValues.add("NameSpace:=" + nameSpace);
+		}
+		if(StringUtils.isNotBlank(actionUrl)) {
+			standardValues.add("URL:=" + actionUrl);
+		}
 		standardValues.add("ParasType:=Json_KeyValue");
 		standardValues.add("ReturnParasType:=Json_KeyValue");
 		standardValues.add("BufferType:=close");
-		if(UrlActionInvocationTypeConsts.WEBSERVICE.equals(invocationWay)) {
-			standardValues.add("CallFuncName:="+actionMethod);
-		} 
-		if(UrlActionInvocationTypeConsts.HTTP.equals(invocationWay)) {
-			standardValues.add("CallType:="+actionMethod);
-		} 
-		standardValues.add("ParasOrder:="+paramOrder);
+		if (UrlActionInvocationTypeConsts.WEBSERVICE.equals(invocationWay)) {
+			if(StringUtils.isNotBlank(functionName)) {
+				standardValues.add("CallFuncName:=" + functionName);
+			}
+		}
+		if (UrlActionInvocationTypeConsts.HTTP.equals(invocationWay)) {
+			if(StringUtils.isNotBlank(httpMethod)) {
+				standardValues.add("CallType:=" + httpMethod);
+			}
+		}
+		if(StringUtils.isNotBlank(paramOrder)) {
+			standardValues.add("ParasOrder:=" + paramOrder);
+		}
 		standardValues.addAll(inner2calledParams);
+		standardValues.addAll(calledRes2InnerResParams);
 		return standardValues;
+	}
+	
+	/**
+	 * 返回参数转为内部参数
+	 */
+	private static List<String> buildCalledRes2InnerResParas(List<URLActionParam> outParams) {
+		List<String> calledRes2InnerResParams = new ArrayList<String>();
+		if(!outParams.isEmpty()) {
+			for(URLActionParam param : outParams) {
+				String outerParamName = param.getParamName();
+				String innerParamName = param.getParamValue();
+				if(StringUtils.isNotBlank(innerParamName) && StringUtils.isNotBlank(outerParamName)) {
+					calledRes2InnerResParams.add("CalledRes2InnerResParas:="+outerParamName+"->"+innerParamName);
+				}
+			}
+		}
+		return calledRes2InnerResParams;
 	}
 
 	/**
-	 * 组装参数转换
+	 * 内部参数转为输入参数
 	 */
-	private static List<String> buildInterfaceCalledParamMaps(List<URLActionParam> params) {
+	private static List<String> buildInner2CalledParamMaps(List<URLActionParam> inParams) {
 		List<String> inner2calledParams = new ArrayList<String>();
-		if(!params.isEmpty()) {
-			for(URLActionParam param : params) {
-				String innerParamName = param.getParamName();
-				String outerParamName = param.getParamValue();
-				inner2calledParams.add("Inner2CalledParasMap:="+innerParamName+"<-"+outerParamName);
+		if(!inParams.isEmpty()) {
+			for(URLActionParam param : inParams) {
+				String outerParamName = param.getParamName();
+				String innerParamName = param.getParamValue();
+				if(StringUtils.isNotBlank(innerParamName) && StringUtils.isNotBlank(outerParamName)) {
+					inner2calledParams.add("Inner2CalledParasMap:="+outerParamName+"<-"+innerParamName);
+				}
 			}
 		}
 		return inner2calledParams;
@@ -641,5 +697,82 @@ public class ScenariosDAO {
 		}
 		return paramOrderBuffer.toString();
 	}
-
+	
+	/**
+	 * 查询场景识别规则
+	 */
+	public static Result querySceneRegnitionRule(String scenariosId) {
+		// 获取场景信息
+		Result result = CommonLibServiceDAO.getServiceInfoByserviceid(scenariosId);
+		if (result == null || result.getRowCount() == 0) {
+			return null;
+		}
+		// 获取父场景信息
+		String parentScenariosId = result.getRows()[0].get("PARENTID") + "";
+		result = CommonLibServiceDAO.getServiceInfoByserviceid(parentScenariosId);
+		if (result == null || result.getRowCount() == 0) {
+			return null;
+		}
+		String parentScenariosName = result.getRows()[0].get("service") + "";
+		// 识别规则业务
+		String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service = '识别规则业务' and s.parentname = ?";
+		result = Database.executeQuery(sql, parentScenariosName+"问题库");
+		return result;
+	}
+	
+	/**
+	 * 查询商家识别规则
+	 */
+	public static Result queryBusinessRegnitionRule() {
+		// 获取商家根问题库
+		User user = (User) GetSession.getSessionByKey("accessUser"); // 获取用户
+		String serviceType = user.getIndustryOrganizationApplication(); // 获取商家
+		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), serviceType, "", "全国", "");
+		if (result == null || result.getRowCount() == 0) {
+			return null;
+		}
+		String rootServiceName = result.getRows()[0].get("service") + "";
+		// 识别规则业务ID
+		String serviceId = ScenariosDAO.getRegnitionRuleServiceId(rootServiceName.trim());
+		String sql = "select k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.serviceid = ?";
+		result = Database.executeQuery(sql, serviceId);
+		return result;
+	}
+	
+	/**
+	 * 删除识别规则业务
+	 * 
+	 * @param scenariosid 场景ID
+	 * @param normalQuery 标准问
+	 * @return
+	 */
+	public static Object deleteRegnitionRule(String scenariosid, String normalQuery) {
+		JSONObject jsonObj = new JSONObject();
+		jsonObj.put("success", false);
+		jsonObj.put("msg", "操作失败");
+		// 获取商家根问题库
+		User user = (User) GetSession.getSessionByKey("accessUser"); // 获取用户
+		String serviceType = user.getIndustryOrganizationApplication(); // 获取商家
+		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), serviceType, "", "全国", "");
+		if (result == null || result.getRowCount() == 0) {
+			return jsonObj;
+		}
+		String rootServiceName = result.getRows()[0].get("service") + "";
+		// 识别规则业务ID
+		String serviceId = ScenariosDAO.getRegnitionRuleServiceId(rootServiceName.trim());
+		result = CommonLibQueryManageDAO.selectNormalQuery(serviceId, normalQuery, "", "", 1, 10);
+		if (result == null || result.getRowCount() == 0) {
+			return jsonObj;
+		}
+		List<String> list = new ArrayList<String>();
+		list.add(result.getRows()[0].get("kbdataid") + "");
+		int deleteCount = CommonLibQueryManageDAO._deleteNormalQuery(list , user);
+		if(deleteCount == 0) {
+			return jsonObj;
+		}
+		jsonObj.put("success", true);
+		jsonObj.put("msg", "操作成功");
+		return jsonObj;
+	}
+	
 }

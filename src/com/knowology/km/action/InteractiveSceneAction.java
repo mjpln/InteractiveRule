@@ -1,26 +1,16 @@
 package com.knowology.km.action;
 
 import java.util.HashMap;
-import java.util.Iterator;
-
-import org.apache.catalina.tribes.util.Arrays;
-import org.apache.commons.collections.map.HashedMap;
-
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.knowology.Bean.User;
 import com.knowology.bll.CommonLibMetafieldmappingDAO;
 import com.knowology.km.access.UserManager;
-import com.knowology.km.bll.InteractiveSceneCallDAO;
-import com.knowology.km.bll.InteractiveSceneCallOutDAO;
 import com.knowology.km.bll.InteractiveSceneDAO;
 import com.knowology.km.bll.QuestionManageDAO;
 import com.knowology.km.bll.ScenariosDAO;
 import com.knowology.km.bll.WordClassDAO;
 import com.knowology.km.bll.WorditemDAO;
-
-import oracle.net.aso.q;
 
 public class InteractiveSceneAction extends BaseAction {
 	private String type;

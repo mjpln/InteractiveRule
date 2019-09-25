@@ -161,6 +161,10 @@
 						</td>
 					</tr>
 				</table>
+				<div id="tts-node-type-div" class="form-div">
+                    <input name="ttsNodeType">
+                    <input name="ttsNodeType">
+                </div>
 				<table id="customer-answer-table" style="width:100%;">
 					<tr>
 						<td>
@@ -213,20 +217,16 @@
 							<span><input id="collectionName" class="easyui-textbox" style="width: 240px;"/></span>
 						</td>
 					</tr>
+					<tr>
+						<td>
+							<span><span style='color:red'>*</span>采集类型：</span>
+							<span><input id="collectionType" class="easyui-combobox" style="width: 240px;"/></span>
+						</td>
+					</tr>
 					<tr id="collectionform-collectionParam-tr">
 						<td>
 							<span><span style='color:red'>*</span>参数名称：</span>
 							<span><input id="collectionParam" class="easyui-textbox" style="width: 240px;"/></span>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<span>
-								<span style='color:red'>*</span>信息类型：
-								<a id="toAddCollectionTypePageBtn" name="toAddCollectionTypePageBtn" href="javascript:void(0)" class="easyui-linkbutton" 
-									data-options="iconCls:'icon-add'">添加</a>
-							</span>
-							<span><input id="collectionType" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr id="collectionform-collectionTimes-tr">
@@ -245,6 +245,16 @@
 							<span>
 								<input id="collectionElement" name="collectionElement" class="easyui-combobox" style="width: 240px;"/>	
 							</span>
+						</td>
+					</tr>
+					<tr id="collectionform-collectionIntention-tr">
+						<td>
+							<span>
+								<span style='color:red'>*</span>关联意图：
+								<a id="toAddCollectionIntentionPageBtn" name="toAddCollectionIntentionPageBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+									data-options="iconCls:'icon-add'">添加</a>
+							</span>
+							<span><input id="collectionIntention" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr id="collectionform-interactiveType-tr">
@@ -374,25 +384,40 @@
         
         <!-- 动作组件 window start -->
         <div id="myURLActionDiv" tabindex="0"
-             style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:240px;height: 500px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
+             style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:250px;height: 500px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
             <div><span>动作组件</span></div>
             <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
-            <form id="URLActionform" style="padding-right: 10px;padding-left:10px;font-size: 13px;">
+            <form id="URLActionform" style="padding-right: 5px;padding-left:5px;font-size: 13px;">
                 <div class="form-div">
-                    <div class="form-div">节点名称<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="actionName" name="actionName" data-options="prompt:'动作'" style="width: 100%;height: 30px"/></div>
+                    <div class="form-div">接口名称<span style='color:red'>*</span>：</div>
+                    <input class="easyui-textbox" id="actionName" name="actionName" data-options="prompt:'接口名称'" style="width:240px;height: 30px"/>
+                </div>
+                <div class="form-div">
+                    <div class="form-div">调用方式<span style='color:red'>*</span>：</div>
+                    <input class="easyui-combobox" id="invocationWay" name="invocationWay" data-options="prompt:'调用方式'" style="width:240px;height: 30px"/>
+                </div>
+                <div class="form-div webservice">
+                    <div class="form-div">命名空间<span style='color:red'>*</span>：</div>
+                    <input class="easyui-textbox" id="namespace" name="namespace" data-options="prompt:'命名空间'" style="width:240px;height: 30px"/>
+                </div>
                 <div class="form-div">
                     <div class="form-div">接口地址<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="actionUrl" name="actionUrl" data-options="prompt:'URL'" style="width: 100%;height: 30px"/></div>
-                <div class="form-div">
+                    <input class="easyui-textbox" id="actionUrl" name="actionUrl" data-options="prompt:'接口地址'" style="width:240px;height: 30px"/>
+                </div>
+                <div class="form-div http">
                     <div class="form-div">请求方法<span style='color:red'>*</span>：</div>
-                    <input class="easyui-combobox" id="actionMethod" name="actionMethod" data-options="prompt:'方法',valueField:'value',textField:'text',data: [ {'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}]" style="width: 100%;height: 30px"/></div>
+                    <input class="easyui-combobox" id="httpMethod" name="httpMethod" data-options="prompt:'请求方法',valueField:'value',textField:'text',data: [ {'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}]" style="width:240px;height: 30px"/>
+                </div>
+                <div class="form-div webservice">
+                    <div class="form-div">调用函数<span style='color:red'>*</span>：</div>
+                    <input class="easyui-textbox" id="functionName" name="functionName" data-options="prompt:'请求方法'" style="width:240px;height: 30px"/>
+                </div>
                 <div class="form-div">
                     <div class="form-div" id="in_key_vals_div">
-                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">请求参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">请求参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">内部参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
                     </div>
                     <div class="form-div" id="out_key_vals_div">
-                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">返回参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">值</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">返回参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">内部参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
                     </div>
                     <a id="testAction" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'">测试</a>
                 </div>
@@ -565,19 +590,19 @@
 		</div>
 	</div>
 	
-	<!-- 添加信息类型 -->
-	<div id="collectionTypeAddPage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
-		title="添加信息类型" style="width:650px;">
-		<form id="collectionTypeAddForm" class="easyui-form">
+	<!-- 添加关联意图 -->
+	<div id="collectionIntentionAddPage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
+		title="添加关联意图" style="width:650px;">
+		<form id="collectionIntentionAddForm" class="easyui-form">
 		    <table style="width:100%;">
 		    	<tr>
 					<td><span class="span_class">标题:</span></td>
-					<td><span><input id="collectionTypeAddForm-title" class="easyui-textbox" style="width: 500px;" /></span></td>
+					<td><span><input id="collectionIntentionAdd-title" class="easyui-textbox" style="width: 500px;" /></span></td>
 				</tr>
 				<tr>
 					<td><span class="span_class">词模类型:</span></td>
 					<td><span>
-						<select id="collectionTypeAddForm-wordtype" class="easyui-combobox" style="width: 150px;">
+						<select id="collectionIntentionAdd-wordtype" class="easyui-combobox" style="width: 150px;">
 							<option value="0">简单词模</option>
 							<option value="1">排除词模</option>
 							<option value="2">选择词模</option>
@@ -588,24 +613,24 @@
 				</tr>
 				<tr>
 					<td><span class="span_class">生成词模:</span></td>
-					<td><span><input id="collectionTypeAddForm-keywords" class="easyui-textbox" style="width: 500px;"></input></span></td>
-					<td><span><a id="collectionTypeAddForm-analyzeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+					<td><span><input id=collectionIntentionAdd-keywords" class="easyui-textbox" style="width: 500px;"></input></span></td>
+					<td><span><a id="collectionIntentionAdd-analyzeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
 									data-options="iconCls:'icon-save'">生成</a> </span></td>
 				</tr>
 				<tr>
 					<td class="span_class" valign="top">新增词模:</td>
 					<td>
 						<span>
-							<textarea id="collectionTypeAddForm-wordclasses" style="width: 500px; height： 100px; font-size: 12px;"></textarea>
+							<textarea id="collectionIntentionAdd-wordclasses" style="width: 500px; height： 100px; font-size: 12px;"></textarea>
 						</span>
 					</td>
 				</tr>
 		    </table>
 		</form>
 		<div style="text-align: center; padding: 10px">
-			<a id="collectionTypeAddForm-saveBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+			<a id="collectionIntentionAdd-saveBtn" href="javascript:void(0)" class="easyui-linkbutton" 
 				data-options="iconCls:'icon-save'">保存</a> 
-			<a id="collectionTypeAddForm-closeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+			<a id="collectionIntentionAdd-closeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
 				data-options="iconCls:'icon-clear'">关闭</a>
 		</div>
 	</div>

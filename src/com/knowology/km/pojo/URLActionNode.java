@@ -16,26 +16,31 @@ public class URLActionNode extends NodeData {
 	 * 接口名称
 	 */
 	private String interfaceName;
-	
+
 	/**
 	 * 接口地址
 	 */
 	private String actionUrl;
 
 	/**
-	 * 调用方式：http|webservice
+	 * 调用方式：HTTP|WEBSERVICE
 	 */
 	private String invocationWay;
 
 	/**
 	 * 命名空间
 	 */
-	private String nameSpace;
+	private String namespace;
 
 	/**
-	 * 请求方法, Http-get|Http-post|functionName
+	 * 请求方法, HTTP-GET|HTTP-POST
 	 */
-	private String actionMethod;
+	private String httpMethod;
+
+	/**
+	 * 函数名称, WEBSERVICE调用函数
+	 */
+	private String functionName;
 
 	/**
 	 * 入参
@@ -47,7 +52,8 @@ public class URLActionNode extends NodeData {
 	 */
 	private List<URLActionParam> outParams;
 
-	public URLActionNode() {}
+	public URLActionNode() {
+	}
 
 	public URLActionNode(NodeData nodeData) {
 		super.setKey(nodeData.getKey());
@@ -74,22 +80,6 @@ public class URLActionNode extends NodeData {
 		this.interfaceName = interfaceName;
 	}
 
-	public String getInvocationWay() {
-		return invocationWay;
-	}
-
-	public void setInvocationWay(String invocationWay) {
-		this.invocationWay = invocationWay;
-	}
-	
-	public String getNameSpace() {
-		return nameSpace;
-	}
-
-	public void setNameSpace(String nameSpace) {
-		this.nameSpace = nameSpace;
-	}
-
 	public String getActionUrl() {
 		return actionUrl;
 	}
@@ -98,12 +88,36 @@ public class URLActionNode extends NodeData {
 		this.actionUrl = actionUrl;
 	}
 
-	public String getActionMethod() {
-		return actionMethod;
+	public String getInvocationWay() {
+		return invocationWay;
 	}
 
-	public void setActionMethod(String actionMethod) {
-		this.actionMethod = actionMethod;
+	public void setInvocationWay(String invocationWay) {
+		this.invocationWay = invocationWay;
+	}
+
+	public String getNamespace() {
+		return namespace;
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
+	}
+
+	public String getHttpMethod() {
+		return httpMethod;
+	}
+
+	public void setHttpMethod(String httpMethod) {
+		this.httpMethod = httpMethod;
+	}
+
+	public String getFunctionName() {
+		return functionName;
+	}
+
+	public void setFunctionName(String functionName) {
+		this.functionName = functionName;
 	}
 
 	public List<URLActionParam> getInParams() {
@@ -133,10 +147,12 @@ public class URLActionNode extends NodeData {
 		builder.append(actionUrl);
 		builder.append(", invocationWay=");
 		builder.append(invocationWay);
-		builder.append(", nameSpace=");
-		builder.append(nameSpace);
-		builder.append(", actionMethod=");
-		builder.append(actionMethod);
+		builder.append(", namespace=");
+		builder.append(namespace);
+		builder.append(", httpMethod=");
+		builder.append(httpMethod);
+		builder.append(", functionName=");
+		builder.append(functionName);
 		builder.append(", inParams=");
 		builder.append(inParams);
 		builder.append(", outParams=");

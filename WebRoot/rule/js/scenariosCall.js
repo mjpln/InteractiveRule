@@ -21,7 +21,8 @@ var phoneAttributeNames;
 var sceneElementIdForUpdate;
 var oldSceneElementName;
 var oldWeight;
-var saveOrUpdateFlag;
+var saveOrUpdateElementFlag;
+var addWordPatternFlag;
 var autoWordPattern;
 
 //用于定义模板的简洁性
@@ -68,6 +69,9 @@ $(function() {
 	// 按钮点击事件
 	buttonClick();
 	
+	// 初始化放音组件
+	initTTSNode();
+	
 	// 初始化回复内容编辑页面
 	initResponseEditPage()
 	
@@ -97,36 +101,112 @@ $(function() {
 	
 });
 
+function initTTSNode() {
+	$.each($("input[name='ttsNodeType']"),function (index) {
+        if(index==0) {
+        	$("#customer-answer-table").fadeIn('slow');
+            $(this).radiobutton({
+                label: '意图节点',
+                labelPosition:"after",
+                value: "0",
+                checked: true,
+                onChange: function (checked) {
+                    if(checked)
+                    {
+                    	$("#customer-answer-table").fadeIn('slow');
+                    }
+                }
+            });
+        }
+        else
+        {
+        	$("#customer-answer-table").fadeOut('slow');
+            $(this).radiobutton({
+                label: '跳转节点',
+                value: "1",
+                labelPosition:"after",
+                checked: false,
+                onChange: function (checked) {
+                    if(checked)
+                    {
+                    	$("#customer-answer-table").fadeOut('slow');
+                    }
+                }
+            });
+        }
+    });
+}
+
 // 初始化信息收集组件
 function initCollection() {
 	
-	if(sceneType == 'callOut') {
-		$('#collectionform-collectionWords-tr').show();
-		$('#collectionform-collectionParam-tr').show();
-		$('#collectionform-collectionTimes-tr').show();
-		$('#collectionform-collectionElement-tr').hide();
-		$('#collectionform-interactiveType-tr').hide();
-		$('#collectionform-menuItems-tr').hide();
-		$('#interactiveType').hide();
-	} else {
-		$('#collectionform-collectionWords-tr').hide();
-		$('#collectionform-collectionParam-tr').show();
-		$('#collectionform-collectionTimes-tr').hide();
-		$('#collectionform-collectionElement-tr').show();
-		$('#collectionform-interactiveType-tr').show();
-		$('#collectionform-menuItems-tr').hide();
-		$('#interactiveType').combobox('disable'); 
-	}
-
-	// 初始化信息收集类型
+	$('#collectionform-collectionWords-tr').hide();
+	$('#collectionform-collectionParam-tr').hide();
+	$('#collectionform-collectionTimes-tr').hide();
+	$('#collectionform-collectionElement-tr').hide();
+	$('#collectionform-interactiveType-tr').show();
+	$('#collectionform-menuItems-tr').hide();
+	
+	// 初始化采集类型
 	initCollectionType();
 	
-	// 初始化重复次数下拉框
+	// 初始化关联意图
+	initCollectionIntention();
+	
+	// 初始化重复次数
 	initCollectionTimes();
 	
-	// 初始化场景要素编辑区
+	// 初始化场景要素
 	initSceneElements();
 	
+	// 初始化交互类型
+	initInteractiveType();
+	
+}
+
+// 初始化收集类型
+function initCollectionType() {
+	$('#collectionType').combobox({
+		valueField : 'id',
+		textField : 'text',
+		data : [{
+    		"id":"elementCollection",
+    		"text":"场景要素采集"
+    	},{
+    		"id":"userInfoCollection",
+    		"text":"用户信息采集"
+    	}],
+		onChange: function(newVal, oldVal) {
+			if(newVal == 'elementCollection') {
+				$('#collectionform-collectionParam-tr').hide();
+				$('#collectionform-collectionTimes-tr').hide();
+				$('#collectionform-collectionElement-tr').show();
+			}
+			if(newVal == 'userInfoCollection') {
+				$('#collectionform-collectionParam-tr').show();
+				$('#collectionform-collectionTimes-tr').show();
+				$('#collectionform-collectionElement-tr').hide();
+			}
+        } 
+	});
+}
+
+//初始化交互类型
+function initInteractiveType() {
+	$('#interactiveType').combobox({
+		valueField : 'id',
+		textField : 'text',
+		data : [{'text':'菜单询问','id':'键值补全'},{'text':'系统反问','id':'词模匹配'}],
+		onChange: function(newVal, oldVal) {
+			if(newVal == '词模匹配') { // 系统反问
+				$('#collectionform-collectionWords-tr').show();
+				$('#collectionform-menuItems-tr').hide();
+			} else if (newVal == '键值补全'){ // 菜单询问用户
+				$('#collectionform-collectionWords-tr').hide();
+				$('#collectionform-menuItems-tr').show();
+			}
+        } 
+	});
 }
 
 // 初始化关联要素下拉框
@@ -143,7 +223,7 @@ function initSceneElements() {
 			onSubmit : function() {
 				var isValid = $(this).form('enableValidation').form('validate');
 				if (isValid) {
-					editElement(saveOrUpdateFlag);
+					editElement(saveOrUpdateElementFlag);
 				}
 				return false;
 			}
@@ -164,6 +244,8 @@ function initSceneElements() {
         onBeforeClose: function () { 
         	// 刷新关联要素下拉框
         	loadCollectionElement();
+        	// 刷新关联意图下拉框
+    		loadCollectionIntention();
         	$('#interactiveType').combobox('setValue','');
         	$('#collectionform-collectionWords-tr').hide();
 			$('#collectionform-menuItems-tr').hide();
@@ -398,15 +480,15 @@ function loadElementName() {
 			text : "新增",
 			iconCls : "icon-add",
 			handler : function() {
-				saveOrUpdateFlag = "save";
-				toEditElementPage(saveOrUpdateFlag); 
+				saveOrUpdateElementFlag = "save";
+				toEditElementPage(saveOrUpdateElementFlag); 
 			}
 		}, "-", {
 			text : "修改",
 			iconCls : "icon-edit",
 			handler : function() {
-				saveOrUpdateFlag ="update";
-				toEditElementPage(saveOrUpdateFlag); 
+				saveOrUpdateElementFlag ="update";
+				toEditElementPage(saveOrUpdateElementFlag); 
 			}
 		}]
 	});
@@ -480,8 +562,8 @@ function getCityTree(cityname) {
 }
 
 // 编辑场景要素页面
-function toEditElementPage(saveOrUpdateFlag){
-	if(saveOrUpdateFlag == "update") {
+function toEditElementPage(saveOrUpdateElementFlag){
+	if(saveOrUpdateElementFlag == "update") {
 		var row = $('#sceneElementTable').datagrid('getSelected');
 		if (row) {
 			$('#sceneElementEditDiv').panel({ title : "修改场景要素" });
@@ -505,7 +587,7 @@ function toEditElementPage(saveOrUpdateFlag){
 			return;
 		}
 	}
-	if(saveOrUpdateFlag == "save") {
+	if(saveOrUpdateElementFlag == "save") {
 		$('#sceneElementEditDiv').panel({ title : "新增场景要素" });
 		$('#sceneElementEditDiv').window('open');
 		getCityTree("");
@@ -516,13 +598,13 @@ function toEditElementPage(saveOrUpdateFlag){
 }
 
 // 编辑场景要素
-function editElement(saveOrUpdateFlag) {
+function editElement(saveOrUpdateElementFlag) {
 	var type;
 	var sceneElementId;
-	if (saveOrUpdateFlag == "save") {// 新增操作
+	if (saveOrUpdateElementFlag == "save") {// 新增操作
 		type = 'insertelementname';
 		oldWeight = '';
-	} else if (saveOrUpdateFlag == "update") {// 修改操作
+	} else if (saveOrUpdateElementFlag == "update") {// 修改操作
 		type = 'updartelementname';
 		sceneElementId = sceneElementIdForUpdate;
 	}
@@ -573,11 +655,37 @@ function editElement(saveOrUpdateFlag) {
 		success : function(data, textStatus, jqXHR) {
 			$.messager.alert('提示', data.msg, "info");
 			if (data.success == true) {
+				// 自动添加场景要素词模
+				var elementName = name;
+				var wordClassName = wordclass;
+				saveElementWordPattern(elementName, wordClassName);
 				clearElementEditForm();
 				$('#sceneElementEditDiv').window('close');
 				$("#sceneElementTable").datagrid("reload");
-				loadCollectionElement();
 			}
+		}
+	});
+}
+// 添加场景要素词模
+function saveElementWordPattern(elementName, wordClassName) {
+	var simpleWordPattern = wordClassName + "#无序#编者=\"场景要素词模\""+"&针对问题=\""+elementName+"\""+"&"+elementName+"="+"<!"+wordClassName+">"+"&置信度=\"1.1\"";
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : 'post',
+		dataType : 'json',
+		data : {
+			scenariosid : publicscenariosid,
+			collectionIntention : elementName,
+			wordPatternType : 0,
+			simpleWordPattern : simpleWordPattern,
+			type : "saveCollectionIntention",
+		},
+		success : function(data) {
+			loadCollectionElement();
+    		loadCollectionIntention();
+		},
+		error : function(xhr, status, error) {
+			$.messager.alert('系统异常', "添加场景要素词模,请求数据失败!", "error");
 		}
 	});
 }
@@ -613,7 +721,8 @@ function deleteElement(event, id, weight, name) {
 							if (data.success == true) {
 								loadWeightCombobox("");
 								$("#sceneElementTable").datagrid("reload");
-								loadCollectionElement();
+								var collectionIntention = name;
+								deleteCollectionIntention(collectionIntention);
 							}
 							$.messager.alert('提示', data.msg, "info");
 						}
@@ -808,49 +917,60 @@ function initPhoneAttributeNames() {
 	});
 }
 
-// 初始化信息收集类型
-function initCollectionType() {
-	// 添加信息收集类型页面
-	$('#toAddCollectionTypePageBtn').click(function() {
-		$('#collectionTypeAddForm-wordclasses').val('');
-		$('#collectionTypeAddPage').window('open');
+// 初始化关联意图
+function initCollectionIntention() {
+	// 添加信息关联意图页面
+	$('#toAddCollectionIntentionPageBtn').click(function() {
+		var collectionType = $('#collectionType').combobox('getValue');
+		if(collectionType == 'elementCollection') {
+			var elementName = $('#collectionElement').combobox('getValue');
+			if(elementName == undefined || elementName == '') {
+				$.messager.alert('提示', "请选择关联要素", "info");
+				return;
+			}
+			$('#collectionIntentionAdd-title').textbox('setValue', elementName);
+			$('#collectionIntentionAdd-title').textbox('disable'); 
+		}
+		$('#collectionIntentionAdd-wordclasses').val('');
+		$('#collectionIntentionAddPage').window('open');
 	});
-	// 添加信息收集类型
-	$('#collectionTypeAddForm-saveBtn').click(function() {
-		saveCollectionType();
+	// 添加关联意图
+	$('#collectionIntentionAdd-saveBtn').click(function() {
+		saveCollectionIntention();
 	});
-	// 关闭信息收集类型
-	$('#collectionTypeAddForm-closeBtn').click(function() {
-		$('#collectionTypeAddPage').window('close');
+	// 关闭关联意图
+	$('#collectionIntentionAdd-closeBtn').click(function() {
+		$('#collectionIntentionAddPage').window('close');
 	});
 	// 生成词模
-	$('#collectionTypeAddForm-analyzeBtn').click(function() {	
-		var collectionTypeKeyWords = $.trim($("#collectionTypeAddForm-keywords").textbox('getValue'));
-		autoGenerateWordPattern(collectionTypeKeyWords);
+	$('#collectionIntentionAdd-analyzeBtn').click(function() {	
+		var collectionIntentionKeyWords = $.trim($("#collectionIntentionAdd-keywords").textbox('getValue'));
+		addWordPatternFlag = 'collectionIntention';
+		autoGenerateWordPattern(collectionIntentionKeyWords);
 	});
-	// 加载信息收集类型下拉框
-	loadCollectionTypes();
+	// 加载关联意图
+	loadCollectionIntention();
 }
-// 加载信息收集类型下拉框
-function loadCollectionTypes() {
+// 加载关联意图
+function loadCollectionIntention() {
 	$.ajax({
 		url : '../interactiveSceneCall.action',
 		type : "post",
 		data : {
-			type : 'queryCollectionType',
+			type : 'queryCollectionIntention',
 			scenariosid: publicscenariosid
 		},
 		async : false,
 		dataType : "json",
 		success : function(data, textStatus, jqXHR) {
 			if(data.success) {
-				var collectionTypes = data.rows;
-				// 信息收集类型下拉框
-				$("#collectionType").combobox({
+				var collectionIntentions = data.rows;
+				// 关联意图下拉框
+				$("#collectionIntention").combobox({
 					width: 240,
 					valueField: 'id',    
 			        textField: 'text',
-			        data : collectionTypes
+			        data : collectionIntentions
 				});
 			}
 		}
@@ -1232,6 +1352,23 @@ function initURLAction(){
 			}
 		});
 	});
+	$('#invocationWay').combobox({
+		valueField : 'id',
+		textField : 'text',
+		data : [{'text':'http','id':'http'},{'text':'webservice','id':'webservice'}],
+		onChange: function(newVal, oldVal) {
+			if(newVal == 'http') {
+				$('.http').show();
+				$('.webservice').hide();
+			}
+			if(newVal == 'webservice') {
+				$('.http').hide();
+				$('.webservice').show();
+			}
+        } 
+	});
+	$('.http').hide();
+	$('.webservice').hide();
 }
 
 // 制作流程图
@@ -1573,6 +1710,12 @@ function makeGraphObject() {
 						editable : false,
 						visible : false
 					}, new go.Binding("text", "collectionElement").makeTwoWay()),
+					$GO(go.TextBlock, {
+						margin : 0,
+						maxSize : new go.Size(0, 0),
+						editable : false,
+						visible : false
+					}, new go.Binding("text", "collectionIntention").makeTwoWay()),
 					$GO(go.TextBlock, {
 						margin : 0,
 						maxSize : new go.Size(0, 0),
@@ -1982,6 +2125,7 @@ function makePalette() {
 			collectionTimes: '',
 			collectionWords: '',
 			collectionElement: '',
+			collectionIntention: '',
 			interactiveType: '',
 			menuStartWords: '',
 			menuOptions: '',
@@ -2138,7 +2282,6 @@ function addListenerEvents() {
 			$('#otherResponseHideBtn').trigger("click");
 			// 回复编辑内容赋值
 			setTTSResponseValue();
-			$('#customer-answer-table').show();
 			$('#myNormalEditDiv').show();
 			$('#myConditionDiv').hide();
 			$('#myCollectionEditDiv').hide();
@@ -2165,11 +2308,22 @@ function addListenerEvents() {
 			$("#collectionType").combobox('setValue', nodeData.collectionType);
 			$("#collectionTimes").combobox('setValue', nodeData.collectionTimes);
 			$("#collectionElement").combobox('setValue', nodeData.collectionElement);
+			$("#collectionIntention").combobox('setValue', nodeData.collectionIntention);
 			$("#interactiveType").combobox('setValue', nodeData.interactiveType);
 			$("#collectionWords").val(nodeData.collectionWords);
 			$("#menuStartWords").val(nodeData.menuStartWords);
 			$("#menuOptions").val(nodeData.menuOptions);
 			$("#menuEndWords").val(nodeData.menuEndWords);
+			if(nodeData.collectionType == 'elementCollection') {
+				$('#collectionform-collectionParam-tr').hide();
+				$('#collectionform-collectionTimes-tr').hide();
+				$('#collectionform-collectionElement-tr').show();
+			}
+			if(nodeData.collectionType == 'userInfoCollection') {
+				$('#collectionform-collectionParam-tr').show();
+				$('#collectionform-collectionTimes-tr').show();
+				$('#collectionform-collectionElement-tr').hide();
+			}
 			if(nodeData.interactiveType == '词模匹配') { // 系统反问
 				$('#collectionform-collectionWords-tr').show();
 				$('#collectionform-menuItems-tr').hide();
@@ -2290,16 +2444,7 @@ function addListenerEvents() {
 		}
 		if (nodeData.category == "URLAction") {
 			$('#URLActionform').form('clear');
-			$("#txt_action_name").textbox('setValue', nodeData.actionName);
-			$("#txt_action_url").textbox('setValue', nodeData.actionUrl);
-			$("#txt_action_method").combobox({
-			    valueField:'value',
-			    textField:'text',
-			    data: [{'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}],
-			    onLoadSuccess: function(){
-			        $(this).combobox('setValue',nodeData.actionMethod);
-			    } 
-			});
+			$('#URLActionform').form('load',nodeData);
 			$('#in_key_vals_div').find(".in-key").remove();
 			$('#out_key_vals_div').find(".out-key").remove();
 			// 入参
@@ -2355,7 +2500,7 @@ function addListenerEvents() {
 // 添加回复内容
 function addToResponse(){
 	var tts = $("#tts").val();
-	var code = $("#code").val();	
+	var code = $("#code").val();
 	var action = '';
 	var actionParams = '';
 	var otherResponses = [];
@@ -2403,6 +2548,7 @@ function addToResponse(){
 
 // 设置TTS节点
 function setTTSResponseNode(tts,code,action,actionParams,otherResponses,checkedArray) {
+	var ttsNodeType = $('input[name="ttsNodeType"]:checked').val();  
 	var nodeData = public_thisGraphObj.part.data;
 	if (nodeData.category == "Normal") {
 		myDiagram.model.setDataProperty(nodeData, 'text', tts);
@@ -2411,7 +2557,13 @@ function setTTSResponseNode(tts,code,action,actionParams,otherResponses,checkedA
 		myDiagram.model.setDataProperty(nodeData, 'action', action);
 		myDiagram.model.setDataProperty(nodeData, 'actionParams', actionParams);
 		myDiagram.model.setDataProperty(nodeData, 'otherResponses', otherResponses);
-		myDiagram.model.setDataProperty(nodeData, 'bottomArray', checkedArray);
+		myDiagram.model.setDataProperty(nodeData, 'ttsNodeType', ttsNodeType);
+		if(ttsNodeType == '0') {
+			myDiagram.model.setDataProperty(nodeData, 'bottomArray', checkedArray);
+		}
+		if(ttsNodeType == '1') {
+			myDiagram.model.setDataProperty(nodeData, 'bottomArray', [{'text':'跳转'}]);
+		}
 	}
 	if (nodeData.category == "End") {
 		myDiagram.model.setDataProperty(nodeData, 'text', tts);
@@ -2428,8 +2580,15 @@ function setTTSResponseValue() {
 	var nodeData = public_thisGraphObj.part.data;
 	$("#tts").val(nodeData.tts);
 	$("#code").textbox("setValue", nodeData.code);
+	if(nodeData.ttsNodeType == "0") {
+		$("input:radio[name='ttsNodeType']").eq(0).prop("checked",'checked');
+        $("#customer-answer-table").show();
+	} 
+	if(nodeData.ttsNodeType == "1") {
+		$("input:radio[name='ttsNodeType']").eq(1).prop("checked",'checked');
+        $("#customer-answer-table").hide();
+	} 
 	var otherResponses = nodeData.otherResponses;
-	
 	if(otherResponses && otherResponses.length > 0) {
 		for(var i=0; i<otherResponses.length; i++) {
 			var otherResponse = otherResponses[i];
@@ -2473,8 +2632,8 @@ function setTTSResponseValue() {
 		$('#sms-varibales-span').hide();
 	}
 	var bottomArray = nodeData.bottomArray;
-	$("#customerAnswerSpan").find("input:checkbox").prop({checked:false});
-	if(bottomArray.length > 0) {
+	if(nodeData.ttsNodeType == "0" && bottomArray.length > 0) {
+		$("#customerAnswerSpan").find("input:checkbox").prop({checked:false});
 		for(var i=0;i<bottomArray.length;i++) {
 			$("#customerAnswerSpan").find("input:checkbox[value='"+bottomArray[i].text+"']").prop({checked:true}); 
 		}
@@ -2500,6 +2659,7 @@ function buttonClick() {
 	// 生成词模
 	$('#customerAnswerAdd-analyzeBtn').click(function() {
 		var customerAnswerKeywords = $.trim($("#customerAnswerAdd-keywords").textbox('getValue'));
+		addWordPatternFlag = 'customerAnswer';
 		autoGenerateWordPattern(customerAnswerKeywords);
 	});
 	
@@ -2511,8 +2671,19 @@ function buttonClick() {
 	// 保存自学习词模
 	$('#autoworrdpat-saveBtn').click(function() {
 		addAutoWordpat();
-		$('#customerAnswerAdd-wordclasses').val(autoWordPattern);
-		$('#collectionTypeAddForm-wordclasses').val(autoWordPattern);
+		if(addWordPatternFlag == 'customerAnswer') {
+			$('#customerAnswerAdd-wordclasses').val(autoWordPattern);
+		}
+		if(addWordPatternFlag == 'collectionIntention') {
+			var collectionType = $('#collectionType').combobox('getValue');
+			if(collectionType == 'elementCollection') {
+				var elementName = $('#collectionElement').combobox('getValue');
+				$('#collectionIntentionAdd-wordclasses').val(autoWordPattern+"&"+elementName+"=");
+			} 
+			if(collectionType == 'userInfoCollection') {
+				$('#collectionIntentionAdd-wordclasses').val(autoWordPattern);
+			}
+		}
 	});
 	
 	// 关闭自学习词模页面
@@ -2530,6 +2701,7 @@ function buttonClick() {
 		var nodeData = public_thisGraphObj.part.data;
 		var tts = $("#tts").val();
 		var code = $("#code").val();	
+		var ttsNodeType = $('input[name=ttsNodeType][checked]').val();  
 		if(tts == '') {
 			$.messager.alert('提示', "请填写话术文字", "info");
 			return;
@@ -2538,7 +2710,7 @@ function buttonClick() {
 	    $('[name=customerAnswer]:checkbox:checked').each(function() {
 	    	checkedArray.push({'text':$(this).val()});
 	    });
-	    if(nodeData.category == "Normal" && checkedArray.length == 0) {
+	    if(nodeData.category == "Normal" && ttsNodeType == "0" && checkedArray.length == 0) {
 			$.messager.alert('提示', "请选择用户回答", "info");
 			return;
 		}
@@ -2600,6 +2772,7 @@ function buttonClick() {
 		var collectionType = $("#collectionType").combobox('getValue');
 		var collectionTimes = $("#collectionTimes").combobox('getValue');
 		var collectionElement = $("#collectionElement").combobox('getValue');
+		var collectionIntention = $("#collectionIntention").combobox('getValue');
 		var interactiveType = $("#interactiveType").combobox('getValue');
 		var collectionWords = $("#collectionWords").val();
 		var menuStartWords = $("#menuStartWords").val();
@@ -2610,10 +2783,18 @@ function buttonClick() {
 			return;
 		}
 		if(collectionType == '') {
-			$.messager.alert('提示', "请选择信息类型", "info");
+			$.messager.alert('提示', "请选择采集类型", "info");
 			return;
 		}
-		if(sceneType == 'callIn' && collectionElement == '') {
+		if(collectionIntention == '') {
+			$.messager.alert('提示', "请选择关联意图", "info");
+			return;
+		}
+		if(interactiveType == '') {
+			$.messager.alert('提示', "请选择交互类型", "info");
+			return;
+		}
+		if(collectionType == 'elementCollection' && collectionElement == '') {
 			$.messager.alert('提示', "请选择关联要素", "info");
 			return;
 		}
@@ -2634,7 +2815,7 @@ function buttonClick() {
 			return;
 		}
 		var collectionText = "";
-		if(sceneType == 'callIn') {
+		if(collectionType == 'elementCollection') {
 			if(interactiveType == '词模匹配') {
 				collectionText += "询问文本：" + collectionWords + "\n";
 			}
@@ -2643,11 +2824,11 @@ function buttonClick() {
 			}
 			collectionText += "关联要素：" + collectionElement + "\n";
 		}
-		if(sceneType == 'callOut') {
+		if(collectionType == 'userInfoCollection') {
 			collectionText += "询问文本：" + collectionWords + "\n";
 			collectionText += "参数名称：" + collectionParam + "\n";
 		}
-		collectionText += "信息类型：" + collectionType + "\n";
+		collectionText += "关联意图：" + collectionIntention + "\n";
 		myDiagram.model.setDataProperty(nodeData, 'collectionName', collectionName);
 		myDiagram.model.setDataProperty(nodeData, 'collectionText', collectionText);
 		myDiagram.model.setDataProperty(nodeData, 'collectionParam', collectionParam);
@@ -2656,6 +2837,7 @@ function buttonClick() {
 		myDiagram.model.setDataProperty(nodeData, 'collectionElement', collectionElement);
 		myDiagram.model.setDataProperty(nodeData, 'interactiveType', interactiveType);
 		myDiagram.model.setDataProperty(nodeData, 'collectionElement', collectionElement);
+		myDiagram.model.setDataProperty(nodeData, 'collectionIntention', collectionIntention);
 		myDiagram.model.setDataProperty(nodeData, 'collectionWords', collectionWords);
 		myDiagram.model.setDataProperty(nodeData, 'menuStartWords', menuStartWords);
 		myDiagram.model.setDataProperty(nodeData, 'menuOptions', menuOptions);
@@ -2756,7 +2938,7 @@ function buttonClick() {
 		// 校验格式
 		var actionName = $("#actionName").textbox('getValue');
 		if(actionName == '') {
-			$.messager.alert("提示","请填写节点名称","info");
+			$.messager.alert("提示","请填写接口名称","info");
 			return;
 		}
 		var actionUrl = $("#actionUrl").textbox('getValue');
@@ -2764,9 +2946,24 @@ function buttonClick() {
 			$.messager.alert("提示","请填写接口地址","info");
 			return;
 		}
-		var actionMethod = $("#actionMethod").combobox('getValue');
-		if(actionMethod == '') {
+		var invocationWay = $("#invocationWay").combobox('getValue');
+		if(invocationWay == '') {
+			$.messager.alert("提示","请选择调用方式","info");
+			return;
+		}
+		var httpMethod = $("#httpMethod").combobox('getValue');
+		if(invocationWay == 'http' && httpMethod == '') {
 			$.messager.alert("提示","请选择请求方法","info");
+			return;
+		}
+		var namespace = $("#namespace").textbox('getValue');
+		if(invocationWay == 'webservice' && namespace == '') {
+			$.messager.alert("提示","请填写命名空间","info");
+			return;
+		}
+		var functionName = $("#functionName").textbox('getValue');
+		if(invocationWay == 'webservice' && functionName == '') {
+			$.messager.alert("提示","请填写调用函数","info");
 			return;
 		}
 		if(!checkUrl(actionUrl)) {
@@ -2785,32 +2982,27 @@ function buttonClick() {
 			outKeys[j]={};
 		}
 		$.each(array,function(index, value){
-			if(this.name.indexOf("actionName") > -1) {
-				myDiagram.model.setDataProperty(nodeData, this.name, this.value);
-			}
 			if(this.name.indexOf("in_key") > -1) {
 				var inKeySliptArray = this.name.split("_");
 				var inKeyIndex = inKeySliptArray[inKeySliptArray.length-1];
 				inKeys[inKeyIndex].paramName = this.value;
-			}
-			if(this.name.indexOf("in_value") > -1) {
+			} else if(this.name.indexOf("in_value") > -1) {
 				var inValueSliptArray = this.name.split("_");
 				var inValueIndex = inValueSliptArray[inValueSliptArray.length-1];
 				inKeys[inValueIndex].paramValue = this.value;
-			}
-			if(this.name.indexOf("out_key") > -1) {
+			} else if(this.name.indexOf("out_key") > -1) {
 				var outKeySliptArray = this.name.split("_");
 				var outKeyIndex = outKeySliptArray[outKeySliptArray.length-1];
 				outKeys[outKeyIndex].paramName = this.value;
-			}
-			if(this.name.indexOf("out_value") > -1) {
+			} else if(this.name.indexOf("out_value") > -1) {
 				var outValueSliptArray = this.name.split("_");
 				var outValueIndex = outValueSliptArray[outValueSliptArray.length-1];
 				outKeys[outValueIndex].paramValue = this.value;
+			} else {
+				myDiagram.model.setDataProperty(nodeData, this.name, this.value);
 			}
 		});
 		myDiagram.model.setDataProperty(nodeData, "text", actionName);
-		myDiagram.model.setDataProperty(nodeData, "actionName", actionName);
 		myDiagram.model.setDataProperty(nodeData, "interfaceName", publicscenariosname+actionName);
 		myDiagram.model.setDataProperty(nodeData, "inParams", inKeys);
 		myDiagram.model.setDataProperty(nodeData, "outParams", outKeys);
@@ -3284,7 +3476,7 @@ function saveCustomerAnswer() {
 			scenariosid : publicscenariosid,
 			customeranswer : customeranswer,
 			wordpattype : wordpattype,
-			simpleWordPattern : simpleWordPattern,
+			simpleWordPattern : simpleWordPattern+"&用户回答="+customeranswer,
 			type : "saveCustomerAnswer",
 		},
 		success : function(data) {
@@ -3302,14 +3494,14 @@ function saveCustomerAnswer() {
 	});
 }
 
-// 保存信息类型
-function saveCollectionType() {
-	var collectionType = $.trim($("#collectionTypeAddForm-title").textbox('getValue'));
-	if (collectionType == '' || collectionType == null) {
+// 保存关联意图
+function saveCollectionIntention() {
+	var collectionIntention = $.trim($("#collectionIntentionAdd-title").textbox('getValue'));
+	if (collectionIntention == '' || collectionIntention == null) {
 		$.messager.alert('提示', "请在标题的输入框填写内容！", "warning");
 		return;
 	}
-	var simpleWordPattern = $("#collectionTypeAddForm-wordclasses").val().replace(new RegExp(' ', 'g'), '');
+	var simpleWordPattern = $("#collectionIntentionAdd-wordclasses").val().replace(new RegExp(' ', 'g'), '');
 	if (simpleWordPattern === "") {
         $.messager.alert('提示', "词模不能为空！", "warning");
         return;
@@ -3319,9 +3511,13 @@ function saveCollectionType() {
     } else if (simpleWordPattern.split('#')[0].indexOf("+") != -1) {
         $.messager.alert('提示', "词模中有非法字符 + 存在", "warning");
         return;
-    }
-	
-	var wordPatternTypeName = $("#collectionTypeAddForm-wordtype").numberbox('getText');
+    } 
+	// 词模返回值必须添加关联要素
+	if (!(simpleWordPattern.indexOf(collectionIntention+"=") > -1)) {
+        $.messager.alert('提示', "词模返回值必须添加关联要素", "warning");
+        return;
+    } 
+	var wordPatternTypeName = $("#collectionIntentionAdd-wordtype").numberbox('getText');
 	if (wordPatternTypeName != "等于词模" && wordPatternTypeName == "普通词模") {
         if (simpleWordPattern.indexOf("类-") != -1 && simpleWordPattern.indexOf("类*") == -1) {
             $.messager.alert('提示', "请确认词模格式是否和词模类型一致", "warning");
@@ -3410,22 +3606,46 @@ function saveCollectionType() {
 		dataType : 'json',
 		data : {
 			scenariosid : publicscenariosid,
-			collectionType : collectionType,
+			collectionIntention : collectionIntention,
 			wordPatternType : wordPatternType,
 			simpleWordPattern : simpleWordPattern,
-			type : "saveCollectionType",
+			type : "saveCollectionIntention",
 		},
 		success : function(data) {
         	$.messager.alert('系统提示', data.checkInfo, "warning");
         	if (data.checkInfo == '插入成功!') {
-	        	// 刷新信息类型下拉框
-        		loadCollectionTypes();
+	        	// 刷新关联要素下拉框
+        		loadCollectionIntention();
 	    		// 关闭用户答案页面
-	    		$('#collectionTypeAddPage').window('close');
+	    		$('#collectionIntentionAddPage').window('close');
         	}
 		},
 		error : function(xhr, status, error) {
 			$.messager.alert('系统异常', "请求数据失败!", "error");
+		}
+	});
+}
+// 删除关联意图
+function deleteCollectionIntention(collectionIntention) {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : 'post',
+		dataType : 'json',
+		data : {
+			scenariosid : publicscenariosid,
+			collectionIntention : collectionIntention,
+			type : "deleteCollectionIntention",
+		},
+		success : function(data) {
+        	if (data.success) {
+	        	// 刷新关联意图下拉框
+        		loadCollectionIntention();
+        		// 刷新关联要素下拉框
+        		loadCollectionElement();
+        	}
+		},
+		error : function(xhr, status, error) {
+			$.messager.alert('系统异常', "删除关联意图,请求数据失败!", "error");
 		}
 	});
 }

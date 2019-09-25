@@ -14,7 +14,6 @@ import org.apache.commons.lang.StringUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.knowology.GlobalValue;
 import com.knowology.Bean.User;
-import com.knowology.bll.CommonLibKbDataDAO;
 import com.knowology.bll.CommonLibMetafieldmappingDAO;
 import com.knowology.bll.CommonLibPermissionDAO;
 import com.knowology.bll.CommonLibQueryManageDAO;
@@ -73,6 +72,8 @@ public class QuestionManageDAO {
 		}
 		return jsonObj;
 	}
+	
+	
 
 	/**
 	 * 创建场景子业务的标准问
