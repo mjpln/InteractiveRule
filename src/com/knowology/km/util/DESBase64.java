@@ -58,9 +58,9 @@ public class DESBase64 {
 	}
 	
 	public static void main(String[] args) {
-		String username = "znkf_zo";
-		String password = "nkipwd";
-		String url = "jdbc:mysql://172.30.66.177:3306/znkf_zo?useUnicode=true&characterEncoding=utf8&useOldAliasMetadataBehavior=true";
+		String username = "znkf";
+		String password = "ETC_nkipwd2019";
+		String url = "jdbc:mysql://172.30.2.2:3306/znkf?useUnicode=true&characterEncoding=utf8&useOldAliasMetadataBehavior=true";
 
 		System.out.println("username 明文: "+username);
 		System.out.println("username 密文："+encryptStringBase64(username, TOKEN));
@@ -70,6 +70,11 @@ public class DESBase64 {
 		System.out.println("-----------------------------------------------------");
 		System.out.println("url 明文: "+url);
 		System.out.println("url 密文："+encryptStringBase64(url, TOKEN));
+		
+		System.out.println("url 明文："+decryptStringBase64("ziC6dN8HqowCWINV2xW9K1f7g20ntcrb4hz8PiOKLSYgDyju2WnmMXxE/f8hFzGmxzXJjmkxxsGMyuYui6LwqFfbzKULcKtsOsm7mySUg35LyXthofvi90TeulHwaPHs7zgh3Al6+XsDBjz5pcjv+w==", TOKEN));
+		System.out.println("username 明文："+decryptStringBase64("2k/hQG/1SJs=", TOKEN));
+		System.out.println("password 明文："+decryptStringBase64("s/toCGkHsrA=", TOKEN));
+		
 		
 	}
 }

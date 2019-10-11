@@ -2,7 +2,7 @@ package com.knowology.km.enums;
 
 public enum ComparisionRelationEnum {
 
-	EQUAL("等于", "="),
+	EQUAL("等于", ""),
 	LESS_THAN("小于", "<"),
 	GREATER_THAN("大于", ">"),
 	NOT_EQUAL("不等于", "!="),

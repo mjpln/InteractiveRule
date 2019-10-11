@@ -1,6 +1,9 @@
 package com.knowology.km.action;
 
 import java.util.HashMap;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.knowology.Bean.User;
@@ -273,7 +276,7 @@ public class InteractiveSceneAction extends BaseAction {
 		city="全国";
 		//添加场景根节点
 		JSONObject addMenu = new JSONObject();
-		JSONObject  res = (JSONObject) InteractiveSceneDAO.addMenu(scenariosid, name);
+		JSONObject res = (JSONObject) InteractiveSceneDAO.addMenu(scenariosid, name);
 		if(res.getBoolean("success") != true)
 		{
 			addMenu.put("success", false);
@@ -320,31 +323,34 @@ public class InteractiveSceneAction extends BaseAction {
 
 	private JSONObject createScenarioDatas(String scName, String scenarioID) {
 		JSONObject createSD = new JSONObject();
-		//实体机器人ID父类
-		JSONObject res = (JSONObject) WordClassDAO.select("实体机器人ID父类", true, "全部"  , 0, 10);
-		if(res.getInteger("total")<1)
-		{
-			createSD.put("errorCode", "300001");
-			createSD.put("msg", "查询\"实体机器人ID父类\" classID 失败");
-			return createSD;
-		}
-
-  	    String wrdClassID = res.getJSONArray("root").getJSONObject(0).getString("wordclassid");
-		res = (JSONObject) WorditemDAO.insert(robotID, (String)res.get("wordclass"), wrdClassID, "", true);
-		if(res.getBooleanValue("success")!=true)
-		{
-			createSD.put("errorCode", "300002");
-			createSD.put("msg", "查询\"实体机器人ID父类\" classID 失败");
-			return createSD;
-		}
-		
-		//添加参数配置
-		res= (JSONObject) ScenariosDAO.configRobot(robotID,robotName,scenarioID);
-		if(res.getBooleanValue("success")!=true)
-		{
-			createSD.put("errorCode", "300003");
-			createSD.put("msg", "参数配置\"实体机器人ID父类\" classID 失败");
-			return createSD;
+		JSONObject res = new JSONObject();
+		if(StringUtils.isNotBlank(robotID) && StringUtils.isNotBlank(robotName)) {
+			//实体机器人ID父类
+			res  = (JSONObject) WordClassDAO.select("实体机器人ID父类", true, "全部"  , 0, 10);
+			if(res.getInteger("total")<1)
+			{
+				createSD.put("errorCode", "300001");
+				createSD.put("msg", "查询\"实体机器人ID父类\" classID 失败");
+				return createSD;
+			}
+	
+	  	    String wrdClassID = res.getJSONArray("root").getJSONObject(0).getString("wordclassid");
+			res = (JSONObject) WorditemDAO.insert(robotID, (String)res.get("wordclass"), wrdClassID, "", true);
+			if(res.getBooleanValue("success")!=true)
+			{
+				createSD.put("errorCode", "300002");
+				createSD.put("msg", "查询\"实体机器人ID父类\" classID 失败");
+				return createSD;
+			}
+			
+			//添加参数配置
+			res= (JSONObject) ScenariosDAO.configRobot(robotID,robotName,scenarioID);
+			if(res.getBooleanValue("success")!=true)
+			{
+				createSD.put("errorCode", "300003");
+				createSD.put("msg", "参数配置\"实体机器人ID\" 失败");
+				return createSD;
+			}
 		}
 		
 		//添加基础词类
@@ -405,11 +411,11 @@ public class InteractiveSceneAction extends BaseAction {
 		return createSD;
 	}
 
-	private JSONObject CreateQuestions(String sceid,String presceName )
+	private JSONObject CreateQuestions(String sceid,String presceName)
 	{		
 		JSONObject obj = new JSONObject();
 		String robotId = ScenariosDAO.getSceneRobotID(sceid);
-		String cityCode = ScenariosDAO.getRobotCityCode(robotId);
+		String cityCode = StringUtils.isNotBlank(robotId) ? ScenariosDAO.getRobotCityCode(robotId):"全国";
 		//创建问题库
 		JSONArray root=(JSONArray) InteractiveSceneDAO.createServiceTree("");
 		String rootid = root.getJSONObject(0).getString("id");
@@ -434,8 +440,12 @@ public class InteractiveSceneAction extends BaseAction {
 			}
 		}
 		
-		//创建标准问
+		// 创建标准问
 		String serviceName = presceName + "流程";
+		String qsServceid = "";
+		JSONObject createSQ = new JSONObject();
+		HashMap<String, String> questions = new HashMap<String, String>();
+		//创建开场语问题库和标准问
 		questionRoot = (JSONObject) QuestionManageDAO.createScenarios(qsrootId, serviceName);
 		if(questionRoot.getBooleanValue("success") != true)
 		{
@@ -443,28 +453,29 @@ public class InteractiveSceneAction extends BaseAction {
 			obj.put("msg", "添加"+ serviceName+"问题库"+"失败");
 			return obj;
 		}
-		String qsServceid = questionRoot.getString("serviceid");
-		HashMap<String, String> questions = new HashMap<String, String>();
-		questions.put("开场语", "开启近类*场近类*[话语近类|消息近类]#无序#编者=\"自动添加"+presceName+"\"&针对问题=\"开场语\""+"&人工地市=\"是\"");
-		JSONObject createSQ = (JSONObject) QuestionManageDAO.createStandardQuestion(qsServceid,serviceName,questions,cityCode,this.httpRequest);
-		if(createSQ.getBooleanValue("success") != true)
-		{
-			obj.put("errorCode", "200004");
-			obj.put("msg", "添加"+ serviceName+"问题库标准问"+"失败");
-			return obj;
+		if(StringUtils.isNotBlank(robotId)) {
+			//创建开场语标准问
+			qsServceid = questionRoot.getString("serviceid");
+			questions.put("开场语", "开启近类*场近类*[话语近类|消息近类]#无序#编者=\"自动添加"+presceName+"\"&针对问题=\"开场语\""+"&人工地市=\"是\"");
+			createSQ = (JSONObject) QuestionManageDAO.createStandardQuestion(qsServceid,serviceName,questions,cityCode,this.httpRequest);
+			if(createSQ.getBooleanValue("success") != true)
+			{
+				obj.put("errorCode", "200004");
+				obj.put("msg", "添加"+ serviceName+"问题库标准问"+"失败");
+				return obj;
+			}
+			//添加场景语义对应关系
+			kbdataid = QuestionManageDAO.getKbdataId(qsServceid, serviceName, "开场语");
+			abs = "<" + service + ">" + "开场语";
+			JSONObject createSKR = (JSONObject) InteractiveSceneDAO.addScenarios2kbdataRelation(sceid, serviceName, serviceName,qsServceid, kbdataid,abs, "");
+			if(createSKR.getBooleanValue("success") != true)
+			{
+				obj.put("errorCode", "200005");
+				obj.put("msg", "添加场景语义对应关系失败");
+				return obj;
+			}
 		}
-		
-		//添加场景语义对应关系
-		kbdataid = QuestionManageDAO.getKbdataId(qsServceid, serviceName, "开场语");
-		abs = "<" + service + ">" + "开场语";
-		JSONObject createSKR = (JSONObject) InteractiveSceneDAO.addScenarios2kbdataRelation(sceid, serviceName, serviceName,qsServceid, kbdataid,abs, "");
-		if(createSKR.getBooleanValue("success") != true)
-		{
-			obj.put("errorCode", "200005");
-			obj.put("msg", "添加场景语义对应关系失败");
-			return obj;
-		}
-		
+		//创建长时间未回复问题库和标准问
 		serviceName = "长时间未回复";
 		questionRoot = (JSONObject) QuestionManageDAO.createScenarios(qsrootId, serviceName);
 		if(questionRoot.getBooleanValue("success") != true)
@@ -474,15 +485,16 @@ public class InteractiveSceneAction extends BaseAction {
 			return obj;
 		}
 		qsServceid = questionRoot.getString("serviceid");
-		
 		questions.clear();
-		questions.put("长时间未回复", "长近类*时间近类*没有近类*回复近类#无序#编者=\"自动添加"+presceName+"\"&针对问题=\"长时间未回复\"");
-		createSQ = (JSONObject) QuestionManageDAO.createStandardQuestion(qsServceid,"长时间未回复",questions,cityCode,this.httpRequest);
-		if(createSQ.getBooleanValue("success") != true)
-		{
-			obj.put("errorCode", "200007");
-			obj.put("msg", "添加"+ serviceName+"问题库标准问失败");
-			return obj;
+		if(StringUtils.isNotBlank(robotId)) {
+			questions.put("长时间未回复", "长近类*时间近类*没有近类*回复近类#无序#编者=\"自动添加"+presceName+"\"&针对问题=\"长时间未回复\"");
+			createSQ = (JSONObject) QuestionManageDAO.createStandardQuestion(qsServceid,"长时间未回复",questions,cityCode,this.httpRequest);
+			if(createSQ.getBooleanValue("success") != true)
+			{
+				obj.put("errorCode", "200007");
+				obj.put("msg", "添加"+ serviceName+"问题库标准问失败");
+				return obj;
+			}
 		}
 		obj.put("errorCode", "0");
 		obj.put("msg", "添加问题相关数据成功");

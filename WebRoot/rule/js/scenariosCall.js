@@ -22,6 +22,7 @@ var sceneElementIdForUpdate;
 var oldSceneElementName;
 var oldWeight;
 var saveOrUpdateElementFlag;
+var saveOrUpdateInterfaceFlag;
 var addWordPatternFlag;
 var autoWordPattern;
 
@@ -79,10 +80,10 @@ $(function() {
 	initCustomerAnswer();
 	
 	// 初始化短信模板
-	initSmsTemplate();
+	//initSmsTemplate();
 	
 	// 初始化号码属性
-	initPhoneAttributeNames();
+	//initPhoneAttributeNames();
 	
 	// 初始化信息收集组件
 	initCollection();
@@ -1047,6 +1048,8 @@ var condition = "<div class=\"form-div\">" +
 "								 <input class=\"easyui-textbox\" name=\"param_name_other\" data-options=\"prompt:'其他变量'\" style=\"width: 200px; height: 25px;\"/>" +
 "								 <input class=\"easyui-combobox\" name=\"param_name_attr\" data-options=\"prompt:'客户属性'\" style=\"width: 200px; height: 25px;\"/>" +
 "								 <input class=\"easyui-combobox\" name=\"param_name_element\" data-options=\"prompt:'关联要素'\" style=\"width: 200px; height: 25px;\"/>" +
+"								 <input class=\"easyui-combobox\" name=\"interface_name\" data-options=\"prompt:'接口名称'\" style=\"width: 200px; height: 25px;\"/>" +
+"								 <input class=\"easyui-combobox\" name=\"interface_param\" data-options=\"prompt:'接口参数'\" style=\"width: 200px; height: 25px;\"/>" +
 "							 </div>" +
 "                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_relation\" data-options=\"prompt:'比较关系',valueField: 'id',textField: 'text',data: [{id: '大于', text: '大于'},{ id: '小于', text: '小于'},{ id: '等于', text: '等于'},{ id: '不等于', text: '不等于'},{ id: '大于等于', text: '大于等于'},{ id: '小于等于', text: '小于等于'}]\" style=\"width: 200px; height: 25px;\"/></div>" +
 "                            <div class=\"form-div\"> <input class=\"easyui-combobox\" name=\"param_type\" data-options=\"prompt:'比较值类型',valueField: 'id',textField: 'text',data: [{id: 'String', text: 'String'},{ id: 'Integer', text: 'Integer'},{ id: 'Variable', text: 'Variable'}]\" style=\"width: 200px; height: 25px;\"/></div>" +
@@ -1119,6 +1122,9 @@ function addOneCondition(conditionIdx, variableIdx) {
 	    var isUpDownInput = "isUpDown" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var upDownTypeInput = "upDownType" + "_cdt"+conditionIdx + "_and"+variableIdx;
 	    var updownRatioInput = "updownRatio" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    var interfaceNameInput = "interface_name" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    var interfaceParamInput = "interface_param" + "_cdt"+conditionIdx + "_and"+variableIdx;
+	    
 	    
 	    cpCondition.find("input[name='variable_type']").attr("name", variableTypeInput);
 	    cpCondition.find("input[name='param_name_attr']").attr("name", paramNameAttrInput);
@@ -1132,6 +1138,8 @@ function addOneCondition(conditionIdx, variableIdx) {
 	    cpCondition.find("input[name='isUpDown']").attr("name", isUpDownInput);
 	    cpCondition.find("input[name='upDownType']").attr("name", upDownTypeInput);
 	    cpCondition.find("input[name='updownRatio']").attr("name", updownRatioInput);
+	    cpCondition.find("input[name='interface_name']").attr("name", interfaceNameInput);
+	    cpCondition.find("input[name='interface_param']").attr("name", interfaceParamInput);
 	    
 	    cpCondition.find("input[name='"+variableTypeInput+"']").attr("id", variableTypeInput);
 	    cpCondition.find("input[name='"+paramNameAttrInput+"']").attr("id", paramNameAttrInput);
@@ -1145,6 +1153,8 @@ function addOneCondition(conditionIdx, variableIdx) {
 	    cpCondition.find("input[name='"+isUpDownInput+"']").attr("id", isUpDownInput);
 	    cpCondition.find("input[name='"+upDownTypeInput+"']").attr("id", upDownTypeInput);
 	    cpCondition.find("input[name='"+updownRatioInput+"']").attr("id", updownRatioInput);
+	    cpCondition.find("input[name='"+interfaceNameInput+"']").attr("id", interfaceNameInput);
+	    cpCondition.find("input[name='"+interfaceParamInput+"']").attr("id", interfaceParamInput);
 	    
 	    var andcd = cpAddAnd.find("div[add='andconditions']");
 	    var nodeCondition =andcd.append(cpCondition);
@@ -1164,12 +1174,14 @@ function addOneCondition(conditionIdx, variableIdx) {
 		$("#"+paramNameOtherInput).next().hide();
 		$("#"+elementValueInput).next().hide();
 		$("#"+elementValueInsertBtn).hide();
+		$("#"+interfaceNameInput).next().hide();
+		$("#"+interfaceParamInput).next().hide();
 		
 		// 初始化变量类型
 		$("#"+variableTypeInput).combobox({
 			valueField: 'id',    
 	        textField: 'text',
-	        data : [{'text': '号码属性', 'id': 'attr'},{'text': '关联要素', 'id': 'element'},{'text': '其他变量', 'id': 'other'}],
+	        data : [{'text': '号码属性', 'id': 'attr'},{'text': '关联要素', 'id': 'element'},{'text': '接口参数', 'id': 'interface'},{'text': '其他变量', 'id': 'other'}],
 	        onChange: function(newVal, oldVal) {
 				if(newVal == "attr") {
 					$("#"+paramNameAttrInput).next().show();
@@ -1178,6 +1190,8 @@ function addOneCondition(conditionIdx, variableIdx) {
 					$("#"+elementValueInput).next().hide();
 					$("#"+elementValueInsertBtn).hide();
 					$("#"+paramValueInput).next().show();
+					$("#"+interfaceNameInput).next().hide();
+					$("#"+interfaceParamInput).next().hide();
 				} 
 				if(newVal == "element") {
 					$("#"+paramNameAttrInput).next().hide();
@@ -1186,6 +1200,18 @@ function addOneCondition(conditionIdx, variableIdx) {
 					$("#"+elementValueInput).next().show();
 					$("#"+elementValueInsertBtn).hide();
 					$("#"+paramValueInput).next().hide();
+					$("#"+interfaceNameInput).next().hide();
+					$("#"+interfaceParamInput).next().hide();
+				}
+				if(newVal == "interface") {
+					$("#"+paramNameAttrInput).next().hide();
+					$("#"+paramNameElementInput).next().hide();
+					$("#"+paramNameOtherInput).next().hide();
+					$("#"+elementValueInput).next().hide();
+					$("#"+elementValueInsertBtn).hide();
+					$("#"+paramValueInput).next().show();
+					$("#"+interfaceNameInput).next().show();
+					$("#"+interfaceParamInput).next().show();
 				}
 				if(newVal == "other") {
 					$("#"+paramNameAttrInput).next().hide();
@@ -1194,6 +1220,8 @@ function addOneCondition(conditionIdx, variableIdx) {
 					$("#"+elementValueInput).next().hide();
 					$("#"+elementValueInsertBtn).hide();
 					$("#"+paramValueInput).next().show();
+					$("#"+interfaceNameInput).next().hide();
+					$("#"+interfaceParamInput).next().hide();
 				}
 	        } 
 		});
@@ -1211,33 +1239,10 @@ function addOneCondition(conditionIdx, variableIdx) {
 		});
 		
 		// 初始化关联要素
-		$.ajax({
-			url : '../interactiveSceneCall.action',
-			type : "post",
-			data : {
-				type : 'listAllSceneElement',
-				scenariosid : publicscenariosid
-			},
-			async : false,
-			dataType : "json",
-			success : function(data, textStatus, jqXHR) {
-				if(data.total > 0) {
-					$("#"+paramNameElementInput).combobox({
-						valueField: 'id',    
-				        textField: 'text',
-				        data : data.rows,
-				        onChange: function(newVal, oldVal) {
-				        	// 加载场景要素值
-		        			$("#"+elementValueInput).combobox({
-		        				url : '../interactiveSceneCall.action?type=listAllElementValue&scenariosid='+publicscenariosid+'&sceneElementName='+newVal,
-								valueField: 'id',    
-						        textField: 'text'
-							});
-				        } 
-					});
-				}
-			}
-		});
+		initConditionElement(paramNameElementInput, elementValueInput);
+		
+		// 初始化接口名称
+		initConditionInterface(interfaceNameInput, interfaceParamInput);
 	};
 
 	var cphr=$("<hr style=\"width:240px;height:1px;border:none;border-top:2px dashed #0066CC;\" />");
@@ -1260,7 +1265,98 @@ function addOneCondition(conditionIdx, variableIdx) {
 	}
 	addVariable(conditionIdx, variableIdx++);
 }
-
+// 初始化关联要素
+function initConditionElement(paramNameElementInput, elementValueInput) {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'listAllSceneElement',
+			scenariosid : publicscenariosid
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.total > 0) {
+				$("#"+paramNameElementInput).combobox({
+					valueField: 'id',    
+			        textField: 'text',
+			        data : data.rows,
+			        onChange: function(newVal, oldVal) {
+			        	// 加载场景要素值
+	        			$("#"+elementValueInput).combobox({
+	        				url : '../interactiveSceneCall.action?type=listAllElementValue&scenariosid='+publicscenariosid+'&sceneElementName='+newVal,
+							valueField: 'id',    
+					        textField: 'text'
+						});
+			        } 
+				});
+			}
+		}
+	});
+}
+// 初始化接口名称
+function initConditionInterface(interfaceNameInput, interfaceParamInput) {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'loadInterfaceName',
+			scenariosid : publicscenariosid
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$("#"+interfaceNameInput).combobox({
+					valueField: 'id',    
+			        textField: 'text',
+			        data : data.rows,
+			        onChange: function(newVal, oldVal) {
+			        	// 加载接口参数
+			        	$.ajax({
+			    			url : '../interactiveSceneCall.action',
+			    			type : "post",
+			    			data : {
+			    				type : 'queryInterfaceInfo',
+			    				scenariosid : publicscenariosid,
+			    				interfaceName : newVal
+			    			},
+			    			async : false,
+			    			dataType : "json",
+			    			success : function(data, textStatus, jqXHR) {
+			    				if(data.success) {
+			    					var interfaceInfo = data.interfaceInfo;
+			    					var inParams = interfaceInfo.inParams;
+			    					var outParams = interfaceInfo.outParams;
+			    					var interfaceParams = [];
+			    					for(var i = 0; i < inParams.length;i++) {
+			    						var interfaceParam = {};
+			    						interfaceParam.paramName = inParams[i].paramName;
+			    						interfaceParam.paramValue = inParams[i].paramValue;
+			    						interfaceParams.push(interfaceParam);
+			    					}
+			    					for(var i = 0; i < outParams.length;i++) {
+			    						var interfaceParam = {};
+			    						interfaceParam.paramName = outParams[i].paramName;
+			    						interfaceParam.paramValue = outParams[i].paramValue;
+			    						interfaceParams.push(interfaceParam);
+			    					}
+			    					$("#"+interfaceParamInput).combobox({
+			    						valueField: 'paramName',    
+			    				        textField: 'paramName',
+			    				        data : interfaceParams,
+			    					});
+			    				}
+			    			}
+			    		});
+			        } 
+				});
+			}
+		}
+	});
+}
+// 初始化条件组件
 function initCondition(){
 	$("#addCondition").bind("click",function () {
 		var conditionDivs = $("#conditions").find("div").eq(0).find('.condition-div');
@@ -1328,9 +1424,37 @@ function addOutKeyDiv() {
 	$.parser.parse(append);
 }
 
+function loadInterfaceName() {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'loadInterfaceName',
+			scenariosid : publicscenariosid
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$('#URLActionform #interfaceName').combobox({
+					valueField : 'id',
+					textField : 'text',
+					data : data.rows,
+					onChange: function(newVal, oldVal) {
+						
+			        } 
+				});
+			} 
+		}
+	});
+}
+
 function initURLAction(){
 	addInKeyDiv();
 	addOutKeyDiv();
+	
+	// 接口名称
+	loadInterfaceName();
 	// 测试URL
 	$('#testAction').click(function() {
 		var actionUrl = $("#actionUrl").textbox("getValue");
@@ -1352,6 +1476,7 @@ function initURLAction(){
 			}
 		});
 	});
+	// 调用方式
 	$('#invocationWay').combobox({
 		valueField : 'id',
 		textField : 'text',
@@ -1367,8 +1492,171 @@ function initURLAction(){
 			}
         } 
 	});
-	$('.http').hide();
-	$('.webservice').hide();
+	// 接口编辑区
+	$('#addInterfaceBtn').click(function() {
+		saveOrUpdateInterfaceFlag = 'save';
+		var inKeyDivs = $("#in_key_vals_div").find('.in-key');
+		var outKeyDivs = $("#out_key_vals_div").find('.out-key');
+		if(inKeyDivs.length==0) {
+			addInKeyDiv();
+		}
+		if(outKeyDivs.length==0) {
+			addOutKeyDiv();
+		}
+		$('.http').hide();
+		$('.webservice').hide();
+		$('#editInterfaceForm').form('clear');
+		$('#editInterfaceDiv').window('open');
+	});
+	$('#editInterfaceBtn').click(function() {
+		saveOrUpdateInterfaceFlag = 'update';
+		$('#editInterfaceForm').form('clear');
+		// 查询接口信息
+		var interfaceName = $("#URLActionform #interfaceName").textbox('getValue');
+		if(interfaceName == undefined || interfaceName == '') {
+			$.messager.alert('提示', "请选择接口", "info");
+			return;
+		}
+		$.ajax({
+			url : '../interactiveSceneCall.action',
+			type : 'post',
+			dataType : 'json',
+			data : {
+				type: 'queryInterfaceInfo',
+				interfaceName: interfaceName
+			},
+			success : function(data) {
+				if (data.success) {
+					var interfaceInfo = data.interfaceInfo;
+					var inKeys = interfaceInfo.inParams;
+					var outKeys = interfaceInfo.outParams;
+					$('#editInterfaceForm').form('load',interfaceInfo);
+					$('#in_key_vals_div').find(".in-key").remove();
+					$('#out_key_vals_div').find(".out-key").remove();
+					for(var i=0; i < inKeys.length; i++) {
+						var inKey = inKeys[i];
+						addInKeyDiv();
+						$("#in_key_"+i).val(inKey.paramName);
+						$("#in_value_"+i).val(inKey.paramValue);
+					}
+					for(var j=0; j < outKeys.length; j++) {
+						var outKey = outKeys[j];
+						addOutKeyDiv();
+						$("#out_key_"+j).val(outKey.paramName);
+						$("#out_value_"+j).val(outKey.paramValue);
+					}
+					if(inKeys.length==0) {
+						addInKeyDiv();
+					}
+					if(outKeys.length==0) {
+						addOutKeyDiv();
+					}
+					if(interfaceInfo.invocationWay == 'http') {
+						$('.http').show();
+						$('.webservice').hide();
+					}
+					if(interfaceInfo.invocationWay == 'webservice') {
+						$('.http').hide();
+						$('.webservice').show();
+					}
+					$('#editInterfaceDiv').window('open');
+				} 
+			},
+			error : function(xhr, status, error) {
+				$.messager.alert('系统异常', "请求数据失败!", "error");
+			}
+		});
+	});
+	// 保存接口
+	$('#saveNewInterface').click(function() {
+		var array = $('#editInterfaceForm').serializeArray();
+		var interfaceData={};
+		interfaceData.saveOrUpdateInterfaceFlag = saveOrUpdateInterfaceFlag;
+		$.each(array,function(index, value){
+			interfaceData[this.name] = this.value;
+		});
+		if(interfaceData.interfaceName == '') {
+			$.messager.alert("提示","请填写接口名称","info");
+			return;
+		}
+		if(interfaceData.actionUrl == '') {
+			$.messager.alert("提示","请填写接口地址","info");
+			return;
+		}
+		if(interfaceData.invocationWay == '') {
+			$.messager.alert("提示","请选择调用方式","info");
+			return;
+		}
+		if(interfaceData.invocationWay == 'http' && interfaceData.httpMethod == '') {
+			$.messager.alert("提示","请选择请求方法","info");
+			return;
+		}
+		if(interfaceData.invocationWay == 'webservice' && interfaceData.namespace == '') {
+			$.messager.alert("提示","请填写命名空间","info");
+			return;
+		}
+		if(interfaceData.invocationWay == 'webservice' && interfaceData.functionName == '') {
+			$.messager.alert("提示","请填写调用函数","info");
+			return;
+		}
+		if(!checkUrl(interfaceData.actionUrl)) {
+			$.messager.alert("提示","请检查接口地址","info");
+			return;
+		}
+		// 设置数据
+		var inKeyDivs = $("#in_key_vals_div").find('.in-key');
+		var outKeyDivs = $("#out_key_vals_div").find('.out-key');
+		var inKeys = [];
+		var outKeys = [];
+		for(var i=0; i<inKeyDivs.length; i++) {
+			inKeys[i]={};
+		}
+		for(var j=0; j<outKeyDivs.length; j++) {
+			outKeys[j]={};
+		}
+		$.each(array,function(index, value){
+			if(this.name.indexOf("in_key") > -1) {
+				var inKeySliptArray = this.name.split("_");
+				var inKeyIndex = inKeySliptArray[inKeySliptArray.length-1];
+				inKeys[inKeyIndex].paramName = this.value;
+			} else if(this.name.indexOf("in_value") > -1) {
+				var inValueSliptArray = this.name.split("_");
+				var inValueIndex = inValueSliptArray[inValueSliptArray.length-1];
+				inKeys[inValueIndex].paramValue = this.value;
+			} else if(this.name.indexOf("out_key") > -1) {
+				var outKeySliptArray = this.name.split("_");
+				var outKeyIndex = outKeySliptArray[outKeySliptArray.length-1];
+				outKeys[outKeyIndex].paramName = this.value;
+			} else if(this.name.indexOf("out_value") > -1) {
+				var outValueSliptArray = this.name.split("_");
+				var outValueIndex = outValueSliptArray[outValueSliptArray.length-1];
+				outKeys[outValueIndex].paramValue = this.value;
+			} 
+		});
+		interfaceData.inParams = inKeys;
+		interfaceData.outParams = outKeys;
+		$.ajax({
+			url : '../interactiveSceneCall.action',
+			type : 'post',
+			dataType : 'json',
+			data : {
+				type: 'addNewInterface',
+				interfaceData: JSON.stringify(interfaceData)
+			},
+			success : function(data) {
+				if (data.success) {
+					$.messager.alert('提示', "保存成功", "info");
+					$('#editInterfaceDiv').window('close');
+					loadInterfaceName();
+				} else {
+					$.messager.alert('提示', data.msg, "info");
+				}
+			},
+			error : function(xhr, status, error) {
+				$.messager.alert('系统异常', "请求数据失败!", "error");
+			}
+		});
+	});
 }
 
 // 制作流程图
@@ -2409,6 +2697,8 @@ function addListenerEvents() {
 						$("#element_value_cdt"+i+"_and"+j).next().hide();
 						$("#element_value_insert_btn_cdt"+i+"_and"+j).hide();
 						$("#param_value_cdt"+i+"_and"+j).next().show();
+						$("#interface_name_cdt"+i+"_and"+j).next().hide();
+						$("#interface_param_cdt"+i+"_and"+j).next().hide();
 						$("#param_name_attr_cdt"+i+"_and"+j).combobox('setValue', andCondition.paramName);
 						$("#param_value_cdt"+i+"_and"+j).textbox('setValue', andCondition.paramValue);
 					} 
@@ -2419,8 +2709,23 @@ function addListenerEvents() {
 						$("#element_value_cdt"+i+"_and"+j).next().show();
 						$("#element_value_insert_btn_cdt"+i+"_and"+j).hide();
 						$("#param_value_cdt"+i+"_and"+j).next().hide();
+						$("#interface_name_cdt"+i+"_and"+j).next().hide();
+						$("#interface_param_cdt"+i+"_and"+j).next().hide();
 						$("#param_name_element_cdt"+i+"_and"+j).combobox('setValue', andCondition.paramName);
 						$("#element_value_cdt"+i+"_and"+j).combobox('setValue', andCondition.paramValue);
+					}
+					if(variableType == "interface") {
+						$("#param_name_attr_cdt"+i+"_and"+j).next().hide();
+						$("#param_name_element_cdt"+i+"_and"+j).next().hide();
+						$("#param_name_other_cdt"+i+"_and"+j).next().hide();
+						$("#element_value_cdt"+i+"_and"+j).next().hide();
+						$("#element_value_insert_btn_cdt"+i+"_and"+j).hide();
+						$("#param_value_cdt"+i+"_and"+j).next().hide();
+						$("#interface_name_cdt"+i+"_and"+j).next().show();
+						$("#interface_param_cdt"+i+"_and"+j).next().show();
+						$("#interface_name_cdt"+i+"_and"+j).combobox('setValue', andCondition.interfaceName);
+						$("#interface_param_cdt"+i+"_and"+j).combobox('setValue', andCondition.paramName);
+						$("#param_value_cdt"+i+"_and"+j).textbox('setValue', andCondition.paramValue);
 					}
 					if(variableType == "other") {
 						$("#param_name_attr_cdt"+i+"_and"+j).next().hide();
@@ -2429,6 +2734,8 @@ function addListenerEvents() {
 						$("#element_value_cdt"+i+"_and"+j).next().hide();
 						$("#element_value_insert_btn_cdt"+i+"_and"+j).hide();
 						$("#param_value_cdt"+i+"_and"+j).next().show();
+						$("#interface_name_cdt"+i+"_and"+j).next().hide();
+						$("#interface_param_cdt"+i+"_and"+j).next().hide();
 						$("#param_name_other_cdt"+i+"_and"+j).textbox('setValue', andCondition.paramName);
 						$("#param_value_cdt"+i+"_and"+j).textbox('setValue', andCondition.paramValue);
 					}
@@ -2454,26 +2761,6 @@ function addListenerEvents() {
 			// 出参
 			if(nodeData.outParams == "" || nodeData.outParams == null || nodeData.outParams == undefined) {
 				nodeData.outParams = [];
-			}
-			var inKeys = nodeData.inParams;
-			for(var i=0; i < inKeys.length; i++) {
-				var inKey = inKeys[i];
-				addInKeyDiv();
-				$("#in_key_"+i).val(inKey.paramName);
-				$("#in_value_"+i).val(inKey.paramValue);
-			}
-			var outKeys = nodeData.outParams;
-			for(var j=0; j < outKeys.length; j++) {
-				var outKey = outKeys[j];
-				addOutKeyDiv();
-				$("#out_key_"+j).val(outKey.paramName);
-				$("#out_value_"+j).val(outKey.paramValue);
-			}
-			if(inKeys.length==0) {
-				addInKeyDiv();
-			}
-			if(outKeys.length==0) {
-				addOutKeyDiv();
 			}
 			$('#myURLActionDiv').show();
 			$('#myNormalEditDiv').hide();
@@ -2936,76 +3223,18 @@ function buttonClick() {
 		var nodeData = public_thisGraphObj.part.data;
 		var array = $('#URLActionform').serializeArray();
 		// 校验格式
-		var actionName = $("#actionName").textbox('getValue');
+		var actionName = $("#URLActionform #actionName").textbox('getValue');
 		if(actionName == '') {
-			$.messager.alert("提示","请填写接口名称","info");
+			$.messager.alert("提示","请填写组件名称","info");
 			return;
 		}
-		var actionUrl = $("#actionUrl").textbox('getValue');
-		if(actionUrl == '') {
-			$.messager.alert("提示","请填写接口地址","info");
+		var interfaceName = $("#URLActionform #interfaceName").textbox('getValue');
+		if(interfaceName == '') {
+			$.messager.alert("提示","请选择调用接口","info");
 			return;
 		}
-		var invocationWay = $("#invocationWay").combobox('getValue');
-		if(invocationWay == '') {
-			$.messager.alert("提示","请选择调用方式","info");
-			return;
-		}
-		var httpMethod = $("#httpMethod").combobox('getValue');
-		if(invocationWay == 'http' && httpMethod == '') {
-			$.messager.alert("提示","请选择请求方法","info");
-			return;
-		}
-		var namespace = $("#namespace").textbox('getValue');
-		if(invocationWay == 'webservice' && namespace == '') {
-			$.messager.alert("提示","请填写命名空间","info");
-			return;
-		}
-		var functionName = $("#functionName").textbox('getValue');
-		if(invocationWay == 'webservice' && functionName == '') {
-			$.messager.alert("提示","请填写调用函数","info");
-			return;
-		}
-		if(!checkUrl(actionUrl)) {
-			$.messager.alert("提示","请检查接口地址","info");
-			return;
-		}
-		// 设置数据
-		var inKeyDivs = $("#in_key_vals_div").find('.in-key');
-		var outKeyDivs = $("#out_key_vals_div").find('.out-key');
-		var inKeys = [];
-		var outKeys = [];
-		for(var i=0; i<inKeyDivs.length; i++) {
-			inKeys[i]={};
-		}
-		for(var j=0; j<outKeyDivs.length; j++) {
-			outKeys[j]={};
-		}
-		$.each(array,function(index, value){
-			if(this.name.indexOf("in_key") > -1) {
-				var inKeySliptArray = this.name.split("_");
-				var inKeyIndex = inKeySliptArray[inKeySliptArray.length-1];
-				inKeys[inKeyIndex].paramName = this.value;
-			} else if(this.name.indexOf("in_value") > -1) {
-				var inValueSliptArray = this.name.split("_");
-				var inValueIndex = inValueSliptArray[inValueSliptArray.length-1];
-				inKeys[inValueIndex].paramValue = this.value;
-			} else if(this.name.indexOf("out_key") > -1) {
-				var outKeySliptArray = this.name.split("_");
-				var outKeyIndex = outKeySliptArray[outKeySliptArray.length-1];
-				outKeys[outKeyIndex].paramName = this.value;
-			} else if(this.name.indexOf("out_value") > -1) {
-				var outValueSliptArray = this.name.split("_");
-				var outValueIndex = outValueSliptArray[outValueSliptArray.length-1];
-				outKeys[outValueIndex].paramValue = this.value;
-			} else {
-				myDiagram.model.setDataProperty(nodeData, this.name, this.value);
-			}
-		});
 		myDiagram.model.setDataProperty(nodeData, "text", actionName);
-		myDiagram.model.setDataProperty(nodeData, "interfaceName", publicscenariosname+actionName);
-		myDiagram.model.setDataProperty(nodeData, "inParams", inKeys);
-		myDiagram.model.setDataProperty(nodeData, "outParams", outKeys);
+		myDiagram.model.setDataProperty(nodeData, "interfaceName", interfaceName);
 		$('#myURLActionDiv').hide();
 	});
 	
@@ -3076,6 +3305,14 @@ function buttonClick() {
 						var paramValue = "element_value" + "_cdt"+conditionIndex+"_and"+andIndex;
 						andConditions[andIndex].paramName = $("#"+paramNameElement).combobox("getValue");
 						andConditions[andIndex].paramValue = $("#"+paramValue).combobox("getValue");
+					} 
+					if(this.value == "interface") {
+						var interfaceName = "interface_name" + "_cdt"+conditionIndex+"_and"+andIndex;
+						var interfaceParam = "interface_param" + "_cdt"+conditionIndex+"_and"+andIndex;
+						var paramValue = "param_value" + "_cdt"+conditionIndex+"_and"+andIndex;
+						andConditions[andIndex].interfaceName = $("#"+interfaceName).combobox("getValue");
+						andConditions[andIndex].paramName = $("#"+interfaceParam).combobox("getValue");
+						andConditions[andIndex].paramValue = $("#"+paramValue).textbox("getValue");
 					} 
 					if(this.value == "other") {
 						var paramNameOther = "param_name_other" + "_cdt"+conditionIndex+"_and"+andIndex;

@@ -388,39 +388,19 @@
             <div><span>动作组件</span></div>
             <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
             <form id="URLActionform" style="padding-right: 5px;padding-left:5px;font-size: 13px;">
-                <div class="form-div">
-                    <div class="form-div">接口名称<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="actionName" name="actionName" data-options="prompt:'接口名称'" style="width:240px;height: 30px"/>
+            	<div class="form-div">
+                    <div class="form-div">组件名称<span style='color:red'>*</span>：</div>
+                    <input class="easyui-textbox" id="actionName" name="actionName" data-options="prompt:'组件名称'" style="width:240px;height: 30px"/>
                 </div>
                 <div class="form-div">
-                    <div class="form-div">调用方式<span style='color:red'>*</span>：</div>
-                    <input class="easyui-combobox" id="invocationWay" name="invocationWay" data-options="prompt:'调用方式'" style="width:240px;height: 30px"/>
-                </div>
-                <div class="form-div webservice">
-                    <div class="form-div">命名空间<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="namespace" name="namespace" data-options="prompt:'命名空间'" style="width:240px;height: 30px"/>
-                </div>
-                <div class="form-div">
-                    <div class="form-div">接口地址<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="actionUrl" name="actionUrl" data-options="prompt:'接口地址'" style="width:240px;height: 30px"/>
-                </div>
-                <div class="form-div http">
-                    <div class="form-div">请求方法<span style='color:red'>*</span>：</div>
-                    <input class="easyui-combobox" id="httpMethod" name="httpMethod" data-options="prompt:'请求方法',valueField:'value',textField:'text',data: [ {'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}]" style="width:240px;height: 30px"/>
-                </div>
-                <div class="form-div webservice">
-                    <div class="form-div">调用函数<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="functionName" name="functionName" data-options="prompt:'请求方法'" style="width:240px;height: 30px"/>
-                </div>
-                <div class="form-div">
-                    <div class="form-div" id="in_key_vals_div">
-                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">请求参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">内部参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
-                    </div>
-                    <div class="form-div" id="out_key_vals_div">
-                        <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">返回参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">内部参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
-                    </div>
-                    <a id="testAction" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-clear'">测试</a>
-                </div>
+		            <div class="form-div">调用接口<span style='color:red'>*</span>：
+		            	<a id="addInterfaceBtn" name="addInterfaceBtn" href="javascript:void(0)" 
+		            		class="easyui-linkbutton" data-options="iconCls:'icon-add'">新增</a>
+		            	<a id="editInterfaceBtn" name="editInterfaceBtn" href="javascript:void(0)" 
+		            		class="easyui-linkbutton" data-options="iconCls:'icon-save'">编辑</a>
+		            </div>
+		            <input class="easyui-combobox" id="interfaceName" name="interfaceName" data-options="prompt:'接口名称'" style="width:240px;height: 30px"/>
+		        </div>
             </form>
             <div style="text-align: center; padding: 10px">
                 <a id="saveURLAction" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
@@ -456,6 +436,52 @@
         </div>
         <!-- 条件组件 window end-->
 	</div>
+	
+	<!-- 接口编辑区 window start -->
+	<div id="editInterfaceDiv" class="easyui-window" title="接口编辑区"
+		data-options="modal:true,closed:true,iconCls:'icon-save'"
+		style="width: 300px; height: 500px; padding: 10px;">
+		<form id="editInterfaceForm" class="easyui-form" method="post"
+			data-options="novalidate:true">
+			 <div class="form-div">
+	             <div class="form-div">接口名称<span style='color:red'>*</span>：</div>
+	             <input class="easyui-textbox" id="interfaceName" name="interfaceName" data-options="prompt:'接口名称'" style="width:90%;height: 30px"/>
+	         </div>
+	         <div class="form-div new-interface">
+	             <div class="form-div">调用方式<span style='color:red'>*</span>：</div>
+	             <input class="easyui-combobox" id="invocationWay" name="invocationWay" data-options="prompt:'调用方式'" style="width:90%;height: 30px"/>
+	         </div>
+	         <div class="form-div webservice">
+	             <div class="form-div">命名空间<span style='color:red'>*</span>：</div>
+	             <input class="easyui-textbox" id="namespace" name="namespace" data-options="prompt:'命名空间'" style="width:90%;height: 30px"/>
+	         </div>
+	         <div class="form-div new-interface">
+	             <div class="form-div">接口地址<span style='color:red'>*</span>：</div>
+	             <input class="easyui-textbox" id="actionUrl" name="actionUrl" data-options="prompt:'接口地址'" style="width:90%;height: 30px"/>
+	         </div>
+	         <div class="form-div http">
+	             <div class="form-div">请求方法<span style='color:red'>*</span>：</div>
+	             <input class="easyui-combobox" id="httpMethod" name="httpMethod" data-options="prompt:'请求方法',valueField:'value',textField:'text',data: [ {'text': 'GET', 'value': 'Http-get'},{'text': 'POST', 'value': 'Http-post'}]" style="width:90%;height: 30px"/>
+	         </div>
+	         <div class="form-div webservice">
+	             <div class="form-div">调用函数<span style='color:red'>*</span>：</div>
+	             <input class="easyui-textbox" id="functionName" name="functionName" data-options="prompt:'请求方法'" style="width:90%;height: 30px"/>
+	         </div>
+	         <div class="form-div new-interface" id="in_key_vals_div">
+	             <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">请求参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">内部参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+	         </div>
+	         <div class="form-div new-interface" id="out_key_vals_div">
+	             <div class="form-div"><span style="float:left;width: 30%;height:25px;border:1px solid  #C3D1DF;">返回参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">内部参数</span><span style="height:25px;float:left;width: 30%;border:1px solid  #C3D1DF;">操作</span></div>
+	         </div>
+		</form>
+        <div class="form-div" style="text-align: center; padding: 5px">
+			<a id="saveNewInterface" href="javascript:void(0)" class="easyui-linkbutton"
+				data-options="iconCls:'icon-save'" plain="false">保存</a>
+			<a id="testAction" href="javascript:void(0)" class="easyui-linkbutton" 
+		        data-options="iconCls:'icon-clear'">测试</a>
+		</div>
+	</div>
+	<!-- 接口编辑区 window end -->
 	
 	<!-- 场景要素编辑区 window start -->
 	<div id="sceneElementDiv" class="easyui-window" title="场景要素编辑区"
@@ -542,7 +568,7 @@
 	
 	<!-- 词类新增和编辑 window start -->
 	<div id="wordClassEditDiv" class="easyui-window" title="词类新增" data-options="modal:true,closed:true,iconCls:'icon-save'" style="width:900px;height:500px;">
-		<iframe id='standardIframe' scrolling="auto" width='100%' height='100%' frameborder='0' src='http://172.30.66.120:8082/KM/wordclass/app.html'></iframe>
+		<iframe id='standardIframe' scrolling="auto" width='100%' height='100%' frameborder='0' src='http://localhost:8082/KM/wordclass/app.html'></iframe>
 	</div>
 		
 	<!-- 添加用户答案 -->

@@ -6,6 +6,7 @@ import com.knowology.km.bll.ScenariosDAO;
 public class InteractiveSceneCallAction extends BaseAction {
 
 	private String sceneJson;
+	private String interfaceData;
 	private Object m_result;
 	private String type;
 
@@ -24,10 +25,10 @@ public class InteractiveSceneCallAction extends BaseAction {
 	private String sceneElementName;
 	private String sceneElementId;
 	private String sceneType;
+	private String interfaceName;
 
 	private int page;
 	private int rows;
-	
 
 	public Object execute() {
 		if ("saveConfig".equals(type)) { // 解析并保存流程图
@@ -85,6 +86,15 @@ public class InteractiveSceneCallAction extends BaseAction {
 		}
 		if ("listAllElementValue".equals(type)) {// 查询场景要素值
 			m_result = InteractiveSceneCallDAO.listAllElementValue(scenariosid, sceneElementName);
+		}
+		if ("addNewInterface".equals(type)) {// 添加新接口
+			m_result = InteractiveSceneCallDAO.addNewInterface(scenariosid, interfaceData);
+		}
+		if ("loadInterfaceName".equals(type)) {// 加载接口列表
+			m_result = InteractiveSceneCallDAO.loadInterfaceName(scenariosid);
+		}
+		if ("queryInterfaceInfo".equals(type)) {// 查询接口信息
+			m_result = InteractiveSceneCallDAO.queryInterfaceInfo(scenariosid, interfaceName);
 		}
 		return "success";
 	}
@@ -247,6 +257,22 @@ public class InteractiveSceneCallAction extends BaseAction {
 
 	public void setRows(int rows) {
 		this.rows = rows;
+	}
+
+	public String getInterfaceData() {
+		return interfaceData;
+	}
+
+	public void setInterfaceData(String interfaceData) {
+		this.interfaceData = interfaceData;
+	}
+	
+	public String getInterfaceName() {
+		return interfaceName;
+	}
+
+	public void setInterfaceName(String interfaceName) {
+		this.interfaceName = interfaceName;
 	}
 
 }

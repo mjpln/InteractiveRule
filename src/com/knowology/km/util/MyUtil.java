@@ -1,7 +1,9 @@
 package com.knowology.km.util;
 
+import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -1103,6 +1105,20 @@ public class MyUtil {
 		} catch (SQLException e) {
 			return null;
 		}
+	}
+	
+	public static String convertBlobToString(Blob blob) {
+
+		String result = "";
+		try {
+			ByteArrayInputStream msgContent = (ByteArrayInputStream) blob.getBinaryStream();
+			byte[] byte_data = new byte[msgContent.available()];
+			msgContent.read(byte_data, 0, byte_data.length);
+			result = new String(byte_data);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 
 	/**

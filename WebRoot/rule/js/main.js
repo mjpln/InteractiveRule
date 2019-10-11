@@ -452,7 +452,7 @@ function append(flag) {
     else if(flag == 'callin')
     {
         $('#menu_add').first().css("height","250px");
-        $('#menu_add').find("div[robot=\"roboid\"]").show();
+        $('#menu_add').find("div[robot=\"roboid\"]").hide();
         $('#menu_add').find("a:first").first().unbind("click").bind("click",addmenuCallIn);
     } 
     else 
