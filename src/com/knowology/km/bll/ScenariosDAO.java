@@ -349,7 +349,7 @@ public class ScenariosDAO {
 			for(Field field : fields) {  
 				String fieldName = field.getName();
 				if(fieldName.indexOf("condition") > -1) {
-					int conditionIndex = Integer.parseInt(fieldName.substring(fieldName.length()-1));
+					int conditionIndex = Integer.parseInt(fieldName.substring(9));
 					PropertyDescriptor pd = new PropertyDescriptor(fieldName, SceneRule.class);
 					Method wM = pd.getWriteMethod(); 
 					if(StringUtils.isNotBlank(conditions[conditionIndex])) {
@@ -431,7 +431,7 @@ public class ScenariosDAO {
 			for (Entry<String, String> item : setItems.entrySet()) {
 				ruleResponse.append("SET(\"" + item.getKey() + "\",\"" + item.getValue() + "\")").append(";");
 			}
-			return ruleResponse.append("###").append(";").toString();
+			return ruleResponse.toString();
 		}
 		return "";
 
@@ -829,16 +829,7 @@ public class ScenariosDAO {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Field[] fields = SceneRule.class.getDeclaredFields();
-		SceneRule sceneRule = new SceneRule();
-		for(Field f : fields) {  
-			if(f.getName().indexOf("condition") > -1) {
-				PropertyDescriptor pd = new PropertyDescriptor(f.getName(), SceneRule.class);  
-				Method wM = pd.getWriteMethod();//获得写方法  
-				wM.invoke(sceneRule, "21");
-			}
-		}
-		System.out.println(JSONObject.toJSONString(sceneRule));
+		System.out.println("condition1".substring(9));
 	}
 	
 }

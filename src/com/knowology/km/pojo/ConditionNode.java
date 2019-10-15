@@ -9,9 +9,9 @@ import java.util.List;
 public class ConditionNode extends NodeData {
 
 	/**
-	 * 条件组件名称
+	 * 组件名称
 	 */
-	private String conditionName;
+	private String conditionNodeName;
 	
 	/**
 	 * 条件集合
@@ -29,13 +29,14 @@ public class ConditionNode extends NodeData {
 		super.setToLinks(nodeData.getToLinks());
 	}
 
-	public String getConditionName() {
-		return conditionName;
+	public String getConditionNodeName() {
+		return conditionNodeName;
 	}
 
-	public void setConditionName(String conditionName) {
-		this.conditionName = conditionName;
+	public void setConditionNodeName(String conditionNodeName) {
+		this.conditionNodeName = conditionNodeName;
 	}
+
 
 	public List<ArrayList<AndCondition>> getConditions() {
 		return conditions;
@@ -48,8 +49,8 @@ public class ConditionNode extends NodeData {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ConditionNode [conditionName=");
-		builder.append(conditionName);
+		builder.append("ConditionNode [conditionNodeName=");
+		builder.append(conditionNodeName);
 		builder.append(", conditions=");
 		builder.append(conditions);
 		builder.append("]");

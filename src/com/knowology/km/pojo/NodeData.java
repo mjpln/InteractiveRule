@@ -23,7 +23,11 @@ public class NodeData {
 	 * 节点文本
 	 */
 	private String text;
-
+	/**
+	 * 是否末梢编码
+	 */
+	private String endFlag;
+	
 	/**
 	 * 节点顶部连线
 	 */
@@ -67,6 +71,14 @@ public class NodeData {
 	public void setText(String text) {
 		this.text = text;
 	}
+	
+	public String getEndFlag() {
+		return endFlag;
+	}
+
+	public void setEndFlag(String endFlag) {
+		this.endFlag = endFlag;
+	}
 
 	public List<LinkData> getFromLinks() {
 		return fromLinks;
@@ -95,6 +107,8 @@ public class NodeData {
 		builder.append(name);
 		builder.append(", text=");
 		builder.append(text);
+		builder.append(", endFlag=");
+		builder.append(endFlag);
 		builder.append(", fromLinks=");
 		builder.append(fromLinks);
 		builder.append(", toLinks=");

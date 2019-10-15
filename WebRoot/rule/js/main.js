@@ -3259,7 +3259,7 @@ function opengojstab(title, id,sname) {
             	}
             } else {//非全行业，查询配置
                 $.ajax({
-                    url : '../saveConfiguration.action',
+                    url : '../interactiveSceneCall.action',
                     type : "post",
                     data : {
                         type : 'getUrl',
