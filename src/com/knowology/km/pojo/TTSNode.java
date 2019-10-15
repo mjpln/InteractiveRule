@@ -8,14 +8,34 @@ import java.util.List;
 public class TTSNode extends NodeData {
 
 	/**
-	 * TTS
+	 * 话术内容
 	 */
-	private String tts;
+	private String wordsContent;
 
 	/**
 	 * 录音文件
 	 */
 	private String code;
+	
+	/**
+	 * 交互类型, 菜单询问|系统反问
+	 */
+	private String interactiveType;
+
+	/**
+	 * 菜单询问开始语
+	 */
+	private String menuStartWords;
+
+	/**
+	 * 菜单询问菜单选项
+	 */
+	private String menuOptions;
+
+	/**
+	 * 菜单询问结束语
+	 */
+	private String menuEndWords;
 
 	/**
 	 * 动作，sms-发送短信
@@ -31,7 +51,7 @@ public class TTSNode extends NodeData {
 	 * 其他
 	 */
 	private List<OtherResponse> otherResponses;
-
+	
 	public TTSNode() {}
 
 	public TTSNode(NodeData nodeData) {
@@ -43,12 +63,12 @@ public class TTSNode extends NodeData {
 		super.setToLinks(nodeData.getToLinks());
 	}
 
-	public String getTts() {
-		return tts;
+	public String getWordsContent() {
+		return wordsContent;
 	}
 
-	public void setTts(String tts) {
-		this.tts = tts;
+	public void setWordsContent(String wordsContent) {
+		this.wordsContent = wordsContent;
 	}
 
 	public String getCode() {
@@ -57,6 +77,38 @@ public class TTSNode extends NodeData {
 
 	public void setCode(String code) {
 		this.code = code;
+	}
+
+	public String getInteractiveType() {
+		return interactiveType;
+	}
+
+	public void setInteractiveType(String interactiveType) {
+		this.interactiveType = interactiveType;
+	}
+
+	public String getMenuStartWords() {
+		return menuStartWords;
+	}
+
+	public void setMenuStartWords(String menuStartWords) {
+		this.menuStartWords = menuStartWords;
+	}
+
+	public String getMenuOptions() {
+		return menuOptions;
+	}
+
+	public void setMenuOptions(String menuOptions) {
+		this.menuOptions = menuOptions;
+	}
+
+	public String getMenuEndWords() {
+		return menuEndWords;
+	}
+
+	public void setMenuEndWords(String menuEndWords) {
+		this.menuEndWords = menuEndWords;
 	}
 
 	public String getAction() {
@@ -86,10 +138,18 @@ public class TTSNode extends NodeData {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("TTSNode [tts=");
-		builder.append(tts);
+		builder.append("TTSNode [wordsContent=");
+		builder.append(wordsContent);
 		builder.append(", code=");
 		builder.append(code);
+		builder.append(", interactiveType=");
+		builder.append(interactiveType);
+		builder.append(", menuStartWords=");
+		builder.append(menuStartWords);
+		builder.append(", menuOptions=");
+		builder.append(menuOptions);
+		builder.append(", menuEndWords=");
+		builder.append(menuEndWords);
 		builder.append(", action=");
 		builder.append(action);
 		builder.append(", actionParams=");

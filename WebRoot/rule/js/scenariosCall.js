@@ -70,20 +70,11 @@ $(function() {
 	// 按钮点击事件
 	buttonClick();
 	
+	// 初始化交互类型
+	initInteractiveType();
+	
 	// 初始化放音组件
 	initTTSNode();
-	
-	// 初始化回复内容编辑页面
-	initResponseEditPage()
-	
-	// 初始化用户回答
-	initCustomerAnswer();
-	
-	// 初始化短信模板
-	//initSmsTemplate();
-	
-	// 初始化号码属性
-	//initPhoneAttributeNames();
 	
 	// 初始化信息收集组件
 	initCollection();
@@ -103,6 +94,17 @@ $(function() {
 });
 
 function initTTSNode() {
+	
+	// 初始化编辑页面
+	initTTSEditPage()
+	
+	// 初始化用户回答
+	initCustomerAnswer();
+	
+	// 初始化短信模板
+	//initSmsTemplate();
+	   
+	// 初始化节点类型
 	$.each($("input[name='ttsNodeType']"),function (index) {
         if(index==0) {
         	$("#customer-answer-table").fadeIn('slow');
@@ -142,7 +144,7 @@ function initTTSNode() {
 function initCollection() {
 	
 	$('#collectionform-collectionWords-tr').hide();
-	$('#collectionform-collectionParam-tr').hide();
+	$('#collectionform-collectionParam-tr').show();
 	$('#collectionform-collectionTimes-tr').hide();
 	$('#collectionform-collectionElement-tr').hide();
 	$('#collectionform-interactiveType-tr').show();
@@ -160,9 +162,6 @@ function initCollection() {
 	// 初始化场景要素
 	initSceneElements();
 	
-	// 初始化交互类型
-	initInteractiveType();
-	
 }
 
 // 初始化收集类型
@@ -179,7 +178,7 @@ function initCollectionType() {
     	}],
 		onChange: function(newVal, oldVal) {
 			if(newVal == 'elementCollection') {
-				$('#collectionform-collectionParam-tr').hide();
+				$('#collectionform-collectionParam-tr').show();
 				$('#collectionform-collectionTimes-tr').hide();
 				$('#collectionform-collectionElement-tr').show();
 			}
@@ -194,7 +193,25 @@ function initCollectionType() {
 
 //初始化交互类型
 function initInteractiveType() {
-	$('#interactiveType').combobox({
+	$('.words').hide();
+	$('.menus').hide();
+	var interactiveTypeCombobox = $('#myNormalEditDiv').find('#interactiveType');
+	interactiveTypeCombobox.combobox({
+		valueField : 'id',
+		textField : 'text',
+		data : [{'text':'菜单询问','id':'键值补全'},{'text':'系统反问','id':'词模匹配'}],
+		onChange: function(newVal, oldVal) {
+			if(newVal == '词模匹配') { // 系统反问
+				$('.words').show();
+				$('.menus').hide();
+			} else if (newVal == '键值补全'){ // 菜单询问
+				$('.words').hide();
+				$('.menus').show();
+			}
+        } 
+	});
+	interactiveTypeCombobox = $('#collectionform').find('#interactiveType');
+	interactiveTypeCombobox.combobox({
 		valueField : 'id',
 		textField : 'text',
 		data : [{'text':'菜单询问','id':'键值补全'},{'text':'系统反问','id':'词模匹配'}],
@@ -753,8 +770,8 @@ function clearElementEditForm() {
 	$("#sceneElementEditForm-interPattern").val("");
 }
 
-// 初始化回复内容编辑页面
-function initResponseEditPage() {
+// 初始化TTS编辑页面
+function initTTSEditPage() {
 	for ( var i = 1; i < MAX_SCENARIO_COUNT; i++) {
 		$("#btd-display" + i).hide();
 	}
@@ -1039,7 +1056,7 @@ function initTransfer()
 {
 }
 
-var condition = "<div class=\"form-div\">" +
+var condition = "<div class=\"form-div and-condition-div\">" +
 "                            <div class=\"form-div\"> " +
 "								 <input class=\"easyui-combobox\" name=\"variable_type\" data-options=\"prompt:'变量类型'\" style=\"width: 200px; height: 25px;\"/>" +
 "								 <a style='width: 20px;height: 10px' href=\"javascript:void(0)\" class=\"easyui-linkbutton\" data-options=\"iconCls:'icon-remove'\">+移除</a>" +
@@ -1069,6 +1086,9 @@ var condition = "<div class=\"form-div\">" +
 
 
 var addAnd = " <div class=\"form-div condition-div\" style=\"padding-top: 5px;background: #E2E2E2;\">" +
+"                        <div class=\"form-div\">" +
+"							 <input class=\"easyui-textbox\" name=\"condition_name\" data-options=\"prompt:'条件名'\" style=\"width: 200px; height: 25px;\"/>" +
+"                        </div>"+
 "                        <div add=\"andconditions\">" +
 "                            " +
 "                        </div>"+
@@ -1080,6 +1100,9 @@ var addAnd = " <div class=\"form-div condition-div\" style=\"padding-top: 5px;ba
 // 添加条件
 function addOneCondition(conditionIdx, variableIdx) {
 	var cpAddAnd = $($.parseHTML(addAnd));//$(addAnd);
+	var conditionNameInput = "condition_name" + "_cdt"+conditionIdx;
+	cpAddAnd.find("input[name='condition_name']").attr("name", conditionNameInput);
+	cpAddAnd.find("input[name='"+conditionNameInput+"']").attr("id", conditionNameInput);
 	var nodetmp = $("#conditions").find("div").eq(0).append(cpAddAnd);
 	$.parser.parse(cpAddAnd);
 	
@@ -1358,6 +1381,10 @@ function initConditionInterface(interfaceNameInput, interfaceParamInput) {
 }
 // 初始化条件组件
 function initCondition(){
+	
+	// 初始化号码属性
+	//initPhoneAttributeNames();
+	
 	$("#addCondition").bind("click",function () {
 		var conditionDivs = $("#conditions").find("div").eq(0).find('.condition-div');
 		var conditionCount = conditionDivs.length;
@@ -1745,7 +1772,7 @@ function makeGraphObject() {
 				new go.Binding("figure", "figure")),
 				$GO(go.TextBlock, textStyle(), {
                     font: "12px sans-serif",
-                    maxSize : new go.Size(300, 100),
+                    maxSize : new go.Size(300, 200),
                     maxLines: 5,
                     verticalAlignment: go.Spot.Center,
                     editable: false,
@@ -1762,7 +1789,7 @@ function makeGraphObject() {
 					maxSize : new go.Size(0, 0),
 					editable : false,
 					visible : false
-				}, new go.Binding("text", "tts").makeTwoWay()), 
+				}, new go.Binding("text", "wordsContent").makeTwoWay()), 
 				$GO(go.TextBlock, {
 					margin : 0,
 					maxSize : new go.Size(0, 0),
@@ -1899,7 +1926,7 @@ function makeGraphObject() {
 						maxSize : new go.Size(0, 0),
 						editable : false,
 						visible : false
-					}, new go.Binding("text", "tts").makeTwoWay()), 
+					}, new go.Binding("text", "wordsContent").makeTwoWay()), 
 					$GO(go.TextBlock, {
 						margin : 0,
 						maxSize : new go.Size(0, 0),
@@ -2393,7 +2420,7 @@ function makePalette() {
 			width: 50,
 			height: 20,
 			margin: 0, 
-			tts: '',
+			wordsContent: '',
 			code:'',
 			otherResponses: [],
 			bottomArray : [],
@@ -2457,7 +2484,7 @@ function makePalette() {
 			width: 50,
 			height: 20,
 			margin: 0,
-			conditionName: '',
+			conditionNodeName: '',
 			conditions: []
 		},{
 			key : "Transfer",
@@ -2475,7 +2502,7 @@ function makePalette() {
 			width: 50,
 			height: 20,
 			margin: 0,
-			tts: '',
+			wordsContent: '',
 			code:'',
 			otherResponses: [],
 			bottomArray : [],
@@ -2541,7 +2568,7 @@ function addListenerEvents() {
 					myDiagram.model.setDataProperty(nodeData, 'margin', 10);
 				}
 				if (nodeData.category == "End") {
-					myDiagram.model.setDataProperty(nodeData, 'width', 100);
+					myDiagram.model.setDataProperty(nodeData, 'width', 200);
 					myDiagram.model.setDataProperty(nodeData, 'height', NaN);
 					myDiagram.model.setDataProperty(nodeData, 'margin', 10);
 				}
@@ -2556,8 +2583,8 @@ function addListenerEvents() {
 		var from = nodeData.from;
 		var to = nodeData.to;
 		if (from.match("Condition") && to.match("Condition")) {
-			myDiagram.commandHandler.deleteSelection();
-			$.messager.alert('警告', "不允许条件组件到条件组件的直连", "error");
+			//myDiagram.commandHandler.deleteSelection();
+			//$.messager.alert('警告', "不允许条件组件到条件组件的直连", "error");
 		}
 	});
 	
@@ -2570,6 +2597,8 @@ function addListenerEvents() {
 			$('#otherResponseHideBtn').trigger("click");
 			// 回复编辑内容赋值
 			setTTSResponseValue();
+			$('#customer-answer-table').show();
+			$('#tts-node-type-div').show();
 			$('#myNormalEditDiv').show();
 			$('#myConditionDiv').hide();
 			$('#myCollectionEditDiv').hide();
@@ -2581,6 +2610,7 @@ function addListenerEvents() {
 			// 回复编辑内容赋值
 			setTTSResponseValue();
 			$('#customer-answer-table').hide();
+			$('#tts-node-type-div').hide();
 			$('#myNormalEditDiv').show();
 			$('#myConditionDiv').hide();
 			$('#myCollectionEditDiv').hide();
@@ -2589,21 +2619,11 @@ function addListenerEvents() {
 			$('#myTransferDiv').hide();
 		}
 		if (nodeData.category == "Collection") {
-			$('#collectionform').form('clear');
 			// 信息收集内容赋值
-			$("#collectionName").textbox('setValue', nodeData.collectionName);
-			$("#collectionParam").textbox('setValue', nodeData.collectionParam);
-			$("#collectionType").combobox('setValue', nodeData.collectionType);
-			$("#collectionTimes").combobox('setValue', nodeData.collectionTimes);
-			$("#collectionElement").combobox('setValue', nodeData.collectionElement);
-			$("#collectionIntention").combobox('setValue', nodeData.collectionIntention);
-			$("#interactiveType").combobox('setValue', nodeData.interactiveType);
-			$("#collectionWords").val(nodeData.collectionWords);
-			$("#menuStartWords").val(nodeData.menuStartWords);
-			$("#menuOptions").val(nodeData.menuOptions);
-			$("#menuEndWords").val(nodeData.menuEndWords);
+			$('#collectionform').form('clear');
+			$('#collectionform').form('load',nodeData);
 			if(nodeData.collectionType == 'elementCollection') {
-				$('#collectionform-collectionParam-tr').hide();
+				$('#collectionform-collectionParam-tr').show();
 				$('#collectionform-collectionTimes-tr').hide();
 				$('#collectionform-collectionElement-tr').show();
 			}
@@ -2668,6 +2688,8 @@ function addListenerEvents() {
 		}
 		if (nodeData.category == "Condition") {
 			$('#Conditionform').form('clear');
+			$('#Conditionform').form('load',nodeData);
+			var bottomArray = nodeData.bottomArray;
 			// 节点数据
 			if(nodeData.conditions == "" || nodeData.conditions == null || nodeData.conditions == undefined) {
 				nodeData.conditions = [];
@@ -2676,13 +2698,14 @@ function addListenerEvents() {
 			var conditionCount = nodeData.conditions.length; 
 			// 清空条件
 			$('#myConditionDiv').find("#conditions").find("div").eq(0).empty();
-			// 设置条件名称
-			$("#conditionName").textbox('setValue', nodeData.conditionName);
+			// 设置组件名称
+			$("#conditionNodeName").textbox('setValue', nodeData.conditionNodeName);
 			// 设置条件内容
 			var conditions = nodeData.conditions;
 			for(var i = 0; i < conditions.length; i++) {
 				var andConditions = conditions[i];
 				addOneCondition(i,0);
+				$("#condition_name"+"_cdt" +i).textbox('setValue', bottomArray[i].text);
 				for(var j = 0; j < andConditions.length; j++) {
 					if(j > 0) {
 						$("#andBtn" + "_cdt"+i).trigger("click");
@@ -2720,7 +2743,7 @@ function addListenerEvents() {
 						$("#param_name_other_cdt"+i+"_and"+j).next().hide();
 						$("#element_value_cdt"+i+"_and"+j).next().hide();
 						$("#element_value_insert_btn_cdt"+i+"_and"+j).hide();
-						$("#param_value_cdt"+i+"_and"+j).next().hide();
+						$("#param_value_cdt"+i+"_and"+j).next().show();
 						$("#interface_name_cdt"+i+"_and"+j).next().show();
 						$("#interface_param_cdt"+i+"_and"+j).next().show();
 						$("#interface_name_cdt"+i+"_and"+j).combobox('setValue', andCondition.interfaceName);
@@ -2748,10 +2771,12 @@ function addListenerEvents() {
 			$('#myCollectionEditDiv').hide();
 			$('#myDTMFPressDiv').hide();
 			$('#myTransferDiv').hide();
+			$('#myURLActionDiv').hide();
 		}
 		if (nodeData.category == "URLAction") {
 			$('#URLActionform').form('clear');
 			$('#URLActionform').form('load',nodeData);
+			$("#URLActionform #interfaceName").combobox('setValue', nodeData.interfaceName);
 			$('#in_key_vals_div').find(".in-key").remove();
 			$('#out_key_vals_div').find(".out-key").remove();
 			// 入参
@@ -2785,9 +2810,7 @@ function addListenerEvents() {
 }
 
 // 添加回复内容
-function addToResponse(){
-	var tts = $("#tts").val();
-	var code = $("#code").val();
+function addToTTSResponse(t){
 	var action = '';
 	var actionParams = '';
 	var otherResponses = [];
@@ -2822,51 +2845,51 @@ function addToResponse(){
 		}
 		action = 'SMS';
 	} 	
-	// 获取已选的用户回答
-    var checkedArray = [];   
-    $('[name=customerAnswer]:checkbox:checked').each(function() {
-    	checkedArray.push({'text':$(this).val()});
-    });
+    t.action = action;
+    t.actionParams = actionParams;
+    t.otherResponses = otherResponses;
 	// 设置TTS节点
-    setTTSResponseNode(tts,code,action,actionParams,otherResponses,checkedArray);
+    setTTSResponseNode(t);
 	// 关闭回复表单
 	$('#closeRule0').trigger("click");
 }
 
 // 设置TTS节点
-function setTTSResponseNode(tts,code,action,actionParams,otherResponses,checkedArray) {
-	var ttsNodeType = $('input[name="ttsNodeType"]:checked').val();  
+function setTTSResponseNode(t) {
 	var nodeData = public_thisGraphObj.part.data;
+	$.each(t,function(index,value){
+    	myDiagram.model.setDataProperty(nodeData, index, value);
+    });
 	if (nodeData.category == "Normal") {
-		myDiagram.model.setDataProperty(nodeData, 'text', tts);
-		myDiagram.model.setDataProperty(nodeData, 'tts', tts);
-		myDiagram.model.setDataProperty(nodeData, 'code', code);
-		myDiagram.model.setDataProperty(nodeData, 'action', action);
-		myDiagram.model.setDataProperty(nodeData, 'actionParams', actionParams);
-		myDiagram.model.setDataProperty(nodeData, 'otherResponses', otherResponses);
-		myDiagram.model.setDataProperty(nodeData, 'ttsNodeType', ttsNodeType);
-		if(ttsNodeType == '0') {
-			myDiagram.model.setDataProperty(nodeData, 'bottomArray', checkedArray);
+		if(t.ttsNodeType == '0') {
+			myDiagram.model.setDataProperty(nodeData, 'bottomArray', t.checkedArray);
 		}
-		if(ttsNodeType == '1') {
+		if(t.ttsNodeType == '1') {
 			myDiagram.model.setDataProperty(nodeData, 'bottomArray', [{'text':'跳转'}]);
 		}
 	}
-	if (nodeData.category == "End") {
-		myDiagram.model.setDataProperty(nodeData, 'text', tts);
-		myDiagram.model.setDataProperty(nodeData, 'tts', tts);
-		myDiagram.model.setDataProperty(nodeData, 'code', code);
-		myDiagram.model.setDataProperty(nodeData, 'action', action);
-		myDiagram.model.setDataProperty(nodeData, 'actionParams', actionParams);
-		myDiagram.model.setDataProperty(nodeData, 'otherResponses', otherResponses);
+	if(t.interactiveType == '词模匹配') {
+		myDiagram.model.setDataProperty(nodeData, 'text', t.wordsContent);
+	}
+	if(t.interactiveType == '键值补全') {
+		var menuItemText = ''; 
+		if(t.menuOptions != undefined && t.menuOptions != '') {
+			var menuItems = t.menuOptions.split('|');
+			if(t.menuOptions.split('|').length > 0) {
+				for(var i=0;i<menuItems.length;i++) {
+					menuItemText += '['+(i+1)+']'+menuItems[i]+'\n';
+				}
+			} 
+		}
+		myDiagram.model.setDataProperty(nodeData, 'text', t.menuStartWords+':'+'\n'+menuItemText);
 	}
 }
 
 //TTS编辑页面赋值
 function setTTSResponseValue() {
 	var nodeData = public_thisGraphObj.part.data;
-	$("#tts").val(nodeData.tts);
-	$("#code").textbox("setValue", nodeData.code);
+	$('#myNormalEditForm').form('clear');
+	$('#myNormalEditForm').form('load',nodeData);
 	if(nodeData.ttsNodeType == "0") {
 		$("input:radio[name='ttsNodeType']").eq(0).prop("checked",'checked');
         $("#customer-answer-table").show();
@@ -2875,6 +2898,14 @@ function setTTSResponseValue() {
 		$("input:radio[name='ttsNodeType']").eq(1).prop("checked",'checked');
         $("#customer-answer-table").hide();
 	} 
+	if(nodeData.interactiveType == '词模匹配') { // 系统反问
+		$('.words').show();
+		$('.menus').hide();
+	}
+	if(nodeData.interactiveType == '键值补全') { // 菜单询问
+		$('.words').hide();
+		$('.menus').show();
+	}
 	var otherResponses = nodeData.otherResponses;
 	if(otherResponses && otherResponses.length > 0) {
 		for(var i=0; i<otherResponses.length; i++) {
@@ -2986,22 +3017,46 @@ function buttonClick() {
 	// 保存回复内容
 	$('#saveRule0').click(function() {
 		var nodeData = public_thisGraphObj.part.data;
-		var tts = $("#tts").val();
-		var code = $("#code").val();	
-		var ttsNodeType = $('input[name=ttsNodeType][checked]').val();  
-		if(tts == '') {
+		var array = $('#myNormalEditForm').serializeArray();
+		var t={};
+		$.each(array,function(index, value){
+			t[this.name] = this.value;
+		});
+		if(t.interactiveType == '') {
+			$.messager.alert('提示', "请填写交互类型", "info");
+			return;
+		}
+		if(t.endFlag == '') {
+			$.messager.alert('提示', "请选择是否为末梢节点", "info");
+			return;
+		}
+		if(t.interactiveType == '词模匹配' && t.wordsContent == '') {
 			$.messager.alert('提示', "请填写话术文字", "info");
 			return;
 		}
+		if(t.interactiveType == '键值补全' && t.menuStartWords == '') {
+			$.messager.alert('提示', "请填写开始话语", "info");
+			return;
+		}
+		if(t.interactiveType == '键值补全' && t.menuOptions == '') {
+			$.messager.alert('提示', "请填写菜单选项", "info");
+			return;
+		}
+		if(nodeData.category == "Normal" && t.ttsNodeType == undefined || t.ttsNodeType == '') {
+			$.messager.alert('提示', "请选择【意图节点】或【跳转节点】", "info");
+			return;
+		}
+		// 获取已选的用户回答
 	    var checkedArray = [];   
 	    $('[name=customerAnswer]:checkbox:checked').each(function() {
 	    	checkedArray.push({'text':$(this).val()});
 	    });
-	    if(nodeData.category == "Normal" && ttsNodeType == "0" && checkedArray.length == 0) {
+	    if(nodeData.category == "Normal" && t.ttsNodeType == "0" && checkedArray.length == 0) {
 			$.messager.alert('提示', "请选择用户回答", "info");
 			return;
 		}
-		addToResponse();
+	    t.checkedArray = checkedArray;
+		addToTTSResponse(t);
 	});
 	
 	// 关闭回复内容
@@ -3054,81 +3109,65 @@ function buttonClick() {
 	// 保存信息收集
 	$('#saveCollection').click(function() {
 		var nodeData = public_thisGraphObj.part.data;
-		var collectionName = $("#collectionName").textbox('getValue');
-		var collectionParam = $("#collectionParam").textbox('getValue');
-		var collectionType = $("#collectionType").combobox('getValue');
-		var collectionTimes = $("#collectionTimes").combobox('getValue');
-		var collectionElement = $("#collectionElement").combobox('getValue');
-		var collectionIntention = $("#collectionIntention").combobox('getValue');
-		var interactiveType = $("#interactiveType").combobox('getValue');
-		var collectionWords = $("#collectionWords").val();
-		var menuStartWords = $("#menuStartWords").val();
-		var menuOptions = $("#menuOptions").val();
-		var menuEndWords = $("#menuEndWords").val();
-		if(collectionName == '') {
+		var array = $('#collectionform').serializeArray();
+		var t={};
+		$.each(array,function(index, value){
+			t[this.name] = this.value;
+		});
+		if(t.collectionName == '') {
 			$.messager.alert('提示', "请填写信息名称", "info");
 			return;
 		}
-		if(collectionType == '') {
+		if(t.collectionType == '') {
 			$.messager.alert('提示', "请选择采集类型", "info");
 			return;
 		}
-		if(collectionIntention == '') {
+		if(t.collectionIntention == '') {
 			$.messager.alert('提示', "请选择关联意图", "info");
 			return;
 		}
-		if(interactiveType == '') {
+		if(t.interactiveType == '') {
 			$.messager.alert('提示', "请选择交互类型", "info");
 			return;
 		}
-		if(collectionType == 'elementCollection' && collectionElement == '') {
+		if(t.collectionType == 'elementCollection' && t.collectionElement == '') {
 			$.messager.alert('提示', "请选择关联要素", "info");
 			return;
 		}
-		if(interactiveType == '词模匹配' && collectionWords == '') {
+		if(t.interactiveType == '词模匹配' && t.collectionWords == '') {
 			$.messager.alert('提示', "请填写反问话术", "info");
 			return;
 		}
-		if(interactiveType == '键值补全' && menuStartWords == '') {
+		if(t.interactiveType == '键值补全' && t.menuStartWords == '') {
 			$.messager.alert('提示', "请填写开始话语", "info");
 			return;
 		}
-		if(interactiveType == '键值补全' && menuOptions == '') {
+		if(t.interactiveType == '键值补全' && t.menuOptions == '') {
 			$.messager.alert('提示', "请填写菜单选项", "info");
 			return;
 		}
-		if(interactiveType == '键值补全' && menuEndWords == '') {
-			$.messager.alert('提示', "请填写结束话语", "info");
-			return;
+		if(t.interactiveType == '键值补全' && t.menuEndWords == '') {
+			//$.messager.alert('提示', "请填写结束话语", "info");
+			//return;
 		}
 		var collectionText = "";
-		if(collectionType == 'elementCollection') {
-			if(interactiveType == '词模匹配') {
-				collectionText += "询问文本：" + collectionWords + "\n";
-			}
-			if(interactiveType == '键值补全') {
-				collectionText += "菜单选项：" + menuOptions + "\n";
-			}
-			collectionText += "关联要素：" + collectionElement + "\n";
+		if(t.interactiveType == '词模匹配') {
+			collectionText += "询问文本：" + t.collectionWords + "\n";
+			collectionText += "参数名称：" + t.collectionParam + "\n";
 		}
-		if(collectionType == 'userInfoCollection') {
-			collectionText += "询问文本：" + collectionWords + "\n";
-			collectionText += "参数名称：" + collectionParam + "\n";
+		if(t.interactiveType == '键值补全') {
+			collectionText += "询问文本：" + t.menuStartWords + "\n";
+			collectionText += "参数名称：" + t.collectionParam + "\n";
+			collectionText += "菜单选项：" + t.menuOptions + "\n";
 		}
-		collectionText += "关联意图：" + collectionIntention + "\n";
-		myDiagram.model.setDataProperty(nodeData, 'collectionName', collectionName);
+		if(t.collectionType == 'elementCollection') {
+			collectionText += "关联要素：" + t.collectionElement + "\n";
+		}
+		collectionText += "关联意图：" + t.collectionIntention + "\n";
 		myDiagram.model.setDataProperty(nodeData, 'collectionText', collectionText);
-		myDiagram.model.setDataProperty(nodeData, 'collectionParam', collectionParam);
-		myDiagram.model.setDataProperty(nodeData, 'collectionType', collectionType);
-		myDiagram.model.setDataProperty(nodeData, 'collectionTimes', collectionTimes);
-		myDiagram.model.setDataProperty(nodeData, 'collectionElement', collectionElement);
-		myDiagram.model.setDataProperty(nodeData, 'interactiveType', interactiveType);
-		myDiagram.model.setDataProperty(nodeData, 'collectionElement', collectionElement);
-		myDiagram.model.setDataProperty(nodeData, 'collectionIntention', collectionIntention);
-		myDiagram.model.setDataProperty(nodeData, 'collectionWords', collectionWords);
-		myDiagram.model.setDataProperty(nodeData, 'menuStartWords', menuStartWords);
-		myDiagram.model.setDataProperty(nodeData, 'menuOptions', menuOptions);
-		myDiagram.model.setDataProperty(nodeData, 'menuEndWords', menuEndWords);
+		$.each(t,function(index,value){
+	    	myDiagram.model.setDataProperty(nodeData, index, value);
+	    });
 		$('#myCollectionEditDiv').hide();
 	});
 	
@@ -3222,19 +3261,23 @@ function buttonClick() {
 	$("#saveURLAction").bind("click", function () {		
 		var nodeData = public_thisGraphObj.part.data;
 		var array = $('#URLActionform').serializeArray();
+		var t={};
+		$.each(array,function(index, value){
+			t[this.name] = this.value;
+		});
+		$.each(t,function(index,value){
+        	myDiagram.model.setDataProperty(nodeData, index, value);
+        });
 		// 校验格式
-		var actionName = $("#URLActionform #actionName").textbox('getValue');
-		if(actionName == '') {
+		if(t.actionName == '') {
 			$.messager.alert("提示","请填写组件名称","info");
 			return;
 		}
-		var interfaceName = $("#URLActionform #interfaceName").textbox('getValue');
-		if(interfaceName == '') {
+		if(t.interfaceName == '') {
 			$.messager.alert("提示","请选择调用接口","info");
 			return;
 		}
-		myDiagram.model.setDataProperty(nodeData, "text", actionName);
-		myDiagram.model.setDataProperty(nodeData, "interfaceName", interfaceName);
+		myDiagram.model.setDataProperty(nodeData, "text", t.actionName);
 		$('#myURLActionDiv').hide();
 	});
 	
@@ -3267,72 +3310,66 @@ function buttonClick() {
 		var bottomArray = [];
 		var conditionDivs = $("#conditions").find("div").eq(0).find('.condition-div');
 		var conditionCount = conditionDivs.length;
-		for(var i=0; i < conditionCount; i++) {
+		for(var conditionIdx=0; conditionIdx < conditionCount; conditionIdx++) {
+			var andConditionDivs = $("#conditions").find("div").eq(0).find('.condition-div').eq(conditionIdx).find("div[add='andconditions']").find('.and-condition-div');
+			var andConditionCount = andConditionDivs.length;
 			var andConditions = [];
-			conditions[i] = andConditions;
-			bottomArray[i] = {'text':'条件'+i};
+			var conditionName = $('#condition_name'+'_cdt'+conditionIdx).textbox('getValue');
+			bottomArray[conditionIdx] = {'text':conditionName};
+			for(var variableIdx=0; variableIdx < andConditionCount; variableIdx++) {
+				var andCondition = {};
+				var variableTypeInput = "variable_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramNameAttrInput = "param_name_attr" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramNameElementInput = "param_name_element" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramNameOtherInput = "param_name_other" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramRelationInput = "param_relation" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramTypeInput = "param_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var elementValueInput = "element_value" + "_cdt"+conditionIdx + "_and"+variableIdx; 
+			    var elementValueInsertBtn = "element_value_insert_btn" + "_cdt"+conditionIdx + "_and"+variableIdx; 
+			    var paramValueInput = "param_value" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var isUpDownInput = "isUpDown" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var upDownTypeInput = "upDownType" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var updownRatioInput = "updownRatio" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var interfaceNameInput = "interface_name" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var interfaceParamInput = "interface_param" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var variableType = $('#'+variableTypeInput).combobox('getValue');
+				if(variableType == "attr") {
+					andCondition.paramName = $("#"+paramNameAttrInput).combobox("getValue");
+					andCondition.paramValue = $("#"+paramValueInput).textbox("getValue");
+				} 
+				if(variableType == "element") {
+					andCondition.paramName = $("#"+paramNameElementInput).combobox("getValue");
+					andCondition.paramValue = $("#"+elementValueInput).combobox("getValue");
+				} 
+				if(variableType == "interface") {
+					andCondition.interfaceName = $("#"+interfaceNameInput).combobox("getValue");
+					andCondition.paramName = $("#"+interfaceParamInput).combobox("getValue");
+					andCondition.paramValue = $("#"+paramValueInput).textbox("getValue");
+				} 
+				if(variableType == "other") {
+					andCondition.paramName = $("#"+paramNameOtherInput).textbox("getValue");
+					andCondition.paramValue = $("#"+paramValueInput).textbox("getValue");
+				} 
+				andCondition.variableType = variableType;
+				andCondition.paramRelation = $("#"+paramRelationInput).combobox("getValue");
+				andCondition.paramType = $("#"+paramTypeInput).combobox("getValue");
+				andConditions[variableIdx] = andCondition;
+			}
+			conditions[conditionIdx] = andConditions;
 		}
-		var conditionName = $("#conditionName").textbox('getValue');
-		if(conditionName == '') {
-			$.messager.alert("提示","请填写名称","info");
+		$.each(array,function(index, value){
+			myDiagram.model.setDataProperty(nodeData, this.name, this.value);
+		});
+		if(nodeData.conditionNodeName == '') {
+			$.messager.alert("提示","请填写组件名称","info");
 			return;
 		}
 		if(bottomArray.length == 0) {
 			$.messager.alert("提示","请填写条件","info");
 			return;
 		}
-		$.each(array,function(index, value){
-			if(this.name.indexOf("_and") > -1) {
-				var nameSplitArray = this.name.split("_");
-				var conditionIndexItem = nameSplitArray[nameSplitArray.length-2];
-				var conditionIndex = conditionIndexItem.substring(conditionIndexItem.length-1);
-				var andIndexItem = nameSplitArray[nameSplitArray.length-1];
-				var andIndex = andIndexItem.substring(andIndexItem.length-1);
-				var andConditions = conditions[conditionIndex];
-				if(andConditions[andIndex] == "" || andConditions[andIndex] == null || andConditions[andIndex] == undefined) {
-					andConditions[andIndex] = {}
-				} 
-				if(this.name.indexOf("variable_type") > -1) {
-					andConditions[andIndex].variableType = this.value;
-					if(this.value == "attr") {
-						var paramNameAttr = "param_name_attr" + "_cdt"+conditionIndex+"_and"+andIndex;
-						var paramValue = "param_value" + "_cdt"+conditionIndex+"_and"+andIndex;
-						andConditions[andIndex].paramName = $("#"+paramNameAttr).combobox("getValue");
-						andConditions[andIndex].paramValue = $("#"+paramValue).textbox("getValue");
-					} 
-					if(this.value == "element") {
-						var paramNameElement = "param_name_element" + "_cdt"+conditionIndex+"_and"+andIndex;
-						var paramValue = "element_value" + "_cdt"+conditionIndex+"_and"+andIndex;
-						andConditions[andIndex].paramName = $("#"+paramNameElement).combobox("getValue");
-						andConditions[andIndex].paramValue = $("#"+paramValue).combobox("getValue");
-					} 
-					if(this.value == "interface") {
-						var interfaceName = "interface_name" + "_cdt"+conditionIndex+"_and"+andIndex;
-						var interfaceParam = "interface_param" + "_cdt"+conditionIndex+"_and"+andIndex;
-						var paramValue = "param_value" + "_cdt"+conditionIndex+"_and"+andIndex;
-						andConditions[andIndex].interfaceName = $("#"+interfaceName).combobox("getValue");
-						andConditions[andIndex].paramName = $("#"+interfaceParam).combobox("getValue");
-						andConditions[andIndex].paramValue = $("#"+paramValue).textbox("getValue");
-					} 
-					if(this.value == "other") {
-						var paramNameOther = "param_name_other" + "_cdt"+conditionIndex+"_and"+andIndex;
-						var paramValue = "param_value" + "_cdt"+conditionIndex+"_and"+andIndex;
-						andConditions[andIndex].paramName = $("#"+paramNameOther).textbox("getValue");
-						andConditions[andIndex].paramValue = $("#"+paramValue).textbox("getValue");
-					} 
-				}
-				if(this.name.indexOf("param_relation") > -1) {
-					andConditions[andIndex].paramRelation = this.value;
-				}
-				if(this.name.indexOf("param_type") > -1) {
-					andConditions[andIndex].paramType = this.value;
-				}
-			} else {
-				myDiagram.model.setDataProperty(nodeData, this.name, this.value);
-			}
-		});
-		myDiagram.model.setDataProperty(nodeData, "text", nodeData.conditionName);
-		myDiagram.model.setDataProperty(nodeData, "conditionName", nodeData.conditionName);
+		myDiagram.model.setDataProperty(nodeData, "text", nodeData.conditionNodeName);
+		myDiagram.model.setDataProperty(nodeData, "conditionNodeName", nodeData.conditionNodeName);
 		myDiagram.model.setDataProperty(nodeData, "conditions", conditions);
 		myDiagram.model.setDataProperty(nodeData, "bottomArray", bottomArray);
 		$('#myConditionDiv').hide();
@@ -3849,8 +3886,8 @@ function saveCollectionIntention() {
 			type : "saveCollectionIntention",
 		},
 		success : function(data) {
-        	$.messager.alert('系统提示', data.checkInfo, "warning");
-        	if (data.checkInfo == '插入成功!') {
+        	$.messager.alert('系统提示', data.checkInfo, "info");
+        	if (data.success) {
 	        	// 刷新关联要素下拉框
         		loadCollectionIntention();
 	    		// 关闭用户答案页面

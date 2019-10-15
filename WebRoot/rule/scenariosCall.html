@@ -79,21 +79,45 @@
 				
 		<div id="myDiagramDiv" style="flex-grow: 1; height: 500px; overflow:hidden; box-shadow: 2px 2px 5px #888888;"></div>
 		
-		<!-- 编辑回复内容  window start -->
-		<div id="myNormalEditDiv" title="编辑回复内容" tabindex="0"
+		<!-- 编辑放音内容  window start -->
+		<div id="myNormalEditDiv" title="编辑放音内容" tabindex="0"
 			style="overflow:auto; position:absolute; z-index:999; right:0; top:1; width: 250px; height: 500px; background-color: whitesmoke; border: solid 1px black; display:none; ">
-			<form id="rule0form">
+			<form id="myNormalEditForm">
 		    	<table id="common-response-table" style="width:100%;">
-		    		<tr>
+					<tr>
+						<td>
+							<span>交互类型：</span>
+							<span><input id="interactiveType" name="interactiveType" class="easyui-combobox" style="width: 240px;"
+										data-options="valueField:'id',textField:'text',data:[{'text':'菜单询问','id':'键值补全'},{'text':'系统反问','id':'词模匹配'}]"/>
+							</span>
+						</td>
+					</tr>
+					<tr class="words">
 						<td>
 							<span>话术文字：</span>
-							<span><textarea id="tts" style="width: 240px; height:100px; font-size: 12px;"></textarea></span>
+							<span><input id="wordsContent" name="wordsContent" class="easyui-textbox" multiline="true" style="width: 240px; height:100px; font-size: 12px;"/></span>
+						</td>
+					</tr>
+					<tr class="menus">
+						<td>
+							<span><span style='color:red'>*</span>开始话语：</span>
+							<span><input id="menuStartWords" name="menuStartWords" class="easyui-textbox" multiline="true" style="width: 240px; height:30px; font-size: 12px;"/></span>
+							<span><span style='color:red'>*</span>菜单选项：</span>
+							<span><input id="menuOptions" name="menuOptions" class="easyui-textbox" multiline="true" style="width: 240px; height:30px; font-size: 12px;" data-options="prompt:'多条值以|分隔开'"/></span>
+							<span>结束话语：</span>
+							<span><input id="menuEndWords" name="menuEndWords" class="easyui-textbox" multiline="true" style="width: 240px; height:30px; font-size: 12px;"/></span>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<span>末梢节点：</span>
+							<span><input id="endFlag" name="endFlag" class="easyui-combobox" data-options="valueField:'id',textField:'text',data:[{'text':'否','id':'否',selected:true},{'text':'是','id':'是'}]" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr>
 						<td>
 							<span>录音文件：</span>
-							<span><input id="code" class="easyui-textbox" style="width: 240px;"/></span>
+							<span><input id="code" class="easyui-textbox" multiline="true" style="width: 240px;height: 100px"/></span>
 						</td>
 					</tr>
 				</table>
@@ -204,7 +228,7 @@
 					data-options="iconCls:'icon-clear'">关闭</a>
 			</div>
 		</div>
-		<!-- 编辑回复内容 window end -->
+		<!-- 编辑放音内容 window end -->
 		
 		<!-- 编辑信息收集 window start -->
 		<div id="myCollectionEditDiv" title="信息收集" tabindex="0"
@@ -214,25 +238,32 @@
 		    		<tr>
 						<td>
 							<span><span style='color:red'>*</span>节点名称：</span>
-							<span><input id="collectionName" class="easyui-textbox" style="width: 240px;"/></span>
+							<span><input id="collectionName" name="collectionName" class="easyui-textbox" style="width: 240px;"/></span>
 						</td>
 					</tr>
+		    		<tr>
+						<td>
+							<span><span style='color:red'>*</span>末梢节点：</span>
+							<span><input id="endFlag" name="endFlag" class="easyui-combobox" data-options="valueField:'id',textField:'text',data:[{'text':'否','id':'否',selected:true},{'text':'是','id':'是'}]" style="width: 240px;"/></span>
+						</td>
+					</tr>
+					
 					<tr>
 						<td>
 							<span><span style='color:red'>*</span>采集类型：</span>
-							<span><input id="collectionType" class="easyui-combobox" style="width: 240px;"/></span>
+							<span><input id="collectionType" name="collectionType" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr id="collectionform-collectionParam-tr">
 						<td>
 							<span><span style='color:red'>*</span>参数名称：</span>
-							<span><input id="collectionParam" class="easyui-textbox" style="width: 240px;"/></span>
+							<span><input id="collectionParam" name="collectionParam" class="easyui-textbox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr id="collectionform-collectionTimes-tr">
 						<td>
 							<span><span style='color:red'>*</span>重复次数：</span>
-							<span><input id="collectionTimes" class="easyui-combobox" style="width: 240px;"/></span>
+							<span><input id="collectionTimes" name="collectionTimes" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr id="collectionform-collectionElement-tr">
@@ -254,14 +285,14 @@
 								<a id="toAddCollectionIntentionPageBtn" name="toAddCollectionIntentionPageBtn" href="javascript:void(0)" class="easyui-linkbutton" 
 									data-options="iconCls:'icon-add'">添加</a>
 							</span>
-							<span><input id="collectionIntention" class="easyui-combobox" style="width: 240px;"/></span>
+							<span><input id="collectionIntention" name="collectionIntention" class="easyui-combobox" style="width: 240px;"/></span>
 						</td>
 					</tr>
 					<tr id="collectionform-interactiveType-tr">
 						<td>
 							<span><span style='color:red'>*</span>交互类型：</span>
 							<span>
-								<input id="interactiveType" class="easyui-combobox" style="width: 240px;"
+								<input id="interactiveType" name="interactiveType" class="easyui-combobox" style="width: 240px;"
 									data-options="valueField:'id',textField:'text',data:[{'text':'菜单询问','id':'键值补全'},{'text':'系统反问','id':'词模匹配'}]"/>
 							</span>
 						</td>
@@ -269,17 +300,17 @@
 					<tr id="collectionform-collectionWords-tr">
 						<td>
 							<span><span style='color:red'>*</span>询问文本：</span>
-							<span><textarea id="collectionWords" style="width: 240px; height:100px; font-size: 12px;"></textarea></span>
+							<span><input id="collectionWords" name="collectionWords" class="easyui-textbox" multiline="true" style="width: 240px; height:100px; font-size: 12px;"/></span>
 						</td>
 					</tr>
 					<tr id="collectionform-menuItems-tr">
 						<td>
 							<span><span style='color:red'>*</span>开始话语：</span>
-							<span><textarea id="menuStartWords" style="width: 240px; height:30px; font-size: 12px;"></textarea></span>
+							<span><input id="menuStartWords" name="menuStartWords" class="easyui-textbox" multiline="true" style="width: 240px; height:30px; font-size: 12px;"/></span>
 							<span><span style='color:red'>*</span>菜单选项：</span>
-							<span><textarea id="menuOptions" style="width: 240px; height:30px; font-size: 12px;" placeholder="多条值以|分隔开"></textarea></span>
-							<span><span style='color:red'>*</span>结束话语：</span>
-							<span><textarea id="menuEndWords" style="width: 240px; height:30px; font-size: 12px;"></textarea></span>
+							<span><input id="menuOptions" name="menuOptions" class="easyui-textbox" multiline="true" style="width: 240px; height:30px; font-size: 12px;" data-options="prompt:'多条值以|分隔开'"/></span>
+							<span>结束话语：</span>
+							<span><input id="menuEndWords" name="menuEndWords" class="easyui-textbox" multiline="true" style="width: 240px; height:30px; font-size: 12px;"/></span>
 						</td>
 					</tr>
 				</table>
@@ -305,6 +336,10 @@
                     	<span>DTMF名称：</span>
                     </div>
                     <input class="easyui-textbox" id="dtmfName" name="dtmfName" data-options="prompt:'DTMF名称'" style="width: 240px;"/></div>
+                <div class="form-div">
+                	<span><span style='color:red'>*</span>末梢节点：</span>
+					<span><input id="endFlag" name="endFlag" class="easyui-combobox" data-options="valueField:'id',textField:'text',data:[{'text':'否','id':'否',selected:true},{'text':'是','id':'是'}]" style="width: 240px;"/></span>
+                </div>
                 <div class="form-div">
                     <div class="form-div">
                     	<span style='color:red'>*</span>
@@ -374,6 +409,10 @@
                 <div class="form-div">
                     <div class="form-div">人工服务号码<span style='color:red'>*</span>：</div>
                     <input class="easyui-textbox" id="transferNumber" name="transferNumber" data-options="prompt:'请输入人工电话号码'" style="width: 100%;"/></div>
+            	<div class="form-div">
+                	<span><span style='color:red'>*</span>是否末梢节点：</span>
+					<span><input id="endFlag" name="endFlag" class="easyui-combobox" data-options="valueField:'id',textField:'text',data:[{'text':'否','id':'否',selected:true},{'text':'是','id':'是'}]" style="width: 240px;"/></span>
+                </div>
             </form>
             <div style="text-align: center; padding: 10px">
                 <a id="saveTransfer" href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>
@@ -389,11 +428,15 @@
             <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
             <form id="URLActionform" style="padding-right: 5px;padding-left:5px;font-size: 13px;">
             	<div class="form-div">
-                    <div class="form-div">组件名称<span style='color:red'>*</span>：</div>
+                    <div class="form-div"><span style='color:red'>*</span>组件名称：</div>
                     <input class="easyui-textbox" id="actionName" name="actionName" data-options="prompt:'组件名称'" style="width:240px;height: 30px"/>
                 </div>
                 <div class="form-div">
-		            <div class="form-div">调用接口<span style='color:red'>*</span>：
+                	<span><span style='color:red'>*</span>末梢节点：</span>
+					<span><input id="endFlag" name="endFlag" class="easyui-combobox" data-options="valueField:'id',textField:'text',data:[{'text':'否','id':'否',selected:true},{'text':'是','id':'是'}]" style="width: 240px;"/></span>
+                </div>
+                <div class="form-div">
+		            <div class="form-div"><span style='color:red'>*</span>调用接口：
 		            	<a id="addInterfaceBtn" name="addInterfaceBtn" href="javascript:void(0)" 
 		            		class="easyui-linkbutton" data-options="iconCls:'icon-add'">新增</a>
 		            	<a id="editInterfaceBtn" name="editInterfaceBtn" href="javascript:void(0)" 
@@ -417,8 +460,12 @@
 
             <form id="Conditionform" style="padding-right: 1px;padding-left:1px;font-size: 13px;">
                 <div class="form-div" >
-                    <div class="form-div"><span style='color:red'>*</span>设置名称：</div>
-                    <input class="easyui-textbox" id="conditionName" name="conditionName" data-options="prompt:'请输入名称'" style="width: 240px;"/>
+                    <div class="form-div"><span style='color:red'>*</span>组件名称：</div>
+                    <input class="easyui-textbox" id="conditionNodeName" name="conditionNodeName" data-options="prompt:'请输入名称'" style="width: 240px;"/>
+                </div>
+                <div class="form-div">
+                	<span><span style='color:red'>*</span>末梢节点：</span>
+					<span><input id="endFlag" name="endFlag" class="easyui-combobox" data-options="valueField:'id',textField:'text',data:[{'text':'否','id':'否',selected:true},{'text':'是','id':'是'}]" style="width: 240px;"/></span>
                 </div>
                 <div id="conditions" class="form-div" >
                     <div class="form-div" style="padding-right: 1px;padding-left:1px;padding-top: 5px; ">
@@ -639,7 +686,7 @@
 				</tr>
 				<tr>
 					<td><span class="span_class">生成词模:</span></td>
-					<td><span><input id=collectionIntentionAdd-keywords" class="easyui-textbox" style="width: 500px;"></input></span></td>
+					<td><span><input id="collectionIntentionAdd-keywords" class="easyui-textbox" style="width: 500px;"></input></span></td>
 					<td><span><a id="collectionIntentionAdd-analyzeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
 									data-options="iconCls:'icon-save'">生成</a> </span></td>
 				</tr>
