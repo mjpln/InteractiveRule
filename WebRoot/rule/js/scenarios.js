@@ -28,7 +28,7 @@ var weightnum;
 var strategy;
 
 //设置rule的列数，qby,20181012
-var MAX_SCENARIO_COUNT=21;
+var MAX_SCENARIO_COUNT=101;
 
 $(function() {
 	var urlparams = new UrlParams();// 所有url参数
@@ -2343,16 +2343,18 @@ function loadRule0Combobox() {
 //					align : 'center',
 					width : 150,
 					formatter : function(value, row, index) {
-						if (value == '交互') {
-							return '<用户未选或未告知,系统提示输入>';
-						} else if (value == '已选') {
-							return '<用户告知或已选择，系统可获知>';
-						} else if (value == '缺失'){
-							return '<用户未选或未告知>';
-						} else if (value.indexOf('ROBOT_') > -1){
-							return robotMap[value];
-						}else{
-							return value;
+						if(value != undefined) {
+							if (value == '交互') {
+								return '<用户未选或未告知,系统提示输入>';
+							} else if (value == '已选') {
+								return '<用户告知或已选择，系统可获知>';
+							} else if (value == '缺失'){
+								return '<用户未选或未告知>';
+							} else if (value.indexOf('ROBOT_') > -1){
+								return robotMap[value];
+							}else{
+								return value;
+							}
 						}
 					}
 				});

@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.jsp.jstl.sql.Result;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.DVConstraint;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -1315,10 +1316,12 @@ public class QuestionUploadDao {
 		JSONArray jsonAr = new JSONArray();
 		
 		if (customer.equals("全行业")){
-			String cityname[] = local.split(",");
 			Map<String, String> map = new HashMap<String, String>();
-			for (int m = 0; m < cityname.length; m++) {
-				map.put(cityname[m], "");
+			if(StringUtils.isNotBlank(local)) {
+				String cityname[] = local.split(",");
+				for (int m = 0; m < cityname.length; m++) {
+					map.put(cityname[m], "");
+				}
 			}
 			Result rs = null;
 			rs = CommonLibQuestionUploadDao.selProvince();
