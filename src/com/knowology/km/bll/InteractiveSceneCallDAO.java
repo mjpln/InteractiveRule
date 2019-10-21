@@ -1,8 +1,6 @@
 package com.knowology.km.bll;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -16,7 +14,6 @@ import javax.servlet.jsp.jstl.sql.Result;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.knowology.Bean.User;
@@ -68,7 +65,7 @@ import com.knowology.km.util.SimpleString;
 import com.knowology.km.util.getServiceClient;
 
 public class InteractiveSceneCallDAO {
-	
+
 	private static Logger logger = Logger.getLogger("InteractiveSceneCallOutDAO");
 
 	private static int weight;
@@ -79,7 +76,7 @@ public class InteractiveSceneCallDAO {
 	 * 
 	 * @param sceneJson   流程图JSON数据
 	 * @param scenariosid 场景ID
-	 * @param sceneType 场景类型
+	 * @param sceneType   场景类型
 	 * @return 保存结果
 	 */
 	public static Object saveSceneRules(String sceneJson, String scenariosid, String scenariosType) {
@@ -103,7 +100,7 @@ public class InteractiveSceneCallDAO {
 			return fail();
 		}
 		// 查询机器人ID
-		if(SceneTypeConsts.CALL_OUT.equals(sceneType)) {
+		if (SceneTypeConsts.CALL_OUT.equals(sceneType)) {
 			String robotId = ScenariosDAO.getSceneRobotID(scenariosid);
 			if (StringUtils.isBlank(robotId)) {
 				logger.error("未查询到机器人ID，场景ID=" + scenariosid);
@@ -124,18 +121,18 @@ public class InteractiveSceneCallDAO {
 		}
 		return fail();
 	}
-	
+
 	/**
 	 * 节点排序
 	 */
 	private static List<NodeData> sortNodeDataList(List<NodeData> nodeDataList) {
-		if(nodeDataList == null || nodeDataList.isEmpty()) {
+		if (nodeDataList == null || nodeDataList.isEmpty()) {
 			return nodeDataList;
 		}
 		ArrayList<NodeData> newNodeDataList = new ArrayList<NodeData>();
 		LinkedHashSet<String> newNodeDataKeys = new LinkedHashSet<String>();
 		Map<String, NodeData> nodeDataKeys = new HashMap<String, NodeData>();
-		for(NodeData nodeData : nodeDataList) {
+		for (NodeData nodeData : nodeDataList) {
 			nodeDataKeys.put(nodeData.getKey(), nodeData);
 		}
 		// 开始节点
@@ -145,7 +142,9 @@ public class InteractiveSceneCallDAO {
 		LoopNodeData(startNode, nodeDataKeys, newNodeDataKeys, newNodeDataList);
 		return newNodeDataList;
 	}
-	private synchronized static List<NodeData> LoopNodeData(NodeData nodeData, Map<String, NodeData> nodeDataKeys, LinkedHashSet<String> newNodeDataKeys, ArrayList<NodeData> newNodeDataList) {
+
+	private synchronized static List<NodeData> LoopNodeData(NodeData nodeData, Map<String, NodeData> nodeDataKeys,
+			LinkedHashSet<String> newNodeDataKeys, ArrayList<NodeData> newNodeDataList) {
 		if (!CallOutNodeTypeConsts.END_NODE.equals(nodeData.getCategory())) {
 			if (nodeData.getFromLinks() != null && !nodeData.getFromLinks().isEmpty()) {
 				for (LinkData linkData : nodeData.getFromLinks()) {
@@ -164,7 +163,7 @@ public class InteractiveSceneCallDAO {
 					NodeData toNode = linkData.getToNode();
 					if (!newNodeDataList.contains(toNode)) {
 						newNodeDataList.add(toNode);
-					} 
+					}
 				}
 				for (LinkData linkData : nodeData.getToLinks()) {
 					NodeData toNode = linkData.getToNode();
@@ -180,7 +179,7 @@ public class InteractiveSceneCallDAO {
 	 * 
 	 * @param scenariosid  场景ID
 	 * @param nodeDataList 节点数据
-	 * @param sceneType 场景类型
+	 * @param sceneType    场景类型
 	 * @return 规则列表
 	 */
 	private static List<SceneRule> generateSceneRules(String scenariosid, List<NodeData> nodeDataList) {
@@ -189,9 +188,9 @@ public class InteractiveSceneCallDAO {
 		int weight = 0;
 		for (NodeData nodaData : nodeDataList) {
 			List<LinkData> toLinks = nodaData.getToLinks();
-			for (int linkIndex = 0; linkIndex < toLinks.size(); linkIndex ++) {
+			for (int linkIndex = 0; linkIndex < toLinks.size(); linkIndex++) {
 				LinkData toLink = toLinks.get(linkIndex);
-				NodeData fromNode = toLink .getFromNode();
+				NodeData fromNode = toLink.getFromNode();
 				NodeData toNode = toLink.getToNode();
 				String fromPortText = toLink.getFromPort().getText();
 				sceneRules = getLinkSceneRules(scenariosid, fromNode, toNode, linkIndex, fromPortText, sceneRules);
@@ -206,19 +205,19 @@ public class InteractiveSceneCallDAO {
 		sceneRules.add(sceneRule);
 		return sceneRules;
 	}
-	
-		
+
 	/**
 	 * 根据连线生成规则
 	 * 
-	 * @param scenariosid    场景ID
-	 * @param fromNode       源节点
-	 * @param toNode         目的节点
-	 * @param fromPortText   源端口
-	 * @param sceneRules     规则列表
+	 * @param scenariosid  场景ID
+	 * @param fromNode     源节点
+	 * @param toNode       目的节点
+	 * @param fromPortText 源端口
+	 * @param sceneRules   规则列表
 	 * @return
 	 */
-	public static List<SceneRule> getLinkSceneRules(String scenariosid, NodeData fromNode, NodeData toNode, int linkIndex, String fromPortText, List<SceneRule> sceneRules) {
+	public static List<SceneRule> getLinkSceneRules(String scenariosid, NodeData fromNode, NodeData toNode,
+			int linkIndex, String fromPortText, List<SceneRule> sceneRules) {
 		String fromNodeCategory = fromNode.getCategory();
 		// 开始组件
 		if (CallOutNodeTypeConsts.START_NODE.equals(fromNodeCategory)) {
@@ -236,7 +235,8 @@ public class InteractiveSceneCallDAO {
 		// DTMF按键组件
 		if (CallOutNodeTypeConsts.DTMF_NODE.equals(fromNodeCategory)) {
 			String isGetPressNumber = fromPortText;
-			sceneRules = generateDTMFNodeSceneRules(scenariosid, (DTMFNode) fromNode, toNode, isGetPressNumber, sceneRules);
+			sceneRules = generateDTMFNodeSceneRules(scenariosid, (DTMFNode) fromNode, toNode, isGetPressNumber,
+					sceneRules);
 		}
 		// 转人工组件
 		if (CallOutNodeTypeConsts.TRANSFER_NODE.equals(fromNodeCategory)) {
@@ -249,7 +249,8 @@ public class InteractiveSceneCallDAO {
 		// 条件组件
 		if (CallOutNodeTypeConsts.CONDITION_NODE.equals(fromNodeCategory)) {
 			String conditionName = fromPortText;
-			sceneRules = generateConditionNodeSceneRules(scenariosid, (ConditionNode) fromNode, toNode, linkIndex, conditionName, sceneRules);
+			sceneRules = generateConditionNodeSceneRules(scenariosid, (ConditionNode) fromNode, toNode, linkIndex,
+					conditionName, sceneRules);
 		}
 		return sceneRules;
 	}
@@ -259,13 +260,15 @@ public class InteractiveSceneCallDAO {
 	 */
 	private static List<SceneRule> generateCollectionNodeSceneRules(String scenariosid, CollectionNode collectionNode,
 			NodeData nextNode, List<SceneRule> sceneRules) {
-		switch(CollectionTypeEnum.getEnum(collectionNode.getCollectionType())) {
+		switch (CollectionTypeEnum.getEnum(collectionNode.getCollectionType())) {
 		case ELEMENT_COLLECTION:
-			return InteractiveSceneCallDAO.generateElementCollectionNodeSceneRules(scenariosid, collectionNode, nextNode, sceneRules);
+			return InteractiveSceneCallDAO.generateElementCollectionNodeSceneRules(scenariosid, collectionNode,
+					nextNode, sceneRules);
 		case USER_INFO_COLLECTION:
-			return InteractiveSceneCallDAO.generateUserInfoCollectionNodeSceneRules2(scenariosid, collectionNode, nextNode, sceneRules);
+			return InteractiveSceneCallDAO.generateUserInfoCollectionNodeSceneRules2(scenariosid, collectionNode,
+					nextNode, sceneRules);
 		default:
-			break; 
+			break;
 		}
 		return sceneRules;
 	}
@@ -276,17 +279,18 @@ public class InteractiveSceneCallDAO {
 	 * @param scenariosid 场景ID
 	 * @param toNode      连接组件
 	 * @param weight      优先级
-	 * @param sceneRules   规则集合
+	 * @param sceneRules  规则集合
 	 * @return
 	 */
 	private static List<SceneRule> generateStartSceneRules(String scenariosid, NodeData toNode,
 			List<SceneRule> sceneRules) {
 		String ruleResponse = "";
-		if(SceneTypeConsts.CALL_OUT.equals(sceneType)) {
+		if (SceneTypeConsts.CALL_OUT.equals(sceneType)) {
 			ruleResponse += "业务信息获取(\"用户信息查询\")";
 		}
 		ruleResponse += getCallRuleResponse(toNode);
-		SceneRule sceneRule = generateInteractiveRule(scenariosid, null, "交互", null, null, null, null, null, null, null, ruleResponse);
+		SceneRule sceneRule = generateInteractiveRule(scenariosid, null, "交互", null, null, null, null, null, null, null,
+				ruleResponse);
 		sceneRules.add(sceneRule);
 		return sceneRules;
 	}
@@ -299,7 +303,7 @@ public class InteractiveSceneCallDAO {
 	 * @param toNode           连接组件
 	 * @param isGetPressNumber 是否获取按键值
 	 * @param conditionValue   条件值
-	 * @param sceneRules        规则集合
+	 * @param sceneRules       规则集合
 	 * @return
 	 */
 	private static List<SceneRule> generateDTMFNodeSceneRules(String scenariosid, DTMFNode fromNode, NodeData toNode,
@@ -311,29 +315,29 @@ public class InteractiveSceneCallDAO {
 		result += "SET(\"" + fromNode.getDtmfAlias() + "\",\"@query\");";
 		SceneRule sceneRule = generateOtherRule(scenariosid, condition, result);
 		sceneRules.add(sceneRule);
-		
+
 		// 设置是否获取到按键值标识:否
 		condition = CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME + "=" + fromNode.getKey();
 		condition += " and query" + "=" + "\"未获取到按键值\"";
 		result = "SET(\"" + CallOutSceneElementConsts.DTMF_IS_GET_PRESS_NUMBER_ELEMENT_NAME + "\",\"否\")";
 		sceneRule = generateOtherRule(scenariosid, condition, result);
 		sceneRules.add(sceneRule);
-		
+
 		// 未获取到按键值识别规则
 		sceneRule = generateEmptyPressNumberRegnitionRule(scenariosid, fromNode.getKey());
 		sceneRules.add(sceneRule);
 		if ("获取到按键值".equals(isGetPressNumber)) {
 			// 获取到按键值，跳转节点
 			String ruleResponse = getCallRuleResponse(toNode);
-			sceneRule = generateInteractiveRule(scenariosid, null, fromNode.getKey(), null,
-					null, null, null, null, null, "是", ruleResponse);
+			sceneRule = generateInteractiveRule(scenariosid, null, fromNode.getKey(), null, null, null, null, null,
+					null, "是", ruleResponse);
 			sceneRules.add(sceneRule);
 		}
 		if ("未获取到按键值".equals(isGetPressNumber)) {
 			// 未获取到按键值，跳转节点
 			String ruleResponse = getCallRuleResponse(toNode);
-			sceneRule = generateInteractiveRule(scenariosid, null, fromNode.getKey(), null,
-					null, null, null, null, null, "否", ruleResponse);
+			sceneRule = generateInteractiveRule(scenariosid, null, fromNode.getKey(), null, null, null, null, null,
+					null, "否", ruleResponse);
 			sceneRules.add(sceneRule);
 		}
 		return sceneRules;
@@ -348,7 +352,7 @@ public class InteractiveSceneCallDAO {
 	 * @param fromPort       用户回答
 	 * @param conditionValue 条件值
 	 * @param weight         优先级
-	 * @param sceneRules      规则集合
+	 * @param sceneRules     规则集合
 	 * @return
 	 */
 	private static List<SceneRule> generateTTSSceneRules(String scenariosid, TTSNode fromNode, NodeData toNode,
@@ -364,14 +368,14 @@ public class InteractiveSceneCallDAO {
 			SceneRule sceneRule = generateInteractiveRule(scenariosid, toNode.getKey(), aboveNodeName, customerAnswer,
 					recognitionStatus, null, differentiatedNode, null, null, null, ruleResponse);
 			sceneRules.add(sceneRule);
-		} 
+		}
 		if ("跳转".equals(customerAnswer)) {
 			String ruleResponse = getCallRuleResponse(toNode);
-			SceneRule sceneRule = generateInteractiveRule(scenariosid, toNode.getKey(), aboveNodeName, null,
-					null, null, null, null, null, null, ruleResponse);
+			SceneRule sceneRule = generateInteractiveRule(scenariosid, toNode.getKey(), aboveNodeName, null, null, null,
+					null, null, null, null, ruleResponse);
 			sceneRules.add(sceneRule);
 		}
-		if ("跳出".equals(customerAnswer)){
+		if ("跳出".equals(customerAnswer)) {
 			// 当前节点跳出时，所有上文节点需要配置跳出规则
 			for (LinkData fromLink : fromNode.getFromLinks()) {
 				String ruleResponse = getCallRuleResponse(toNode);
@@ -381,7 +385,8 @@ public class InteractiveSceneCallDAO {
 					sceneRules.add(sceneRule);
 				} else {
 					SceneRule sceneRule = generateInteractiveRule(scenariosid, fromNode.getKey(),
-							fromLink.getFromNode().getKey(), "已选", "跳出", null, fromNode.getKey(), null, null, null, ruleResponse);
+							fromLink.getFromNode().getKey(), "已选", "跳出", null, fromNode.getKey(), null, null, null,
+							ruleResponse);
 					sceneRules.add(sceneRule);
 				}
 			}
@@ -414,17 +419,15 @@ public class InteractiveSceneCallDAO {
 		sceneRules.add(sceneRule);
 		return sceneRules;
 	}
-	
-	
 
 	/**
 	 * 条件组件 生成规则
 	 * 
-	 * @param scenariosid    场景ID
-	 * @param fromNode       条件节点
-	 * @param toNode         跳转节点
-	 * @param conditionName  条件名
-	 * @param sceneRules     规则集合
+	 * @param scenariosid   场景ID
+	 * @param fromNode      条件节点
+	 * @param toNode        跳转节点
+	 * @param conditionName 条件名
+	 * @param sceneRules    规则集合
 	 * @return
 	 */
 	public static List<SceneRule> generateConditionNodeSceneRules(String scenariosid, ConditionNode fromNode,
@@ -466,11 +469,11 @@ public class InteractiveSceneCallDAO {
 					sceneElementValues.add(sceneElement);
 				}
 				// 最后一个AND条件满足才发生跳转
-				if(i < andConditions.size()-1) {
+				if (i < andConditions.size() - 1) {
 					SceneRule sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, "",
 							sceneElementValues, ResponseTypeConsts.WRITTEN_RESPONSE_RULE);
 					sceneRules.add(sceneRule);
-				} else if(i == andConditions.size()-1){
+				} else if (i == andConditions.size() - 1) {
 					SceneRule sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, ruleResponse,
 							sceneElementValues, ResponseTypeConsts.WRITTEN_RESPONSE_RULE);
 					sceneRules.add(sceneRule);
@@ -487,8 +490,10 @@ public class InteractiveSceneCallDAO {
 		List<SceneElement> scenariosElementList = ScenariosDAO.getSceneElements(scenariosid);
 		Result result = CommonLibServiceDAO.getServiceInfoByserviceid(scenariosid);
 		String scenariosName = result.getRows()[0].get("service") + "";
-		String weight = String.valueOf(Integer.parseInt(scenariosElementList.get(scenariosElementList.size()-1).getWeight()) + 1);
-		JSONObject jsonObj = (JSONObject) InteractiveSceneDAO.insertElementName(scenariosid, scenariosName, "", "", "", "", paramName, "", weight, "", "");
+		String weight = String
+				.valueOf(Integer.parseInt(scenariosElementList.get(scenariosElementList.size() - 1).getWeight()) + 1);
+		JSONObject jsonObj = (JSONObject) InteractiveSceneDAO.insertElementName(scenariosid, scenariosName, "", "", "",
+				"", paramName, "", weight, "", "");
 		return jsonObj.getBooleanValue("success");
 	}
 
@@ -499,19 +504,19 @@ public class InteractiveSceneCallDAO {
 	 * @param fromNode       转人工节点
 	 * @param toNode         跳转节点
 	 * @param conditionValue 条件值
-	 * @param sceneRules      规则集合
+	 * @param sceneRules     规则集合
 	 * @return
 	 */
 	private static List<SceneRule> generateTransferNodeSceneRules(String scenariosid, TransferNode fromNode,
 			NodeData toNode, List<SceneRule> sceneRules) {
 		// 跳转节点
 		String ruleResponse = getCallRuleResponse(toNode);
-		SceneRule sceneRule = generateInteractiveRule(scenariosid, null, fromNode.getKey(),
-				null, null, null, null, null, null, null, ruleResponse);
+		SceneRule sceneRule = generateInteractiveRule(scenariosid, null, fromNode.getKey(), null, null, null, null,
+				null, null, null, ruleResponse);
 		sceneRules.add(sceneRule);
 		return sceneRules;
 	}
-	
+
 	/**
 	 * 信息收集组件 生成要素采集规则
 	 * 
@@ -524,8 +529,7 @@ public class InteractiveSceneCallDAO {
 	 * @return
 	 */
 	public static List<SceneRule> generateElementCollectionNodeSceneRules(String scenariosid,
-			CollectionNode collectionNode, NodeData nextNode, 
-			List<SceneRule> sceneRules) {
+			CollectionNode collectionNode, NodeData nextNode, List<SceneRule> sceneRules) {
 		SceneRule sceneRule = null;
 		String ruleResponse = null;
 		String interactiveType = collectionNode.getInteractiveType();
@@ -543,12 +547,13 @@ public class InteractiveSceneCallDAO {
 				? ResponseTypeConsts.MENU_RESPONSE_RULE
 				: ResponseTypeConsts.WRITTEN_RESPONSE_RULE;
 		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_FAIL, null);
-		sceneElementValues = getCollectionSceneElements(scenariosid, collectionNode.getKey(), collectionNode.getCollectionElement(), "交互");
+		sceneElementValues = getCollectionSceneElements(scenariosid, collectionNode.getKey(),
+				collectionNode.getCollectionElement(), "交互");
 		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, ruleResponse, sceneElementValues,
 				responseType);
 		sceneRules.add(sceneRule);
 		// 信息收集语义理解规则
-		if(!CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)) {
+		if (!CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)) {
 			sceneRule = InteractiveSceneCallDAO.generateRegnitionRule(scenariosid, collectionNode.getKey(),
 					collectionNode.getKey(), null, null, null, null, collectionNode.getCollectionIntention(),
 					collectionNode.getCollectionParam());
@@ -556,8 +561,7 @@ public class InteractiveSceneCallDAO {
 		}
 		return sceneRules;
 	}
-	
-	
+
 	/**
 	 * 信息收集组件 用户信息采集规则
 	 * 
@@ -570,8 +574,7 @@ public class InteractiveSceneCallDAO {
 	 * @return
 	 */
 	public static List<SceneRule> generateUserInfoCollectionNodeSceneRules2(String scenariosid,
-			CollectionNode collectionNode, NodeData nextNode, 
-			List<SceneRule> sceneRules) {
+			CollectionNode collectionNode, NodeData nextNode, List<SceneRule> sceneRules) {
 		SceneRule sceneRule = null;
 		String ruleResponse = null;
 		String interactiveType = collectionNode.getInteractiveType();
@@ -592,12 +595,13 @@ public class InteractiveSceneCallDAO {
 				? ResponseTypeConsts.MENU_RESPONSE_RULE
 				: ResponseTypeConsts.WRITTEN_RESPONSE_RULE;
 		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_FAIL, null);
-		sceneElementValues = getCollectionSceneElements(scenariosid, collectionNode.getKey(), collectionNode.getCollectionParam(), "交互");
+		sceneElementValues = getCollectionSceneElements(scenariosid, collectionNode.getKey(),
+				collectionNode.getCollectionParam(), "交互");
 		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, ruleResponse, sceneElementValues,
 				responseType);
 		sceneRules.add(sceneRule);
 		// 信息收集语义理解规则
-		if(!CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)) {
+		if (!CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)) {
 			sceneRule = InteractiveSceneCallDAO.generateRegnitionRule(scenariosid, collectionNode.getKey(),
 					collectionNode.getKey(), null, null, null, null, collectionNode.getCollectionIntention(),
 					collectionNode.getCollectionParam());
@@ -605,7 +609,7 @@ public class InteractiveSceneCallDAO {
 		}
 		return sceneRules;
 	}
-	
+
 	/**
 	 * 信息收集组件 用户信息采集规则
 	 * 
@@ -617,34 +621,38 @@ public class InteractiveSceneCallDAO {
 	 * @param sceneRules     规则列表
 	 * @return
 	 */
-	public static List<SceneRule> generateUserInfoCollectionNodeSceneRules(String scenariosid, CollectionNode collectionNode,
-			NodeData nextNode, List<SceneRule> sceneRules) {
+	public static List<SceneRule> generateUserInfoCollectionNodeSceneRules(String scenariosid,
+			CollectionNode collectionNode, NodeData nextNode, List<SceneRule> sceneRules) {
 		SceneRule sceneRule = null;
 		String ruleResponse = null;
 		List<String> others = null;
 		Map<String, String> setItems = null;
 		String collectionIntention = collectionNode.getCollectionIntention();
 		String collectionParam = collectionNode.getCollectionParam();
-		String collectionVariable = CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention) ? "query" : collectionParam;
+		String collectionVariable = CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention) ? "query"
+				: collectionParam;
 		// 信息收集成功规则
 		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_SUCCESS, nextNode);
-		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, collectionNode.getKey(), collectionNode.getKey(), null, null,
-				null, null, null, CollectionStatusConsts.COLLCETION_SUCCESS, null, ruleResponse);
+		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, collectionNode.getKey(),
+				collectionNode.getKey(), null, null, null, null, null, CollectionStatusConsts.COLLCETION_SUCCESS, null,
+				ruleResponse);
 		sceneRules.add(sceneRule);
 		// 信息收集失败规则
 		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_FAIL, null);
-		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, collectionNode.getKey(), collectionNode.getKey(), null, null,
-				null, null, null, CollectionStatusConsts.COLLCETION_FAIL, null, ruleResponse);
+		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, collectionNode.getKey(),
+				collectionNode.getKey(), null, null, null, null, null, CollectionStatusConsts.COLLCETION_FAIL, null,
+				ruleResponse);
 		sceneRules.add(sceneRule);
 		// 信息收集跳出规则
 		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_OUT, nextNode);
-		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, collectionNode.getKey(), collectionNode.getKey(), null, null,
-				null, null, null, CollectionStatusConsts.COLLCETION_OUT, null, ruleResponse);
+		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, collectionNode.getKey(),
+				collectionNode.getKey(), null, null, null, null, null, CollectionStatusConsts.COLLCETION_OUT, null,
+				ruleResponse);
 		sceneRules.add(sceneRule);
 		// 收集任意类型时，不生成语义理解规则
 		if (!CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)) {
-			sceneRule = InteractiveSceneCallDAO.generateRegnitionRule(scenariosid, null, collectionNode.getKey(),
-					null, null, null, null, collectionIntention, collectionNode.getCollectionParam());
+			sceneRule = InteractiveSceneCallDAO.generateRegnitionRule(scenariosid, null, collectionNode.getKey(), null,
+					null, null, null, collectionIntention, collectionNode.getCollectionParam());
 			sceneRules.add(sceneRule);
 		}
 		// 没有收集到信息，收集次数加1
@@ -691,17 +699,18 @@ public class InteractiveSceneCallDAO {
 		sceneRules.add(sceneRule);
 		return sceneRules;
 	}
-	
+
 	/**
 	 * 要素采集场景要素
 	 * 
-	 * @param aboveNodeName 上文节点名
+	 * @param aboveNodeName   上文节点名
 	 * @param collectionParam 信息收集参数
 	 * @param collectionValue 信息收集参数值
-	 * @param scenariosid 
+	 * @param scenariosid
 	 * @return 信息收集场景要素集合
 	 */
-	private static List<SceneElement> getCollectionSceneElements(String scenariosid, String aboveNodeName, String collectionParam, String collectionValue) {
+	private static List<SceneElement> getCollectionSceneElements(String scenariosid, String aboveNodeName,
+			String collectionParam, String collectionValue) {
 		List<SceneElement> sceneElementValues = new ArrayList<SceneElement>();
 		// 上文节点名
 		SceneElement sceneElement = new SceneElement();
@@ -778,7 +787,7 @@ public class InteractiveSceneCallDAO {
 		StringBuffer actionParams = new StringBuffer();
 		actionParams.append(toNode.getTransferNumber());
 		Map<String, String> setItems = new HashMap<String, String>();
-		if(SceneTypeConsts.CALL_IN.equals(sceneType)) {
+		if (SceneTypeConsts.CALL_IN.equals(sceneType)) {
 			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, toNode.getKey());
 		}
 		setItems.put("节点名", toNode.getKey());
@@ -802,20 +811,20 @@ public class InteractiveSceneCallDAO {
 			}
 		}
 		// 非跳转节点需等待用户回答
-		if(isJumpNode(ttsNode)) {
+		if (isJumpNode(ttsNode)) {
 			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, ttsNode.getKey());
 		}
 		setItems.put("节点名", ttsNode.getKey());
-		if(InteracviteTypeConsts.WORD_PATTERN.equals(ttsNode.getInteractiveType())) {
+		if (InteracviteTypeConsts.WORD_PATTERN.equals(ttsNode.getInteractiveType())) {
 			setItems.put("TTS", StringUtils.isBlank(ttsNode.getWordsContent()) ? "" : ttsNode.getWordsContent());
-		} 
-		if(InteracviteTypeConsts.MENU_OPTIONS.equals(ttsNode.getInteractiveType())) {
+		}
+		if (InteracviteTypeConsts.MENU_OPTIONS.equals(ttsNode.getInteractiveType())) {
 			String menuStartWords = ttsNode.getMenuStartWords();
 			String menuOptions = ttsNode.getMenuOptions();
 			String menuEndWords = ttsNode.getMenuEndWords();
 			String tts = ScenariosDAO.getMenuRuleResponse(menuStartWords, menuOptions, menuEndWords);
 			setItems.put("TTS", StringUtils.isBlank(tts) ? "" : tts);
-		} 
+		}
 		setItems.put("code", StringUtils.isBlank(ttsNode.getCode()) ? "" : ttsNode.getCode());
 		setItems.put("action", StringUtils.isBlank(ttsNode.getAction()) ? "" : ttsNode.getAction());
 		setItems.put("actionParams", StringUtils.isBlank(ttsNode.getActionParams()) ? "" : ttsNode.getActionParams());
@@ -825,9 +834,9 @@ public class InteractiveSceneCallDAO {
 
 	private static boolean isJumpNode(TTSNode ttsNode) {
 		List<LinkData> toLinks = ttsNode.getToLinks();
-		if(toLinks != null && !toLinks.isEmpty()) {
-			for(LinkData linkData : toLinks) {
-				if(linkData.getFromPort().getText().equals("跳转")) {
+		if (toLinks != null && !toLinks.isEmpty()) {
+			for (LinkData linkData : toLinks) {
+				if (linkData.getFromPort().getText().equals("跳转")) {
 					return true;
 				}
 			}
@@ -855,7 +864,7 @@ public class InteractiveSceneCallDAO {
 		actionParams.append(dtmfNode.getAttemptLimit()).append("|");
 		actionParams.append(dtmfNode.getDtmfAlias());
 		Map<String, String> setItems = new HashMap<String, String>();
-		if(SceneTypeConsts.CALL_IN.equals(sceneType)) {
+		if (SceneTypeConsts.CALL_IN.equals(sceneType)) {
 			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, dtmfNode.getKey());
 		}
 		setItems.put("节点名", dtmfNode.getKey());
@@ -866,7 +875,7 @@ public class InteractiveSceneCallDAO {
 		ruleResponse = ScenariosDAO.getRuleResponse(setItems);
 		return ruleResponse;
 	}
-	
+
 	/**
 	 * 获取条件回复
 	 * 
@@ -881,7 +890,7 @@ public class InteractiveSceneCallDAO {
 		ruleResponse = ScenariosDAO.getRuleResponse(setItems);
 		return ruleResponse;
 	}
-	
+
 	/**
 	 * 获取信息组件回复内容
 	 * 
@@ -902,12 +911,18 @@ public class InteractiveSceneCallDAO {
 			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, collectionNode.getKey());
 			setItems.put("节点名", collectionNode.getKey());
 			setItems.put(CallOutSceneElementConsts.COLLECTION_STATUS_ELEMENT_NAME, ""); // 信息收集状态置为空
-			if(StringUtils.isNotBlank(collectionNode.getCollectionParam())) {
+			if (StringUtils.isNotBlank(collectionNode.getCollectionParam())) {
 				setItems.put(collectionNode.getCollectionParam(), ""); // 关联要素值置为空
-				setItems.put("任意类型匹配", CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention) ? collectionNode.getCollectionParam() : ""); // 任意类型不匹配意图，直接把用户回答赋给信息收集的变量
+				setItems.put("任意类型匹配",
+						CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)
+								? collectionNode.getCollectionParam()
+								: ""); // 任意类型不匹配意图，直接把用户回答赋给信息收集的变量
 			} else {
 				setItems.put(collectionNode.getCollectionElement(), ""); // 关联要素值置为空
-				setItems.put("任意类型匹配", CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention) ? collectionNode.getCollectionElement() : ""); // 任意类型不匹配意图，直接把用户回答赋给信息收集的变量
+				setItems.put("任意类型匹配",
+						CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)
+								? collectionNode.getCollectionElement()
+								: ""); // 任意类型不匹配意图，直接把用户回答赋给信息收集的变量
 			}
 			result = ScenariosDAO.getRuleResponse(setItems, others);
 		}
@@ -944,12 +959,11 @@ public class InteractiveSceneCallDAO {
 				isGetPressNumber);
 		String[] conditions = ScenariosDAO.getSceneConditions(scenariosid, sceneElementValues);
 		// 生成规则
-		SceneRule sceneRule = ScenariosDAO.buildSceneRuleInfo(scenariosid, null,
-				RuleTypeConsts.INTERACTIVE_RULE, conditions, null, null, ruleResponse,
-				ResponseTypeConsts.WRITTEN_RESPONSE_RULE, (weight++) + "");
+		SceneRule sceneRule = ScenariosDAO.buildSceneRuleInfo(scenariosid, null, RuleTypeConsts.INTERACTIVE_RULE,
+				conditions, null, null, ruleResponse, ResponseTypeConsts.WRITTEN_RESPONSE_RULE, (weight++) + "");
 		return sceneRule;
 	}
-	
+
 	/**
 	 * 场景交互规则
 	 * 
@@ -974,7 +988,8 @@ public class InteractiveSceneCallDAO {
 	public static SceneRule generateRegnitionRule(String scenariosid, String currentNodeName, String aboveNodeName,
 			String customerAnswer, String recognitionStatus, String notRecognitionTimes, String differentiatedNode,
 			String collectionIntention, String collectionVariable) {
-		List<SceneElement> sceneElementValues = getSceneElementValues(scenariosid, aboveNodeName, customerAnswer, recognitionStatus, null, null, null, null, null); // 场景要素值
+		List<SceneElement> sceneElementValues = getSceneElementValues(scenariosid, aboveNodeName, customerAnswer,
+				recognitionStatus, null, null, null, null, null); // 场景要素值
 		String[] conditions = ScenariosDAO.getSceneConditions(scenariosid, sceneElementValues); // 规则条件
 		String ruleResponse = ""; // 回复内容
 		String questionObject = ""; // 问题对象
@@ -989,10 +1004,10 @@ public class InteractiveSceneCallDAO {
 		}
 		if (StringUtils.isNotBlank(collectionIntention)) {
 			others = new ArrayList<String>();
-			if(SceneTypeConsts.CALL_OUT.equals(sceneType)) {
+			if (SceneTypeConsts.CALL_OUT.equals(sceneType)) {
 				others.add("信息补全(\"" + collectionIntention + "\",\"上文\")");
 			}
-			if(SceneTypeConsts.CALL_IN.equals(sceneType)) {
+			if (SceneTypeConsts.CALL_IN.equals(sceneType)) {
 				others.add("信息补全(\"" + collectionIntention + "\",\"上文\",\"" + collectionIntention + "\")");
 				others.add("信息补全(\"" + collectionIntention + "\",\"上文\",\"" + collectionVariable + "\")");
 			}
@@ -1008,7 +1023,7 @@ public class InteractiveSceneCallDAO {
 			others = new ArrayList<String>();
 			setItems = new HashMap<String, String>();
 			others.add("信息补全(\"用户回答\",\"上文\")");
-			others.add("信息补全(\"节点名\",\"上文\", \""+CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME+"\")");
+			others.add("信息补全(\"节点名\",\"上文\", \"" + CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME + "\")");
 			ruleResponse = ScenariosDAO.getRuleResponse(setItems, others);
 		}
 		// 生成规则
@@ -1053,7 +1068,7 @@ public class InteractiveSceneCallDAO {
 				conditions, null, null, ruleResponse, ResponseTypeConsts.WRITTEN_RESPONSE_RULE, weight + "");
 		return sceneRule;
 	}
-	
+
 	/**
 	 * 未获取到按键值 语义理解规则
 	 */
@@ -1829,8 +1844,9 @@ public class InteractiveSceneCallDAO {
 		// 新增用户回答
 		String robotId = ScenariosDAO.getSceneRobotID(scenariosid); // 机器人ID
 		String cityCode = StringUtils.isNotBlank(robotId) ? ScenariosDAO.getRobotCityCode(robotId) : "全国"; // 地市ID
-		jsonObj = (JSONObject) addRecognitionRule(customerAnswer, simpleWordPattern, wordPatternType, cityCode, request);
-		if(!jsonObj.getBooleanValue("success")) {
+		jsonObj = (JSONObject) addRecognitionRule(customerAnswer, simpleWordPattern, wordPatternType, cityCode,
+				request);
+		if (!jsonObj.getBooleanValue("success")) {
 			return jsonObj;
 		}
 		// 刷新用户回答
@@ -1839,7 +1855,7 @@ public class InteractiveSceneCallDAO {
 		jsonObj.put("checkInfo", "保存成功");
 		return jsonObj;
 	}
-	
+
 	/**
 	 * 新增关联意图
 	 * 
@@ -1850,8 +1866,8 @@ public class InteractiveSceneCallDAO {
 	 * @param request
 	 * @return
 	 */
-	public static Object saveCollectionIntention(String scenariosid, String collectionIntention, String simpleWordPattern,
-			String wordPatternType, HttpServletRequest request) {
+	public static Object saveCollectionIntention(String scenariosid, String collectionIntention,
+			String simpleWordPattern, String wordPatternType, HttpServletRequest request) {
 		JSONObject jsonObj = new JSONObject();
 		// 关联意图是否已存在
 		HashMap<String, String> collectionQuestions = queryCollectionQuestions(scenariosid);
@@ -1862,7 +1878,7 @@ public class InteractiveSceneCallDAO {
 			}
 		}
 		// 添加词模返回值
-		if(simpleWordPattern.indexOf("&"+collectionIntention+"=") > -1) {
+		if (simpleWordPattern.indexOf("&" + collectionIntention + "=") > -1) {
 			Result patternkeyRs = CommonLibPatternkeyDAO.InsertSelect(collectionIntention);
 			if (!(patternkeyRs != null && patternkeyRs.getRowCount() > 0)) {
 				User user = (User) GetSession.getSessionByKey("accessUser");
@@ -1872,8 +1888,9 @@ public class InteractiveSceneCallDAO {
 		// 添加关联意图
 		String robotId = ScenariosDAO.getSceneRobotID(scenariosid); // 机器人ID
 		String cityCode = StringUtils.isNotBlank(robotId) ? ScenariosDAO.getRobotCityCode(robotId) : "全国"; // 地市ID
-		jsonObj = (JSONObject) addRecognitionRule(collectionIntention, simpleWordPattern, wordPatternType, cityCode, request);
-		if(!jsonObj.getBooleanValue("success")) {
+		jsonObj = (JSONObject) addRecognitionRule(collectionIntention, simpleWordPattern, wordPatternType, cityCode,
+				request);
+		if (!jsonObj.getBooleanValue("success")) {
 			return jsonObj;
 		}
 		// 刷新关联意图
@@ -1915,7 +1932,7 @@ public class InteractiveSceneCallDAO {
 		// 新增词模
 		return saveWordpat(kbdataid, standardQuestion, simpleWordPattern, wordPatternType, cityCode, request);
 	}
-	
+
 	/**
 	 * 初始化用户答案
 	 */
@@ -2089,7 +2106,7 @@ public class InteractiveSceneCallDAO {
 		}
 		return jsonObj;
 	}
-	
+
 	/**
 	 * 校验动作组件名称
 	 */
@@ -2107,22 +2124,22 @@ public class InteractiveSceneCallDAO {
 		}
 		return jsonObj;
 	}
-	
+
 	/**
 	 * 查询全部场景要素
 	 * 
-	 * @param scenariosId 场景ID
+	 * @param scenariosId      场景ID
 	 * @param sceneElementName 场景要素名称
 	 * @return
 	 */
 	public static Object listAllElementName(String scenariosId, String sceneElementName) {
 		JSONObject jsonObj = (JSONObject) SceneElementDAO.listAllElementName(scenariosId, sceneElementName);
-		if(jsonObj.getIntValue("total") > 0) {
+		if (jsonObj.getIntValue("total") > 0) {
 			JSONArray newRows = new JSONArray();
 			JSONArray rows = jsonObj.getJSONArray("rows");
-			for(int i = 0; i < rows.size(); i++) {
+			for (int i = 0; i < rows.size(); i++) {
 				JSONObject row = rows.getJSONObject(i);
-				if(!checkIfSystemSceneElements(row.getString("name"))) {
+				if (!checkIfSystemSceneElements(row.getString("name"))) {
 					newRows.add(row);
 				}
 			}
@@ -2146,11 +2163,11 @@ public class InteractiveSceneCallDAO {
 		JSONObject jsonObj = new JSONObject();
 		JSONArray newRows = new JSONArray();
 		int totalCount = CommonLibInteractiveSceneDAO.getElementNameCount(scenariosId, sceneElementName);
-		if(totalCount > 10) {
+		if (totalCount > 10) {
 			int totalPage = totalCount / pageSize + 1;
 			while (currentPage <= totalPage) {
-				jsonObj = (JSONObject) SceneElementDAO.listPagingSceneElements(scenariosId, sceneElementName, currentPage,
-						pageSize);
+				jsonObj = (JSONObject) SceneElementDAO.listPagingSceneElements(scenariosId, sceneElementName,
+						currentPage, pageSize);
 				JSONArray rows = jsonObj.getJSONArray("rows");
 				if (rows.size() > 0) {
 					for (int i = 0; i < rows.size(); i++) {
@@ -2170,7 +2187,7 @@ public class InteractiveSceneCallDAO {
 		jsonObj.put("total", newRows.size());
 		return jsonObj;
 	}
-	
+
 	/**
 	 * 查询场景要素值
 	 * 
@@ -2191,7 +2208,7 @@ public class InteractiveSceneCallDAO {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 判断系统场景要素
 	 * 
@@ -2200,7 +2217,7 @@ public class InteractiveSceneCallDAO {
 	 */
 	private static boolean checkIfSystemSceneElements(String sceneElementName) {
 		Set<String> systemSceneElements = CallOutSceneElementConsts.getAllSceneElements();
-		if(systemSceneElements.contains(sceneElementName)) {
+		if (systemSceneElements.contains(sceneElementName)) {
 			return true;
 		}
 		return false;
@@ -2235,7 +2252,7 @@ public class InteractiveSceneCallDAO {
 	 */
 	public static Object addNewInterface(String scenariosid, String interfaceData) {
 		JSONObject jsonObj = new JSONObject();
-		if(StringUtils.isBlank(interfaceData)) {
+		if (StringUtils.isBlank(interfaceData)) {
 			jsonObj.put("success", false);
 			jsonObj.put("msg", "请填写接口信息");
 			return jsonObj;
@@ -2244,16 +2261,16 @@ public class InteractiveSceneCallDAO {
 		// 接口名称是否重复
 		JSONObject interfaceJson = JSONObject.parseObject(interfaceData);
 		String saveOrUpdateInterfaceFlag = interfaceJson.getString("saveOrUpdateInterfaceFlag");
-		if(saveOrUpdateInterfaceFlag.equals("save")) {
+		if (saveOrUpdateInterfaceFlag.equals("save")) {
 			jsonObj = (JSONObject) InteractiveSceneCallDAO.checkUrlActionName(urlActionNode.getInterfaceName());
-			if(jsonObj.getBooleanValue("success")) {
+			if (jsonObj.getBooleanValue("success")) {
 				jsonObj.put("success", false);
 				jsonObj.put("msg", "接口名称已存在");
 				return jsonObj;
 			}
 		}
 		boolean saveResult = ScenariosDAO.configInterfaceInfo(urlActionNode);
-		if(saveResult) {
+		if (saveResult) {
 			jsonObj.put("success", true);
 			jsonObj.put("msg", "保存成功");
 			return jsonObj;
@@ -2279,8 +2296,8 @@ public class InteractiveSceneCallDAO {
 		if (rs != null && rs.getRowCount() > 0) {
 			jsonObj.put("success", true);
 			JSONArray rows = new JSONArray();
-			for(int i = 0; i < rs.getRowCount(); i++) {
-				if(rs.getRows()[i].get("name").toString().indexOf(serviceType) > -1) {
+			for (int i = 0; i < rs.getRowCount(); i++) {
+				if (rs.getRows()[i].get("name").toString().indexOf(serviceType) > -1) {
 					String interfaceName = rs.getRows()[i].get("name").toString().split("::")[1];
 					JSONObject row = new JSONObject();
 					row.put("id", interfaceName);
@@ -2314,21 +2331,21 @@ public class InteractiveSceneCallDAO {
 			interfaceInfo.setInterfaceName(interfaceName);
 			List<URLActionParam> inParams = new ArrayList<URLActionParam>();
 			List<URLActionParam> outParams = new ArrayList<URLActionParam>();
-			for(int i = 0; i < rs.getRowCount(); i++) {
+			for (int i = 0; i < rs.getRowCount(); i++) {
 				String configValue = rs.getRows()[i].get("name").toString();
 				String[] configValueSplitArray = configValue.split(":=");
-				if(configValue.split(":=").length > 1) {
-					if(configValue.indexOf("URL") > -1) {
+				if (configValue.split(":=").length > 1) {
+					if (configValue.indexOf("URL") > -1) {
 						interfaceInfo.setActionUrl(configValueSplitArray[1]);
 					}
-					if(configValue.indexOf("NameSpace") > -1) {
+					if (configValue.indexOf("NameSpace") > -1) {
 						interfaceInfo.setInvocationWay(UrlActionInvocationTypeConsts.WEBSERVICE);
 						interfaceInfo.setNamespace(configValueSplitArray[1]);
 					}
-					if(configValue.indexOf("CallFuncName") > -1) {
+					if (configValue.indexOf("CallFuncName") > -1) {
 						interfaceInfo.setFunctionName(configValueSplitArray[1]);
 					}
-					if(configValue.indexOf("Inner2CalledParasMap") > -1) {
+					if (configValue.indexOf("Inner2CalledParasMap") > -1) {
 						String inParamPair = configValueSplitArray[1];
 						String inParamName = inParamPair.split("<-")[0];
 						String inParamValue = inParamPair.split("<-")[1];
@@ -2337,7 +2354,7 @@ public class InteractiveSceneCallDAO {
 						inParam.setParamValue(inParamValue);
 						inParams.add(inParam);
 					}
-					if(configValue.indexOf("CalledRes2InnerResParas") > -1) {
+					if (configValue.indexOf("CalledRes2InnerResParas") > -1) {
 						String outParamPair = configValueSplitArray[1];
 						String outParamName = outParamPair.split("->")[0];
 						String outParamValue = outParamPair.split("->")[1];
@@ -2346,7 +2363,7 @@ public class InteractiveSceneCallDAO {
 						outParam.setParamValue(outParamValue);
 						outParams.add(outParam);
 					}
-					if(configValue.indexOf("CallType") > -1) {
+					if (configValue.indexOf("CallType") > -1) {
 						interfaceInfo.setInvocationWay(UrlActionInvocationTypeConsts.HTTP);
 						interfaceInfo.setHttpMethod(configValueSplitArray[1]);
 					}
@@ -2361,70 +2378,67 @@ public class InteractiveSceneCallDAO {
 		jsonObj.put("success", false);
 		return jsonObj;
 	}
-	
+
 	public static void main(String[] args) {
-		String sceneJson ="{ \"class\": \"go.GraphLinksModel\",\n" + 
-				"  \"linkFromPortIdProperty\": \"fromPort\",\n" + 
-				"  \"linkToPortIdProperty\": \"toPort\",\n" + 
-				"  \"nodeDataArray\": [ \n" + 
-				"{\"key\":\"Start\", \"category\":\"Start\", \"loc\":\"-20 -210\", \"text\":\"开始\", \"width\":50, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":5, \"left\":30}},\n" + 
-				"{\"key\":\"Collection\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"客户类型收集\", \"collectionText\":\"询问文本：请问您是单位用户还是个人用户？\\n参数名称：客户类型\\n菜单选项：单位|个人\\n关联意图：客户类型\\n\", \"collectionParam\":\"客户类型\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"\", \"collectionElement\":\"\", \"collectionIntention\":\"客户类型\", \"interactiveType\":\"键值补全\", \"menuStartWords\":\"请问您是单位用户还是个人用户？\", \"menuOptions\":\"单位|个人\", \"menuEndWords\":\"\", \"loc\":\"-20 -130\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"Condition\", \"category\":\"Condition\", \"text\":\"客户类型判断\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"客户类型判断\", \"conditions\":[ [ {\"paramName\":\"客户类型\", \"paramValue\":\"单位\", \"variableType\":\"other\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"paramName\":\"客户类型\", \"paramValue\":\"个人\", \"variableType\":\"other\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"-20 80\", \"bottomArray\":[ {\"text\":\"单位\"},{\"text\":\"个人\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"单位\", \"variable_type_cdt0_and0\":\"other\", \"param_name_other_cdt0_and0\":\"客户类型\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"\", \"interface_param_cdt0_and0\":\"\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"单位\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"个人\", \"variable_type_cdt1_and0\":\"other\", \"param_name_other_cdt1_and0\":\"客户类型\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"\", \"interface_param_cdt1_and0\":\"\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"个人\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"},\n" + 
-				"{\"key\":\"Condition2\", \"category\":\"Condition\", \"text\":\"客户基本信息查询类型\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"客户基本信息查询类型\", \"conditions\":[ [ {\"paramName\":\"客户基本信息查询类型\", \"paramValue\":\"预留手机号\", \"variableType\":\"element\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"paramName\":\"客户基本信息查询类型\", \"paramValue\":\"ETC卡号\", \"variableType\":\"element\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"paramName\":\"客户基本信息查询类型\", \"paramValue\":\"电子标签（OBU）号\", \"variableType\":\"element\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"paramName\":\"客户基本信息查询类型\", \"paramValue\":\"ETC办理地址\", \"variableType\":\"element\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"10 500\", \"bottomArray\":[ {\"text\":\"预留手机号\"},{\"text\":\"ETC卡号\"},{\"text\":\"电子标签（OBU）号 \"},{\"text\":\"ETC办理地址\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"预留手机号\", \"variable_type_cdt0_and0\":\"element\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"客户基本信息查询类型\", \"interface_name_cdt0_and0\":\"\", \"interface_param_cdt0_and0\":\"\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"预留手机号\", \"param_value_cdt0_and0\":\"\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"ETC卡号\", \"variable_type_cdt1_and0\":\"element\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"客户基本信息查询类型\", \"interface_name_cdt1_and0\":\"\", \"interface_param_cdt1_and0\":\"\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"ETC卡号\", \"param_value_cdt1_and0\":\"\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\", \"condition_name_cdt2\":\"电子标签（OBU）号 \", \"variable_type_cdt2_and0\":\"element\", \"param_name_other_cdt2_and0\":\"\", \"param_name_attr_cdt2_and0\":\"\", \"param_name_element_cdt2_and0\":\"客户基本信息查询类型\", \"interface_name_cdt2_and0\":\"\", \"interface_param_cdt2_and0\":\"\", \"param_relation_cdt2_and0\":\"等于\", \"param_type_cdt2_and0\":\"String\", \"element_value_cdt2_and0\":\"电子标签（OBU）号\", \"param_value_cdt2_and0\":\"\", \"upDownType_cdt2_and0\":\"\", \"updownRatio_cdt2_and0\":\"\", \"condition_name_cdt3\":\"ETC办理地址\", \"variable_type_cdt3_and0\":\"element\", \"param_name_other_cdt3_and0\":\"\", \"param_name_attr_cdt3_and0\":\"\", \"param_name_element_cdt3_and0\":\"客户基本信息查询类型\", \"interface_name_cdt3_and0\":\"\", \"interface_param_cdt3_and0\":\"\", \"param_relation_cdt3_and0\":\"等于\", \"param_type_cdt3_and0\":\"String\", \"element_value_cdt3_and0\":\"ETC办理地址\", \"param_value_cdt3_and0\":\"\", \"upDownType_cdt3_and0\":\"\", \"updownRatio_cdt3_and0\":\"\"},\n" + 
-				"{\"key\":\"Collection2\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"查询类型收集\", \"collectionText\":\"询问文本：因需要保护客户隐私，目前仅支持查询以下信息\\n参数名称：客户基本信息查询类型\\n菜单选项：预留手机号|ETC卡号|电子标签（OBU）号|ETC办理地址 \\n关联要素：客户基本信息查询类型\\n关联意图：客户基本信息查询类型\\n\", \"collectionParam\":\"客户基本信息查询类型\", \"collectionType\":\"elementCollection\", \"collectionTimes\":\"\", \"collectionWords\":\"\", \"collectionElement\":\"客户基本信息查询类型\", \"collectionIntention\":\"客户基本信息查询类型\", \"interactiveType\":\"键值补全\", \"menuStartWords\":\"因需要保护客户隐私，目前仅支持查询以下信息\", \"menuOptions\":\"预留手机号|ETC卡号|电子标签（OBU）号|ETC办理地址 \", \"menuEndWords\":\"\", \"loc\":\"-20 -20\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"Collection3\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"ETC开户人姓名收集\", \"collectionText\":\"询问文本：请您输入ETC开户人姓名（格式：姓名 XXX）\\n参数名称：客户姓名\\n关联意图：客户姓名\\n\", \"collectionParam\":\"客户姓名\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入ETC开户人姓名（格式：姓名 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"客户姓名\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"110 180\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"Collection4\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"ETC开户人身份证号收集\", \"collectionText\":\"询问文本：请您输入ETC开户人身份证号码（格式：身份证号 XXX）\\n参数名称：客户身份证号\\n关联意图：客户身份证号\\n\", \"collectionParam\":\"客户身份证号\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入ETC开户人身份证号码（格式：身份证号 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"客户身份证号\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"110 290\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"URLAction\", \"category\":\"URLAction\", \"text\":\"客户手机号查询\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"interfaceName\":\"客户基本信息查询\", \"actionName\":\"客户手机号查询\", \"actionUrl\":\"\", \"actionMethod\":\"\", \"inParams\":[], \"outParams\":[], \"loc\":\"-240 590\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"URLAction2\", \"category\":\"URLAction\", \"text\":\"ETC卡号查询\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"interfaceName\":\"ETC卡信息查询\", \"actionName\":\"ETC卡号查询\", \"actionUrl\":\"\", \"actionMethod\":\"\", \"inParams\":[], \"outParams\":[], \"loc\":\"20 590\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"URLAction3\", \"category\":\"URLAction\", \"text\":\"电子标签信息查询\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"interfaceName\":\"电子标签查询\", \"actionName\":\"电子标签信息查询\", \"actionUrl\":\"\", \"actionMethod\":\"\", \"inParams\":[], \"outParams\":[], \"loc\":\"270 590\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"End\", \"category\":\"End\", \"text\":\"您好，查询您办理的ETC预留手机号为：<@预留手机号>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"您好，查询您办理的ETC预留手机号为：<@预留手机号>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"-470 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n" + 
-				"{\"key\":\"End2\", \"category\":\"End\", \"text\":\"您好，查询您办理的ETC卡号为：<@ETC用户卡信息列表>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"您好，查询您办理的ETC卡号为：<@ETC用户卡信息列表>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"20 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n" + 
-				"{\"key\":\"End3\", \"category\":\"End\", \"text\":\"您好，查询您办理的ETC电子标签（OBU）号为：<@ETC电子标签列表>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"您好，查询您办理的ETC电子标签（OBU）号为：<@ETC电子标签列表>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"260 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n" + 
-				"{\"key\":\"URLAction5\", \"category\":\"URLAction\", \"text\":\"ETC办理地址查询\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"interfaceName\":\"ETC卡信息查询\", \"actionName\":\"ETC办理地址查询\", \"actionUrl\":\"\", \"actionMethod\":\"\", \"inParams\":[], \"outParams\":[], \"loc\":\"530 590\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"End4\", \"category\":\"End\", \"text\":\"您好，查询您办理的ETC办理地址为：<@ETC用户卡信息列表>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"您好，查询您办理的ETC办理地址为：<@ETC用户卡信息列表>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"510 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n" + 
-				"{\"key\":\"Collection6\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"单位名称收集\", \"collectionText\":\"询问文本：请您输入开户单位名称（格式：单位名称 XXX）\\n参数名称：单位名称\\n关联意图：单位名称\\n\", \"collectionParam\":\"单位名称\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入开户单位名称（格式：单位名称 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"单位名称\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"-140 180\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"Collection7\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"单位证件号码收集\", \"collectionText\":\"询问文本：请您输入开户单位证件号（格式：证件号码 XXX）\\n参数名称：单位证件号\\n关联意图：单位证件号\\n\", \"collectionParam\":\"单位证件号\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入开户单位证件号（格式：证件号码 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"单位证件号\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"-140 290\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"Collection8\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"车牌号收集\", \"collectionText\":\"询问文本：请您输入车牌号（格式：车牌号 XXX）\\n参数名称：车牌号\\n关联意图：车牌号\\n\", \"collectionParam\":\"车牌号\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入车牌号（格式：车牌号 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"车牌号\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"10 410\", \"endFlag\":\"否\"},\n" + 
-				"{\"key\":\"Condition3\", \"category\":\"Condition\", \"text\":\"客户信息调用成功与否\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"客户信息调用成功与否\", \"conditions\":[ [ {\"interfaceName\":\"客户基本信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"0\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"interfaceName\":\"客户基本信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"1\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"-240 670\", \"bottomArray\":[ {\"text\":\"成功\"},{\"text\":\"失败\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"成功\", \"variable_type_cdt0_and0\":\"interface\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"客户基本信息查询\", \"interface_param_cdt0_and0\":\"响应代码\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"0\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"失败\", \"variable_type_cdt1_and0\":\"interface\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"客户基本信息查询\", \"interface_param_cdt1_and0\":\"响应代码\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"1\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"},\n" + 
-				"{\"key\":\"End5\", \"category\":\"End\", \"text\":\"<@响应描述>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"<@响应描述>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"-220 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n" + 
-				"{\"key\":\"Condition4\", \"category\":\"Condition\", \"text\":\"ETC卡信息调用成功与否\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"ETC卡信息调用成功与否\", \"conditions\":[ [ {\"interfaceName\":\"ETC卡信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"0\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"interfaceName\":\"ETC卡信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"1\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"20 670\", \"bottomArray\":[ {\"text\":\"成功\"},{\"text\":\"失败\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"成功\", \"variable_type_cdt0_and0\":\"interface\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"ETC卡信息查询\", \"interface_param_cdt0_and0\":\"响应代码\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"0\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"失败\", \"variable_type_cdt1_and0\":\"interface\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"ETC卡信息查询\", \"interface_param_cdt1_and0\":\"响应代码\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"1\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"},\n" + 
-				"{\"key\":\"Condition5\", \"category\":\"Condition\", \"text\":\"电子卡标签调用成功与否\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"电子卡标签调用成功与否\", \"conditions\":[ [ {\"interfaceName\":\"电子标签查询\", \"paramName\":\"响应代码\", \"paramValue\":\"0\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"interfaceName\":\"电子标签查询\", \"paramName\":\"响应代码\", \"paramValue\":\"1\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"270 670\", \"bottomArray\":[ {\"text\":\"成功\"},{\"text\":\"失败\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"成功\", \"variable_type_cdt0_and0\":\"interface\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"电子标签查询\", \"interface_param_cdt0_and0\":\"响应代码\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"0\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"失败\", \"variable_type_cdt1_and0\":\"interface\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"电子标签查询\", \"interface_param_cdt1_and0\":\"响应代码\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"1\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"},\n" + 
-				"{\"key\":\"Condition6\", \"category\":\"Condition\", \"text\":\"ETC办理地址调用成功与否\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"ETC办理地址调用成功与否\", \"conditions\":[ [ {\"interfaceName\":\"ETC卡信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"0\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"interfaceName\":\"ETC卡信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"1\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"530 670\", \"bottomArray\":[ {\"text\":\"成功\"},{\"text\":\"失败\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"成功\", \"variable_type_cdt0_and0\":\"interface\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"ETC卡信息查询\", \"interface_param_cdt0_and0\":\"响应代码\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"0\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"失败\", \"variable_type_cdt1_and0\":\"interface\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"ETC卡信息查询\", \"interface_param_cdt1_and0\":\"响应代码\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"1\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"}\n" + 
-				" ],\n" + 
-				"  \"linkDataArray\": [ \n" + 
-				"{\"from\":\"Start\", \"to\":\"Collection\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-20.000000000000007,-195.23857625084605,-20.000000000000007,-185.23857625084605,-19.999999999999986,-180.92808989924706,-19.999999999999986,-170.92808989924706]},\n" + 
-				"{\"from\":\"Collection\", \"to\":\"Collection2\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-19.999999999999986,-89.07191010075296,-19.999999999999986,-79.07191010075296,-19.999999999999986,-83.9280895893029,-19.999999999999986,-73.9280895893029]},\n" + 
-				"{\"from\":\"Collection2\", \"to\":\"Condition\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-19.999999999999986,33.9280895893029,-19.999999999999986,43.9280895893029,-19.999999999999986,37.73857625084603,-19.999999999999986,47.73857625084603]},\n" + 
-				"{\"from\":\"Collection7\", \"to\":\"Collection8\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-140,330.9280898992471,-140,340.9280898992471,10.000000000000014,363.40524333077155,10.000000000000014,373.40524333077155]},\n" + 
-				"{\"from\":\"Condition3\", \"to\":\"End\", \"fromPort\":\"成功\", \"toPort\":\"T\", \"points\":[-267.5,689.5,-267.5,699.5,-469.99999999999994,743.738576250846,-469.99999999999994,753.738576250846]},\n" + 
-				"{\"from\":\"Condition3\", \"to\":\"End5\", \"fromPort\":\"失败\", \"toPort\":\"T\", \"points\":[-212.5,689.5,-212.5,699.5,-220,750.238576250846,-220,760.238576250846]},\n" + 
-				"{\"from\":\"URLAction2\", \"to\":\"Condition4\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[20,609.7614237491539,20,619.7614237491539,20,627.738576250846,20,637.738576250846]},\n" + 
-				"{\"from\":\"Condition4\", \"to\":\"End2\", \"fromPort\":\"成功\", \"toPort\":\"T\", \"points\":[-7.500000000000007,689.5,-7.500000000000007,699.5,20,743.738576250846,20,753.738576250846]},\n" + 
-				"{\"from\":\"Condition4\", \"to\":\"End5\", \"fromPort\":\"失败\", \"toPort\":\"T\", \"points\":[47.49999999999999,689.5,47.49999999999999,699.5,-220,750.238576250846,-220,760.238576250846]},\n" + 
-				"{\"from\":\"Condition5\", \"to\":\"End3\", \"fromPort\":\"成功\", \"toPort\":\"T\", \"points\":[242.5,689.5,242.5,699.5,260,743.738576250846,260,753.738576250846]},\n" + 
-				"{\"from\":\"Condition5\", \"to\":\"End5\", \"fromPort\":\"失败\", \"toPort\":\"T\", \"points\":[297.5,689.5,297.5,699.5,-220,750.238576250846,-220,760.238576250846]},\n" + 
-				"{\"from\":\"URLAction5\", \"to\":\"Condition6\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[530,609.7614237491539,530,619.7614237491539,530,627.738576250846,530,637.738576250846]},\n" + 
-				"{\"from\":\"Condition6\", \"to\":\"End4\", \"fromPort\":\"成功\", \"toPort\":\"T\", \"points\":[502.5,689.5,502.5,699.5,510,743.738576250846,510,753.738576250846]},\n" + 
-				"{\"from\":\"Condition6\", \"to\":\"End5\", \"fromPort\":\"失败\", \"toPort\":\"T\", \"points\":[557.5,689.5,557.5,699.5,-220,750.238576250846,-220,760.238576250846]},\n" + 
-				"{\"from\":\"URLAction3\", \"to\":\"Condition5\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[270,609.7614237491539,270,619.7614237491539,270,627.738576250846,270,637.738576250846]},\n" + 
-				"{\"from\":\"Collection8\", \"to\":\"Condition2\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[10.000000000000014,446.59475666922845,10.000000000000014,456.59475666922845,10,457.73857625084605,10,467.73857625084605]},\n" + 
-				"{\"from\":\"Condition2\", \"to\":\"URLAction\", \"fromPort\":\"预留手机号\", \"toPort\":\"T\", \"points\":[-151.49999999999997,519.5,-151.49999999999997,529.5,-240,560.238576250846,-240,570.238576250846]},\n" + 
-				"{\"from\":\"Condition2\", \"to\":\"URLAction2\", \"fromPort\":\"ETC卡号\", \"toPort\":\"T\", \"points\":[-66.49999999999997,519.5,-66.49999999999997,529.5,20,560.238576250846,20,570.238576250846]},\n" + 
-				"{\"from\":\"Condition2\", \"to\":\"URLAction3\", \"fromPort\":\"电子标签（OBU）号 \", \"toPort\":\"T\", \"points\":[43.50000000000003,519.5,43.50000000000003,529.5,270,560.238576250846,270,570.238576250846]},\n" + 
-				"{\"from\":\"Condition2\", \"to\":\"URLAction5\", \"fromPort\":\"ETC办理地址\", \"toPort\":\"T\", \"points\":[165.50000000000003,519.5,165.50000000000003,529.5,530,560.238576250846,530,570.238576250846]},\n" + 
-				"{\"from\":\"Condition\", \"to\":\"Collection6\", \"fromPort\":\"单位\", \"toPort\":\"T\", \"points\":[-47.5,99.5,-47.5,109.5,-140,129.07191010075294,-140,139.07191010075294]},\n" + 
-				"{\"from\":\"Collection6\", \"to\":\"Collection7\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-140,220.92808989924703,-140,230.92808989924703,-140,239.07191010075297,-140,249.07191010075297]},\n" + 
-				"{\"from\":\"Condition\", \"to\":\"Collection3\", \"fromPort\":\"个人\", \"toPort\":\"T\", \"points\":[7.5,99.5,7.5,109.5,110,129.07191010075294,110,139.07191010075294]},\n" + 
-				"{\"from\":\"Collection3\", \"to\":\"Collection4\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[110,220.92808989924703,110,230.92808989924703,110,239.07191010075294,110,249.07191010075294]},\n" + 
-				"{\"from\":\"Collection4\", \"to\":\"Collection8\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[110,330.928089899247,110,340.928089899247,10,363.40524333077155,10,373.40524333077155]}\n" + 
-				" ]}\n";
+		String sceneJson = "{ \"class\": \"go.GraphLinksModel\",\n" + "  \"linkFromPortIdProperty\": \"fromPort\",\n"
+				+ "  \"linkToPortIdProperty\": \"toPort\",\n" + "  \"nodeDataArray\": [ \n"
+				+ "{\"key\":\"Start\", \"category\":\"Start\", \"loc\":\"-20 -210\", \"text\":\"开始\", \"width\":50, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":5, \"left\":30}},\n"
+				+ "{\"key\":\"Collection\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"客户类型收集\", \"collectionText\":\"询问文本：请问您是单位用户还是个人用户？\\n参数名称：客户类型\\n菜单选项：单位|个人\\n关联意图：客户类型\\n\", \"collectionParam\":\"客户类型\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"\", \"collectionElement\":\"\", \"collectionIntention\":\"客户类型\", \"interactiveType\":\"键值补全\", \"menuStartWords\":\"请问您是单位用户还是个人用户？\", \"menuOptions\":\"单位|个人\", \"menuEndWords\":\"\", \"loc\":\"-20 -130\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"Condition\", \"category\":\"Condition\", \"text\":\"客户类型判断\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"客户类型判断\", \"conditions\":[ [ {\"paramName\":\"客户类型\", \"paramValue\":\"单位\", \"variableType\":\"other\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"paramName\":\"客户类型\", \"paramValue\":\"个人\", \"variableType\":\"other\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"-20 80\", \"bottomArray\":[ {\"text\":\"单位\"},{\"text\":\"个人\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"单位\", \"variable_type_cdt0_and0\":\"other\", \"param_name_other_cdt0_and0\":\"客户类型\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"\", \"interface_param_cdt0_and0\":\"\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"单位\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"个人\", \"variable_type_cdt1_and0\":\"other\", \"param_name_other_cdt1_and0\":\"客户类型\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"\", \"interface_param_cdt1_and0\":\"\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"个人\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"},\n"
+				+ "{\"key\":\"Condition2\", \"category\":\"Condition\", \"text\":\"客户基本信息查询类型\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"客户基本信息查询类型\", \"conditions\":[ [ {\"paramName\":\"客户基本信息查询类型\", \"paramValue\":\"预留手机号\", \"variableType\":\"element\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"paramName\":\"客户基本信息查询类型\", \"paramValue\":\"ETC卡号\", \"variableType\":\"element\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"paramName\":\"客户基本信息查询类型\", \"paramValue\":\"电子标签（OBU）号\", \"variableType\":\"element\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"paramName\":\"客户基本信息查询类型\", \"paramValue\":\"ETC办理地址\", \"variableType\":\"element\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"10 500\", \"bottomArray\":[ {\"text\":\"预留手机号\"},{\"text\":\"ETC卡号\"},{\"text\":\"电子标签（OBU）号 \"},{\"text\":\"ETC办理地址\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"预留手机号\", \"variable_type_cdt0_and0\":\"element\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"客户基本信息查询类型\", \"interface_name_cdt0_and0\":\"\", \"interface_param_cdt0_and0\":\"\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"预留手机号\", \"param_value_cdt0_and0\":\"\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"ETC卡号\", \"variable_type_cdt1_and0\":\"element\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"客户基本信息查询类型\", \"interface_name_cdt1_and0\":\"\", \"interface_param_cdt1_and0\":\"\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"ETC卡号\", \"param_value_cdt1_and0\":\"\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\", \"condition_name_cdt2\":\"电子标签（OBU）号 \", \"variable_type_cdt2_and0\":\"element\", \"param_name_other_cdt2_and0\":\"\", \"param_name_attr_cdt2_and0\":\"\", \"param_name_element_cdt2_and0\":\"客户基本信息查询类型\", \"interface_name_cdt2_and0\":\"\", \"interface_param_cdt2_and0\":\"\", \"param_relation_cdt2_and0\":\"等于\", \"param_type_cdt2_and0\":\"String\", \"element_value_cdt2_and0\":\"电子标签（OBU）号\", \"param_value_cdt2_and0\":\"\", \"upDownType_cdt2_and0\":\"\", \"updownRatio_cdt2_and0\":\"\", \"condition_name_cdt3\":\"ETC办理地址\", \"variable_type_cdt3_and0\":\"element\", \"param_name_other_cdt3_and0\":\"\", \"param_name_attr_cdt3_and0\":\"\", \"param_name_element_cdt3_and0\":\"客户基本信息查询类型\", \"interface_name_cdt3_and0\":\"\", \"interface_param_cdt3_and0\":\"\", \"param_relation_cdt3_and0\":\"等于\", \"param_type_cdt3_and0\":\"String\", \"element_value_cdt3_and0\":\"ETC办理地址\", \"param_value_cdt3_and0\":\"\", \"upDownType_cdt3_and0\":\"\", \"updownRatio_cdt3_and0\":\"\"},\n"
+				+ "{\"key\":\"Collection2\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"查询类型收集\", \"collectionText\":\"询问文本：因需要保护客户隐私，目前仅支持查询以下信息\\n参数名称：客户基本信息查询类型\\n菜单选项：预留手机号|ETC卡号|电子标签（OBU）号|ETC办理地址 \\n关联要素：客户基本信息查询类型\\n关联意图：客户基本信息查询类型\\n\", \"collectionParam\":\"客户基本信息查询类型\", \"collectionType\":\"elementCollection\", \"collectionTimes\":\"\", \"collectionWords\":\"\", \"collectionElement\":\"客户基本信息查询类型\", \"collectionIntention\":\"客户基本信息查询类型\", \"interactiveType\":\"键值补全\", \"menuStartWords\":\"因需要保护客户隐私，目前仅支持查询以下信息\", \"menuOptions\":\"预留手机号|ETC卡号|电子标签（OBU）号|ETC办理地址 \", \"menuEndWords\":\"\", \"loc\":\"-20 -20\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"Collection3\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"ETC开户人姓名收集\", \"collectionText\":\"询问文本：请您输入ETC开户人姓名（格式：姓名 XXX）\\n参数名称：客户姓名\\n关联意图：客户姓名\\n\", \"collectionParam\":\"客户姓名\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入ETC开户人姓名（格式：姓名 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"客户姓名\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"110 180\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"Collection4\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"ETC开户人身份证号收集\", \"collectionText\":\"询问文本：请您输入ETC开户人身份证号码（格式：身份证号 XXX）\\n参数名称：客户身份证号\\n关联意图：客户身份证号\\n\", \"collectionParam\":\"客户身份证号\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入ETC开户人身份证号码（格式：身份证号 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"客户身份证号\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"110 290\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"URLAction\", \"category\":\"URLAction\", \"text\":\"客户手机号查询\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"interfaceName\":\"客户基本信息查询\", \"actionName\":\"客户手机号查询\", \"actionUrl\":\"\", \"actionMethod\":\"\", \"inParams\":[], \"outParams\":[], \"loc\":\"-240 590\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"URLAction2\", \"category\":\"URLAction\", \"text\":\"ETC卡号查询\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"interfaceName\":\"ETC卡信息查询\", \"actionName\":\"ETC卡号查询\", \"actionUrl\":\"\", \"actionMethod\":\"\", \"inParams\":[], \"outParams\":[], \"loc\":\"20 590\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"URLAction3\", \"category\":\"URLAction\", \"text\":\"电子标签信息查询\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"interfaceName\":\"电子标签查询\", \"actionName\":\"电子标签信息查询\", \"actionUrl\":\"\", \"actionMethod\":\"\", \"inParams\":[], \"outParams\":[], \"loc\":\"270 590\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"End\", \"category\":\"End\", \"text\":\"您好，查询您办理的ETC预留手机号为：<@预留手机号>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"您好，查询您办理的ETC预留手机号为：<@预留手机号>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"-470 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n"
+				+ "{\"key\":\"End2\", \"category\":\"End\", \"text\":\"您好，查询您办理的ETC卡号为：<@ETC用户卡信息列表>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"您好，查询您办理的ETC卡号为：<@ETC用户卡信息列表>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"20 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n"
+				+ "{\"key\":\"End3\", \"category\":\"End\", \"text\":\"您好，查询您办理的ETC电子标签（OBU）号为：<@ETC电子标签列表>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"您好，查询您办理的ETC电子标签（OBU）号为：<@ETC电子标签列表>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"260 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n"
+				+ "{\"key\":\"URLAction5\", \"category\":\"URLAction\", \"text\":\"ETC办理地址查询\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"interfaceName\":\"ETC卡信息查询\", \"actionName\":\"ETC办理地址查询\", \"actionUrl\":\"\", \"actionMethod\":\"\", \"inParams\":[], \"outParams\":[], \"loc\":\"530 590\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"End4\", \"category\":\"End\", \"text\":\"您好，查询您办理的ETC办理地址为：<@ETC用户卡信息列表>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"您好，查询您办理的ETC办理地址为：<@ETC用户卡信息列表>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"510 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n"
+				+ "{\"key\":\"Collection6\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"单位名称收集\", \"collectionText\":\"询问文本：请您输入开户单位名称（格式：单位名称 XXX）\\n参数名称：单位名称\\n关联意图：单位名称\\n\", \"collectionParam\":\"单位名称\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入开户单位名称（格式：单位名称 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"单位名称\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"-140 180\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"Collection7\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"单位证件号码收集\", \"collectionText\":\"询问文本：请您输入开户单位证件号（格式：证件号码 XXX）\\n参数名称：单位证件号\\n关联意图：单位证件号\\n\", \"collectionParam\":\"单位证件号\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入开户单位证件号（格式：证件号码 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"单位证件号\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"-140 290\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"Collection8\", \"category\":\"Collection\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"collectionNameMargin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"collectionTextMargin\":{\"class\":\"go.Margin\", \"top\":30, \"right\":10, \"bottom\":2, \"left\":10}, \"collectionName\":\"车牌号收集\", \"collectionText\":\"询问文本：请您输入车牌号（格式：车牌号 XXX）\\n参数名称：车牌号\\n关联意图：车牌号\\n\", \"collectionParam\":\"车牌号\", \"collectionType\":\"userInfoCollection\", \"collectionTimes\":\"1\", \"collectionWords\":\"请您输入车牌号（格式：车牌号 XXX）\", \"collectionElement\":\"\", \"collectionIntention\":\"车牌号\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"loc\":\"10 410\", \"endFlag\":\"否\"},\n"
+				+ "{\"key\":\"Condition3\", \"category\":\"Condition\", \"text\":\"客户信息调用成功与否\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"客户信息调用成功与否\", \"conditions\":[ [ {\"interfaceName\":\"客户基本信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"0\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"interfaceName\":\"客户基本信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"1\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"-240 670\", \"bottomArray\":[ {\"text\":\"成功\"},{\"text\":\"失败\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"成功\", \"variable_type_cdt0_and0\":\"interface\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"客户基本信息查询\", \"interface_param_cdt0_and0\":\"响应代码\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"0\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"失败\", \"variable_type_cdt1_and0\":\"interface\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"客户基本信息查询\", \"interface_param_cdt1_and0\":\"响应代码\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"1\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"},\n"
+				+ "{\"key\":\"End5\", \"category\":\"End\", \"text\":\"<@响应描述>\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":10, \"wordsContent\":\"<@响应描述>\", \"code\":\"\", \"otherResponses\":[], \"bottomArray\":[], \"action\":\"\", \"actionParams\":\"\", \"loc\":\"-220 780\", \"interactiveType\":\"词模匹配\", \"menuStartWords\":\"\", \"menuOptions\":\"\", \"menuEndWords\":\"\", \"endFlag\":\"是\", \"templateId\":\"\", \"checkedArray\":[]},\n"
+				+ "{\"key\":\"Condition4\", \"category\":\"Condition\", \"text\":\"ETC卡信息调用成功与否\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"ETC卡信息调用成功与否\", \"conditions\":[ [ {\"interfaceName\":\"ETC卡信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"0\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"interfaceName\":\"ETC卡信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"1\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"20 670\", \"bottomArray\":[ {\"text\":\"成功\"},{\"text\":\"失败\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"成功\", \"variable_type_cdt0_and0\":\"interface\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"ETC卡信息查询\", \"interface_param_cdt0_and0\":\"响应代码\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"0\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"失败\", \"variable_type_cdt1_and0\":\"interface\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"ETC卡信息查询\", \"interface_param_cdt1_and0\":\"响应代码\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"1\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"},\n"
+				+ "{\"key\":\"Condition5\", \"category\":\"Condition\", \"text\":\"电子卡标签调用成功与否\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"电子卡标签调用成功与否\", \"conditions\":[ [ {\"interfaceName\":\"电子标签查询\", \"paramName\":\"响应代码\", \"paramValue\":\"0\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"interfaceName\":\"电子标签查询\", \"paramName\":\"响应代码\", \"paramValue\":\"1\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"270 670\", \"bottomArray\":[ {\"text\":\"成功\"},{\"text\":\"失败\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"成功\", \"variable_type_cdt0_and0\":\"interface\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"电子标签查询\", \"interface_param_cdt0_and0\":\"响应代码\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"0\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"失败\", \"variable_type_cdt1_and0\":\"interface\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"电子标签查询\", \"interface_param_cdt1_and0\":\"响应代码\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"1\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"},\n"
+				+ "{\"key\":\"Condition6\", \"category\":\"Condition\", \"text\":\"ETC办理地址调用成功与否\", \"width\":200, \"height\":{\"class\":\"NaN\"}, \"margin\":{\"class\":\"go.Margin\", \"top\":5, \"right\":10, \"bottom\":40, \"left\":10}, \"conditionNodeName\":\"ETC办理地址调用成功与否\", \"conditions\":[ [ {\"interfaceName\":\"ETC卡信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"0\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ],[ {\"interfaceName\":\"ETC卡信息查询\", \"paramName\":\"响应代码\", \"paramValue\":\"1\", \"variableType\":\"interface\", \"paramRelation\":\"等于\", \"paramType\":\"String\"} ] ], \"loc\":\"530 670\", \"bottomArray\":[ {\"text\":\"成功\"},{\"text\":\"失败\"} ], \"endFlag\":\"否\", \"condition_name_cdt0\":\"成功\", \"variable_type_cdt0_and0\":\"interface\", \"param_name_other_cdt0_and0\":\"\", \"param_name_attr_cdt0_and0\":\"\", \"param_name_element_cdt0_and0\":\"\", \"interface_name_cdt0_and0\":\"ETC卡信息查询\", \"interface_param_cdt0_and0\":\"响应代码\", \"param_relation_cdt0_and0\":\"等于\", \"param_type_cdt0_and0\":\"String\", \"element_value_cdt0_and0\":\"\", \"param_value_cdt0_and0\":\"0\", \"upDownType_cdt0_and0\":\"\", \"updownRatio_cdt0_and0\":\"\", \"condition_name_cdt1\":\"失败\", \"variable_type_cdt1_and0\":\"interface\", \"param_name_other_cdt1_and0\":\"\", \"param_name_attr_cdt1_and0\":\"\", \"param_name_element_cdt1_and0\":\"\", \"interface_name_cdt1_and0\":\"ETC卡信息查询\", \"interface_param_cdt1_and0\":\"响应代码\", \"param_relation_cdt1_and0\":\"等于\", \"param_type_cdt1_and0\":\"String\", \"element_value_cdt1_and0\":\"\", \"param_value_cdt1_and0\":\"1\", \"upDownType_cdt1_and0\":\"\", \"updownRatio_cdt1_and0\":\"\"}\n"
+				+ " ],\n" + "  \"linkDataArray\": [ \n"
+				+ "{\"from\":\"Start\", \"to\":\"Collection\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-20.000000000000007,-195.23857625084605,-20.000000000000007,-185.23857625084605,-19.999999999999986,-180.92808989924706,-19.999999999999986,-170.92808989924706]},\n"
+				+ "{\"from\":\"Collection\", \"to\":\"Collection2\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-19.999999999999986,-89.07191010075296,-19.999999999999986,-79.07191010075296,-19.999999999999986,-83.9280895893029,-19.999999999999986,-73.9280895893029]},\n"
+				+ "{\"from\":\"Collection2\", \"to\":\"Condition\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-19.999999999999986,33.9280895893029,-19.999999999999986,43.9280895893029,-19.999999999999986,37.73857625084603,-19.999999999999986,47.73857625084603]},\n"
+				+ "{\"from\":\"Collection7\", \"to\":\"Collection8\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-140,330.9280898992471,-140,340.9280898992471,10.000000000000014,363.40524333077155,10.000000000000014,373.40524333077155]},\n"
+				+ "{\"from\":\"Condition3\", \"to\":\"End\", \"fromPort\":\"成功\", \"toPort\":\"T\", \"points\":[-267.5,689.5,-267.5,699.5,-469.99999999999994,743.738576250846,-469.99999999999994,753.738576250846]},\n"
+				+ "{\"from\":\"Condition3\", \"to\":\"End5\", \"fromPort\":\"失败\", \"toPort\":\"T\", \"points\":[-212.5,689.5,-212.5,699.5,-220,750.238576250846,-220,760.238576250846]},\n"
+				+ "{\"from\":\"URLAction2\", \"to\":\"Condition4\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[20,609.7614237491539,20,619.7614237491539,20,627.738576250846,20,637.738576250846]},\n"
+				+ "{\"from\":\"Condition4\", \"to\":\"End2\", \"fromPort\":\"成功\", \"toPort\":\"T\", \"points\":[-7.500000000000007,689.5,-7.500000000000007,699.5,20,743.738576250846,20,753.738576250846]},\n"
+				+ "{\"from\":\"Condition4\", \"to\":\"End5\", \"fromPort\":\"失败\", \"toPort\":\"T\", \"points\":[47.49999999999999,689.5,47.49999999999999,699.5,-220,750.238576250846,-220,760.238576250846]},\n"
+				+ "{\"from\":\"Condition5\", \"to\":\"End3\", \"fromPort\":\"成功\", \"toPort\":\"T\", \"points\":[242.5,689.5,242.5,699.5,260,743.738576250846,260,753.738576250846]},\n"
+				+ "{\"from\":\"Condition5\", \"to\":\"End5\", \"fromPort\":\"失败\", \"toPort\":\"T\", \"points\":[297.5,689.5,297.5,699.5,-220,750.238576250846,-220,760.238576250846]},\n"
+				+ "{\"from\":\"URLAction5\", \"to\":\"Condition6\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[530,609.7614237491539,530,619.7614237491539,530,627.738576250846,530,637.738576250846]},\n"
+				+ "{\"from\":\"Condition6\", \"to\":\"End4\", \"fromPort\":\"成功\", \"toPort\":\"T\", \"points\":[502.5,689.5,502.5,699.5,510,743.738576250846,510,753.738576250846]},\n"
+				+ "{\"from\":\"Condition6\", \"to\":\"End5\", \"fromPort\":\"失败\", \"toPort\":\"T\", \"points\":[557.5,689.5,557.5,699.5,-220,750.238576250846,-220,760.238576250846]},\n"
+				+ "{\"from\":\"URLAction3\", \"to\":\"Condition5\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[270,609.7614237491539,270,619.7614237491539,270,627.738576250846,270,637.738576250846]},\n"
+				+ "{\"from\":\"Collection8\", \"to\":\"Condition2\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[10.000000000000014,446.59475666922845,10.000000000000014,456.59475666922845,10,457.73857625084605,10,467.73857625084605]},\n"
+				+ "{\"from\":\"Condition2\", \"to\":\"URLAction\", \"fromPort\":\"预留手机号\", \"toPort\":\"T\", \"points\":[-151.49999999999997,519.5,-151.49999999999997,529.5,-240,560.238576250846,-240,570.238576250846]},\n"
+				+ "{\"from\":\"Condition2\", \"to\":\"URLAction2\", \"fromPort\":\"ETC卡号\", \"toPort\":\"T\", \"points\":[-66.49999999999997,519.5,-66.49999999999997,529.5,20,560.238576250846,20,570.238576250846]},\n"
+				+ "{\"from\":\"Condition2\", \"to\":\"URLAction3\", \"fromPort\":\"电子标签（OBU）号 \", \"toPort\":\"T\", \"points\":[43.50000000000003,519.5,43.50000000000003,529.5,270,560.238576250846,270,570.238576250846]},\n"
+				+ "{\"from\":\"Condition2\", \"to\":\"URLAction5\", \"fromPort\":\"ETC办理地址\", \"toPort\":\"T\", \"points\":[165.50000000000003,519.5,165.50000000000003,529.5,530,560.238576250846,530,570.238576250846]},\n"
+				+ "{\"from\":\"Condition\", \"to\":\"Collection6\", \"fromPort\":\"单位\", \"toPort\":\"T\", \"points\":[-47.5,99.5,-47.5,109.5,-140,129.07191010075294,-140,139.07191010075294]},\n"
+				+ "{\"from\":\"Collection6\", \"to\":\"Collection7\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[-140,220.92808989924703,-140,230.92808989924703,-140,239.07191010075297,-140,249.07191010075297]},\n"
+				+ "{\"from\":\"Condition\", \"to\":\"Collection3\", \"fromPort\":\"个人\", \"toPort\":\"T\", \"points\":[7.5,99.5,7.5,109.5,110,129.07191010075294,110,139.07191010075294]},\n"
+				+ "{\"from\":\"Collection3\", \"to\":\"Collection4\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[110,220.92808989924703,110,230.92808989924703,110,239.07191010075294,110,249.07191010075294]},\n"
+				+ "{\"from\":\"Collection4\", \"to\":\"Collection8\", \"fromPort\":\"B\", \"toPort\":\"T\", \"points\":[110,330.928089899247,110,340.928089899247,10,363.40524333077155,10,373.40524333077155]}\n"
+				+ " ]}\n";
 		List<NodeData> nodeDataList = parseSceneJson(sceneJson);
 		List<NodeData> newNodeDataList = sortNodeDataList(nodeDataList);
 		System.out.println("-------------");
-		for(NodeData nodeData : newNodeDataList) {
+		for (NodeData nodeData : newNodeDataList) {
 			System.out.println(nodeData.getKey());
 		}
-		
+
 	}
-	
+
 }

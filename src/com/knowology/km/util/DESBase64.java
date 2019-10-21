@@ -59,8 +59,8 @@ public class DESBase64 {
 	
 	public static void main(String[] args) {
 		String username = "znkf";
-		String password = "ETC_nkipwd2019";
-		String url = "jdbc:mysql://172.30.2.2:3306/znkf?useUnicode=true&characterEncoding=utf8&useOldAliasMetadataBehavior=true";
+		String password = "nkipwd";
+		String url = "jdbc:mysql://172.16.1.18:3306/znkf?useUnicode=true&characterEncoding=utf8&useOldAliasMetadataBehavior=true";
 
 		System.out.println("username 明文: "+username);
 		System.out.println("username 密文："+encryptStringBase64(username, TOKEN));
