@@ -1522,6 +1522,8 @@ function initURLAction(){
 	// 接口编辑区
 	$('#addInterfaceBtn').click(function() {
 		saveOrUpdateInterfaceFlag = 'save';
+		$('#in_key_vals_div').find(".in-key").remove();
+		$('#out_key_vals_div').find(".out-key").remove();
 		var inKeyDivs = $("#in_key_vals_div").find('.in-key');
 		var outKeyDivs = $("#out_key_vals_div").find('.out-key');
 		if(inKeyDivs.length==0) {
@@ -2703,7 +2705,12 @@ function addListenerEvents() {
 			// 设置条件内容
 			var conditions = nodeData.conditions;
 			for(var i = 0; i < conditions.length; i++) {
-				var andConditions = conditions[i];
+				var andConditions = [];
+				if(conditions[i].andConditions == null || conditions[i].andConditions == undefined) {
+					andConditions = conditions[i];
+				} else {
+					andConditions = conditions[i].andConditions;
+				}
 				addOneCondition(i,0);
 				$("#condition_name"+"_cdt" +i).textbox('setValue', bottomArray[i].text);
 				for(var j = 0; j < andConditions.length; j++) {
@@ -3313,6 +3320,7 @@ function buttonClick() {
 		for(var conditionIdx=0; conditionIdx < conditionCount; conditionIdx++) {
 			var andConditionDivs = $("#conditions").find("div").eq(0).find('.condition-div').eq(conditionIdx).find("div[add='andconditions']").find('.and-condition-div');
 			var andConditionCount = andConditionDivs.length;
+			var conditionInfo = {};
 			var andConditions = [];
 			var conditionName = $('#condition_name'+'_cdt'+conditionIdx).textbox('getValue');
 			bottomArray[conditionIdx] = {'text':conditionName};
@@ -3355,7 +3363,9 @@ function buttonClick() {
 				andCondition.paramType = $("#"+paramTypeInput).combobox("getValue");
 				andConditions[variableIdx] = andCondition;
 			}
-			conditions[conditionIdx] = andConditions;
+			conditionInfo.conditionName = conditionName;
+			conditionInfo.andConditions = andConditions;
+			conditions[conditionIdx] = conditionInfo;
 		}
 		$.each(array,function(index, value){
 			myDiagram.model.setDataProperty(nodeData, this.name, this.value);

@@ -1,6 +1,5 @@
 package com.knowology.km.pojo;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,7 +15,7 @@ public class ConditionNode extends NodeData {
 	/**
 	 * 条件集合
 	 */
-	private List<ArrayList<AndCondition>> conditions;
+	private List<ConditionInfo> conditions;
 
 	public ConditionNode() {}
 
@@ -37,12 +36,11 @@ public class ConditionNode extends NodeData {
 		this.conditionNodeName = conditionNodeName;
 	}
 
-
-	public List<ArrayList<AndCondition>> getConditions() {
+	public List<ConditionInfo> getConditions() {
 		return conditions;
 	}
 
-	public void setConditions(List<ArrayList<AndCondition>> conditions) {
+	public void setConditions(List<ConditionInfo> conditions) {
 		this.conditions = conditions;
 	}
 

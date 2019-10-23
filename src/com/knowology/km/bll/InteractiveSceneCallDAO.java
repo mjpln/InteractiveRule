@@ -14,6 +14,7 @@ import javax.servlet.jsp.jstl.sql.Result;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.knowology.Bean.User;
@@ -43,6 +44,7 @@ import com.knowology.km.enums.CollectionTypeEnum;
 import com.knowology.km.enums.ComparisionRelationEnum;
 import com.knowology.km.pojo.AndCondition;
 import com.knowology.km.pojo.CollectionNode;
+import com.knowology.km.pojo.ConditionInfo;
 import com.knowology.km.pojo.ConditionNode;
 import com.knowology.km.pojo.DTMFNode;
 import com.knowology.km.pojo.LinkData;
@@ -167,7 +169,10 @@ public class InteractiveSceneCallDAO {
 				}
 				for (LinkData linkData : nodeData.getToLinks()) {
 					NodeData toNode = linkData.getToNode();
-					LoopNodeData(nodeDataKeys.get(toNode.getKey()), nodeDataKeys, newNodeDataKeys, newNodeDataList);
+					// 跳转节点会产生死循环
+					if (linkData.getFromPort() != null && !"跳转".equals(linkData.getFromPort().getText())) {
+						LoopNodeData(nodeDataKeys.get(toNode.getKey()), nodeDataKeys, newNodeDataKeys, newNodeDataList);
+					}
 				}
 			}
 		}
@@ -249,8 +254,8 @@ public class InteractiveSceneCallDAO {
 		// 条件组件
 		if (CallOutNodeTypeConsts.CONDITION_NODE.equals(fromNodeCategory)) {
 			String conditionName = fromPortText;
-			sceneRules = generateConditionNodeSceneRules(scenariosid, (ConditionNode) fromNode, toNode, linkIndex,
-					conditionName, sceneRules);
+			sceneRules = generateConditionNodeSceneRules(scenariosid, (ConditionNode) fromNode, toNode, conditionName,
+					sceneRules);
 		}
 		return sceneRules;
 	}
@@ -431,11 +436,12 @@ public class InteractiveSceneCallDAO {
 	 * @return
 	 */
 	public static List<SceneRule> generateConditionNodeSceneRules(String scenariosid, ConditionNode fromNode,
-			NodeData toNode, int conditionIndex, String conditionName, List<SceneRule> sceneRules) {
+			NodeData toNode, String conditionName, List<SceneRule> sceneRules) {
 		/**
 		 * 条件跳转
 		 */
 		String ruleResponse = InteractiveSceneCallDAO.getCallRuleResponse(toNode); // 回复内容
+		logger.info(conditionName + "------->" + ruleResponse);
 		List<SceneElement> sceneElementValues = new ArrayList<SceneElement>(); // 规则条件
 		// 上文节点名
 		SceneElement sceneElement = new SceneElement();
@@ -449,8 +455,8 @@ public class InteractiveSceneCallDAO {
 		sceneElement.setElementValue(robotId);
 		sceneElementValues.add(sceneElement);
 		// 条件值
-		ArrayList<AndCondition> andConditions = fromNode.getConditions().get(conditionIndex);
-		if (!andConditions.isEmpty()) {
+		ArrayList<AndCondition> andConditions = getAndConditions(fromNode, conditionName);
+		if (andConditions != null && !andConditions.isEmpty()) {
 			for (int i = 0; i < andConditions.size(); i++) {
 				AndCondition andCondition = andConditions.get(i);
 				if (StringUtils.isNotBlank(andCondition.getParamValue())) {
@@ -481,6 +487,24 @@ public class InteractiveSceneCallDAO {
 			}
 		}
 		return sceneRules;
+	}
+
+	/**
+	 * 根据条件名获取AND条件
+	 * 
+	 * @param fromNode      条件节点
+	 * @param conditionName 条件名
+	 * @return AND条件集合
+	 */
+	private static ArrayList<AndCondition> getAndConditions(ConditionNode fromNode, String conditionName) {
+		if (fromNode.getConditions() != null && !fromNode.getConditions().isEmpty()) {
+			for (ConditionInfo condition : fromNode.getConditions()) {
+				if (condition.getConditionName().equals(conditionName)) {
+					return condition.getAndConditions();
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -2436,7 +2460,7 @@ public class InteractiveSceneCallDAO {
 		List<NodeData> newNodeDataList = sortNodeDataList(nodeDataList);
 		System.out.println("-------------");
 		for (NodeData nodeData : newNodeDataList) {
-			System.out.println(nodeData.getKey());
+			System.out.println(JSON.toJSONString(nodeData));
 		}
 
 	}
