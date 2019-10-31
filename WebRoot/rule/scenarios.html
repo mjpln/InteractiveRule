@@ -536,6 +536,11 @@
 						style="display: inline; padding: 20px; position: relative; overflow-x: hidden;">
 						<table>
 							<tr>
+								<table id="selrulenametable">
+								</table>
+							</tr>
+							<!--  
+							<tr>
 								<td><span id="selrule0name1" class="span_class"></span></td>
 								<td><span id="selrule01"><input id="selrule0value1" class="easyui-combobox" /></span></td>
 								<td><span id="selrule0name2" class="span_class"></span></td>
@@ -595,6 +600,7 @@
 								<td><span id="selrule0name20" class="span_class"></span></td>
 								<td><span id="selrule020"><input id="selrule0value20" class="easyui-combobox" /></span></td>
 							</tr>
+							-->
 							<tr>
 								<td>
 									<!-- <span class="span_class"  >规则类型:</span>
@@ -647,7 +653,8 @@
 					<tr>
 						<td width="120">场景要素:</td>
 							<td>
-								<table>
+								<table id="addrulenametable">
+									<!--  
 									<tr>
 										<td class="td-display1"><span id="addrule0name1" class="span_class"></span></td>
 										<td class="td-display1"><span id="addrule01"><input id="addrule0value1"class="easyui-combobox" /></span></td>
@@ -708,6 +715,7 @@
 										<td class="td-display20"><span id="addrule0name20" class="span_class"></span></td>
 										<td class="td-display20"><span id="addrule020"><input id="addrule0value20" class="easyui-combobox" /></span></td>
 									</tr>
+									-->
 								</table>
 							</td>
 						</tr>
@@ -1168,21 +1176,9 @@
 					     		<a href="#" class="easyui-linkbutton mr-10 save" data-options="iconCls:'icon-save'">确认</a>
 					     		<a href="#" class="easyui-linkbutton cancel" data-options="iconCls:'icon-undo'"  onclick="closeKnonameWin();" >取消</a>
 					     	</div>
-					     </div>
-							
-						</div>	
-							
-                        
+					     </div>							
+						</div>	                   
                         <!--插入知识名称  window end-->
-
-
-                        
-
-
-
-
-
-
 					</div>
 
 				</div>
@@ -1193,6 +1189,11 @@
 					<div title="语义理解规则"
 						style="display: inline; padding: 20px; position: relative; overflow-x: hidden;">
 						<table>
+							<tr>
+								<table id="s_selrulenametable">
+								</table>
+							</tr>
+							<!--  
 							<tr>
 								<td>
 									<span id="s_selrule0name1"></span>
@@ -1242,7 +1243,6 @@
 									</span>
 								</td>
 							</tr>
-							
 							<tr>
 								<td>
 									<span id="s_selrule0name11"></span>
@@ -1292,13 +1292,15 @@
 									</span>
 								</td>
 							</tr>
-							
+							-->
 							<tr>
 								<td>
-									<!--  <span>规则类型:</span>
-								<span><input id="s_selrule0type" class="easyui-combobox"/></span>-->
-									<!-- <span>规则优先级:</span>
-								<span><input id="s_selrule0weight" class="easyui-numberbox" data-options="min:0,prompt:'请输入数字'"/></span> -->
+									<!--  
+									<span>规则类型:</span>
+									<span><input id="s_selrule0type" class="easyui-combobox"/></span>
+									<span>规则优先级:</span>
+									<span><input id="s_selrule0weight" class="easyui-numberbox" data-options="min:0,prompt:'请输入数字'"/></span> 
+									-->
 									<span class="span_class">归属地市:</span>
 									<span><input id="s_search_city" class="easyui-combotree"
 											style="width: 150px;" type="text"></input>
@@ -1355,6 +1357,9 @@
 											场景要素:
 										</td>
 										<td>
+											<table id="s_addrulenametable">
+											</table>
+											<!--  
 											<span id="s_addrule0name1"></span>
 											<span id="s_addrule01"><input id="s_addrule0value1"
 													class="easyui-combobox" />
@@ -1455,6 +1460,7 @@
 											<span id="s_addrule020"><input id="s_addrule0value20"
 													class="easyui-combobox" />
 											</span>
+										-->
 										</td>
 									</tr>
 									

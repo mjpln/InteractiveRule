@@ -82,7 +82,7 @@
 		<!-- 编辑放音内容  window start -->
 		<div id="myNormalEditDiv" title="编辑放音内容" tabindex="0"
 			style="overflow:auto; position:absolute; z-index:999; right:0; top:1; width: 250px; height: 500px; background-color: whitesmoke; border: solid 1px black; display:none; ">
-			<form id="myNormalEditForm">
+			<form id="myNormalEditForm" class="easyui-form">
 		    	<table id="common-response-table" style="width:100%;">
 					<tr>
 						<td>
@@ -233,7 +233,7 @@
 		<!-- 编辑信息收集 window start -->
 		<div id="myCollectionEditDiv" title="信息收集" tabindex="0"
 			style="overflow:auto; position:absolute; z-index:999; right:0; top:1; width: 250px; height: 500px; background-color: whitesmoke; border: solid 1px black; display:none; ">
-			<form id="collectionform">
+			<form id="collectionform" class="easyui-form">
 		    	<table id="collection-table" style="width:100%;">
 		    		<tr>
 						<td>
@@ -329,7 +329,7 @@
              style="padding-bottom: 10px;overflow:scroll; position:absolute; z-index:999; right:0px; top:1px; width:250px;height: 500px; background-color: whitesmoke;display:none; ">
             <div><span>DTMF按键收集</span></div>
             <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
-            <form id="dTMFPressform" style="padding-right: 5px;padding-left:5px;font-size: 13px;">
+            <form id="dTMFPressform" class="easyui-form" style="padding-right: 5px;padding-left:5px;font-size: 13px;">
                 <div class="form-div">
                     <div class="form-div">
                     	<span style='color:red'>*</span>
@@ -402,13 +402,13 @@
             <div><span>AI转人工</span></div>
             <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
 
-            <form id="Transferform" style="padding-right: 10px;padding-left:10px;font-size: 13px;">
+            <form id="Transferform" class="easyui-form" style="padding-right: 10px;padding-left:10px;font-size: 13px;">
                 <div class="form-div">
                     <div class="form-div">AI转人工名称<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="transferName" name="transferName" data-options="prompt:'请输入名称'" style="width: 100%;"/></div>
+                    <input class="easyui-textbox" id="transferName" name="transferName" data-options="prompt:'请输入名称'" style="width: 240px;"/></div>
                 <div class="form-div">
                     <div class="form-div">人工服务号码<span style='color:red'>*</span>：</div>
-                    <input class="easyui-textbox" id="transferNumber" name="transferNumber" data-options="prompt:'请输入人工电话号码'" style="width: 100%;"/></div>
+                    <input class="easyui-textbox" id="transferNumber" name="transferNumber" data-options="prompt:'请输入人工电话号码'" style="width: 240px;"/></div>
             	<div class="form-div">
                 	<span><span style='color:red'>*</span>是否末梢节点：</span>
 					<span><input id="endFlag" name="endFlag" class="easyui-combobox" data-options="valueField:'id',textField:'text',data:[{'text':'否','id':'否',selected:true},{'text':'是','id':'是'}]" style="width: 240px;"/></span>
@@ -426,7 +426,7 @@
              style="padding-bottom: 10px;overflow:auto; position:absolute; z-index:999; right:0px; top:1px; width:250px;height: 500px; background-color: whitesmoke;  border: solid 1px black; display:none; ">
             <div><span>动作组件</span></div>
             <hr style="height:1px;border:none;border-top:1px solid #555555;"/>
-            <form id="URLActionform" style="padding-right: 5px;padding-left:5px;font-size: 13px;">
+            <form id="URLActionform" class="easyui-form" style="padding-right: 5px;padding-left:5px;font-size: 13px;">
             	<div class="form-div">
                     <div class="form-div"><span style='color:red'>*</span>组件名称：</div>
                     <input class="easyui-textbox" id="actionName" name="actionName" data-options="prompt:'组件名称'" style="width:240px;height: 30px"/>
@@ -442,7 +442,7 @@
 		            	<a id="editInterfaceBtn" name="editInterfaceBtn" href="javascript:void(0)" 
 		            		class="easyui-linkbutton" data-options="iconCls:'icon-save'">编辑</a>
 		            </div>
-		            <input class="easyui-combobox" id="interfaceName" name="interfaceName" data-options="prompt:'接口名称'" style="width:240px;height: 30px"/>
+		            <input id="interfaceName" name="interfaceName" class="easyui-combobox" data-options="prompt:'接口名称'" style="width:240px;height: 30px"/>
 		        </div>
             </form>
             <div style="text-align: center; padding: 10px">
@@ -458,7 +458,7 @@
             <div><span>条件组件</span></div>
             <hr style="width:240px; height:1px;border:none;border-top:1px solid #555555;"/>
 
-            <form id="Conditionform" style="padding-right: 1px;padding-left:1px;font-size: 13px;">
+            <form id="Conditionform" class="easyui-form" style="padding-right: 1px;padding-left:1px;font-size: 13px;">
                 <div class="form-div" >
                     <div class="form-div"><span style='color:red'>*</span>组件名称：</div>
                     <input class="easyui-textbox" id="conditionNodeName" name="conditionNodeName" data-options="prompt:'请输入名称'" style="width: 240px;"/>

@@ -37,6 +37,40 @@ $(function() {
 	publicscenariosname = decodeURI(urlparams.scenariosname);
 	ioa =  decodeURI(urlparams.ioa);
 	strategy = decodeURI(urlparams.strategy);
+	
+	//初始化页面
+	for(var i=1; i < MAX_SCENARIO_COUNT; i++) {
+		// 场景要素
+		var addRuleNameHtml = 
+		'<tr>'+
+			'<td class="td-display'+i+'"><span id="addrule0name'+i+'" class="span_class"></span></td>'+
+			'<td class="td-display'+i+'"><span id="addrule0'+i+'"><input id="addrule0value'+i+'" class="easyui-combobox" /></span></td>'+
+		'</tr>';
+		
+		var s_selRuleNameHtml = 
+		'<tr>'+
+			'<td class="td-display'+i+'"><span id="s_selrule0name'+i+'" class="span_class"></span></td>'+
+			'<td class="td-display'+i+'"><span id="s_selrule0'+i+'"><input id="s_selrule0value'+i+'" class="easyui-combobox" /></span></td>'+
+		'</tr>';
+		
+		var selRuleNameHtml = 
+		'<tr>'+
+			'<td class="td-display'+i+'"><span id="selrule0name'+i+'" class="span_class"></span></td>'+
+			'<td class="td-display'+i+'"><span id="selrule0'+i+'"><input id="selrule0value'+i+'" class="easyui-combobox" /></span></td>'+
+		'</tr>';
+		
+		var s_addRuleNameHtml = 
+		'<tr>'+
+			'<td class="td-display'+i+'"><span id="s_addrule0name'+i+'" class="span_class"></span></td>'+
+			'<td class="td-display'+i+'"><span id="s_addrule0'+i+'"><input id="s_addrule0value'+i+'" class="easyui-combobox" /></span></td>'+
+		'</tr>';
+		
+		$('#addrulenametable').append(addRuleNameHtml);
+		$('#selrulenametable').append(selRuleNameHtml);
+		$('#s_addrulenametable').append(s_addRuleNameHtml);
+		$('#s_selrulenametable').append(s_selRuleNameHtml);
+	}
+	$.parser.parse();
 	//启动加载数据
 	start(); 
 	

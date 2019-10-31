@@ -760,7 +760,7 @@ public class InteractiveSceneCallDAO {
 	 */
 	public static String getCallRuleResponse(NodeData toNode) {
 		Map<String, String> setItems = new HashMap<String, String>();
-		setItems.put("是否末梢编码", StringUtils.isBlank(toNode.getEndFlag()) ? "否" : "是");
+		setItems.put("是否末梢编码", StringUtils.isBlank(toNode.getEndFlag()) ? "否" : toNode.getEndFlag());
 		setItems.put("action", ""); // action动作置为空
 		setItems.put("actionParams", ""); // action参数置为空
 		String category = toNode.getCategory();
@@ -836,23 +836,22 @@ public class InteractiveSceneCallDAO {
 		}
 		// 非跳转节点需等待用户回答
 		if (isJumpNode(ttsNode)) {
-			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, ttsNode.getKey());
 		}
 		setItems.put("节点名", ttsNode.getKey());
 		if (InteracviteTypeConsts.WORD_PATTERN.equals(ttsNode.getInteractiveType())) {
 			setItems.put("TTS", StringUtils.isBlank(ttsNode.getWordsContent()) ? "" : ttsNode.getWordsContent());
 		}
-		if (InteracviteTypeConsts.MENU_OPTIONS.equals(ttsNode.getInteractiveType())) {
-			String menuStartWords = ttsNode.getMenuStartWords();
-			String menuOptions = ttsNode.getMenuOptions();
-			String menuEndWords = ttsNode.getMenuEndWords();
-			String tts = ScenariosDAO.getMenuRuleResponse(menuStartWords, menuOptions, menuEndWords);
-			setItems.put("TTS", StringUtils.isBlank(tts) ? "" : tts);
-		}
 		setItems.put("code", StringUtils.isBlank(ttsNode.getCode()) ? "" : ttsNode.getCode());
 		setItems.put("action", StringUtils.isBlank(ttsNode.getAction()) ? "" : ttsNode.getAction());
 		setItems.put("actionParams", StringUtils.isBlank(ttsNode.getActionParams()) ? "" : ttsNode.getActionParams());
 		String ruleResponse = ScenariosDAO.getRuleResponse(setItems);
+		if (InteracviteTypeConsts.MENU_OPTIONS.equals(ttsNode.getInteractiveType())) {
+			String menuStartWords = ttsNode.getMenuStartWords();
+			String menuOptions = ttsNode.getMenuOptions();
+			String menuEndWords = ttsNode.getMenuEndWords();
+			String menuItems = ScenariosDAO.getMenuRuleResponseTemplate(menuStartWords, menuOptions, menuEndWords);
+			ruleResponse += menuItems;
+		}
 		return ruleResponse;
 	}
 

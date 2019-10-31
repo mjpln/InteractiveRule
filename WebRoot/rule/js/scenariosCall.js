@@ -1541,7 +1541,7 @@ function initURLAction(){
 		saveOrUpdateInterfaceFlag = 'update';
 		$('#editInterfaceForm').form('clear');
 		// 查询接口信息
-		var interfaceName = $("#URLActionform #interfaceName").textbox('getValue');
+		var interfaceName = $("#URLActionform #interfaceName").combobox('getValue');
 		if(interfaceName == undefined || interfaceName == '') {
 			$.messager.alert('提示', "请选择接口", "info");
 			return;
@@ -2783,7 +2783,6 @@ function addListenerEvents() {
 		if (nodeData.category == "URLAction") {
 			$('#URLActionform').form('clear');
 			$('#URLActionform').form('load',nodeData);
-			$("#URLActionform #interfaceName").combobox('setValue', nodeData.interfaceName);
 			$('#in_key_vals_div').find(".in-key").remove();
 			$('#out_key_vals_div').find(".out-key").remove();
 			// 入参
@@ -2800,7 +2799,6 @@ function addListenerEvents() {
 			$('#myCollectionEditDiv').hide();
 			$('#myDTMFPressDiv').hide();
 			$('#myTransferDiv').hide();
-			$.parser.parse();
 		}
 		if (nodeData.category == "Transfer") {
 			$('#Transferform').form('clear');
@@ -2811,7 +2809,6 @@ function addListenerEvents() {
 			$('#myCollectionEditDiv').hide();
 			$('#myDTMFPressDiv').hide();
 			$('#myURLActionDiv').hide();
-			$.parser.parse();
 		}
 	});
 }

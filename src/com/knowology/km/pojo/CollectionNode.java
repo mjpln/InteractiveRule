@@ -63,6 +63,7 @@ public class CollectionNode extends NodeData {
 		super.setCategory(nodeData.getCategory());
 		super.setName(nodeData.getName());
 		super.setText(nodeData.getText());
+		super.setEndFlag(nodeData.getEndFlag());
 		super.setFromLinks(nodeData.getFromLinks());
 		super.setToLinks(nodeData.getToLinks());
 	}
