@@ -132,7 +132,7 @@ public class InteractiveSceneCallDAO {
 			return nodeDataList;
 		}
 		ArrayList<NodeData> newNodeDataList = new ArrayList<NodeData>();
-		LinkedHashSet<String> newNodeDataKeys = new LinkedHashSet<String>();
+		LinkedHashSet<String> loopNodeKeys = new LinkedHashSet<String>();
 		Map<String, NodeData> nodeDataKeys = new HashMap<String, NodeData>();
 		for (NodeData nodeData : nodeDataList) {
 			nodeDataKeys.put(nodeData.getKey(), nodeData);
@@ -140,13 +140,13 @@ public class InteractiveSceneCallDAO {
 		// 开始节点
 		NodeData startNode = nodeDataKeys.get(CallOutNodeTypeConsts.START_NODE);
 		newNodeDataList.add(startNode);
-		newNodeDataKeys.add(CallOutNodeTypeConsts.START_NODE);
-		LoopNodeData(startNode, nodeDataKeys, newNodeDataKeys, newNodeDataList);
+		loopNodeKeys.add(CallOutNodeTypeConsts.START_NODE);
+		LoopNodeData(startNode, nodeDataKeys, loopNodeKeys, newNodeDataList);
 		return newNodeDataList;
 	}
 
 	private synchronized static List<NodeData> LoopNodeData(NodeData nodeData, Map<String, NodeData> nodeDataKeys,
-			LinkedHashSet<String> newNodeDataKeys, ArrayList<NodeData> newNodeDataList) {
+			LinkedHashSet<String> loopNodeKeys, ArrayList<NodeData> newNodeDataList) {
 		if (!CallOutNodeTypeConsts.END_NODE.equals(nodeData.getCategory())) {
 			if (nodeData.getFromLinks() != null && !nodeData.getFromLinks().isEmpty()) {
 				for (LinkData linkData : nodeData.getFromLinks()) {
@@ -169,9 +169,9 @@ public class InteractiveSceneCallDAO {
 				}
 				for (LinkData linkData : nodeData.getToLinks()) {
 					NodeData toNode = linkData.getToNode();
-					// 跳转节点会产生死循环
-					if (linkData.getFromPort() != null && !"跳转".equals(linkData.getFromPort().getText())) {
-						LoopNodeData(nodeDataKeys.get(toNode.getKey()), nodeDataKeys, newNodeDataKeys, newNodeDataList);
+					if (!loopNodeKeys.contains(toNode.getKey())) {
+						loopNodeKeys.add(toNode.getKey());
+						LoopNodeData(nodeDataKeys.get(toNode.getKey()), nodeDataKeys, loopNodeKeys, newNodeDataList);
 					}
 				}
 			}
@@ -582,7 +582,7 @@ public class InteractiveSceneCallDAO {
 					collectionNode.getKey(), null, null, null, null, collectionNode.getCollectionIntention(),
 					collectionNode.getCollectionParam());
 			sceneRules.add(sceneRule);
-		}
+		} 
 		return sceneRules;
 	}
 
@@ -834,10 +834,15 @@ public class InteractiveSceneCallDAO {
 				setItems.put(otherResponse.getOtherResponseName(), otherResponse.getOtherResponseValue());
 			}
 		}
-		// 非跳转节点需等待用户回答
-		if (isJumpNode(ttsNode)) {
-		}
 		setItems.put("节点名", ttsNode.getKey());
+		if (isJumpNode(ttsNode)) {
+			// 跳转节点不走意图识别
+			setItems.put("任意类型匹配", "跳转节点任意类型匹配");
+		} else {
+			// 非跳转节点走意图识别
+			setItems.put("任意类型匹配", "");
+			setItems.put("用户回答", "");
+		}
 		if (InteracviteTypeConsts.WORD_PATTERN.equals(ttsNode.getInteractiveType())) {
 			setItems.put("TTS", StringUtils.isBlank(ttsNode.getWordsContent()) ? "" : ttsNode.getWordsContent());
 		}
@@ -1046,7 +1051,6 @@ public class InteractiveSceneCallDAO {
 			others = new ArrayList<String>();
 			setItems = new HashMap<String, String>();
 			others.add("信息补全(\"用户回答\",\"上文\")");
-			others.add("信息补全(\"节点名\",\"上文\", \"" + CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME + "\")");
 			ruleResponse = ScenariosDAO.getRuleResponse(setItems, others);
 		}
 		// 生成规则
