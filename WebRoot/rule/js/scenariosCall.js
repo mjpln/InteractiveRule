@@ -549,11 +549,24 @@ function loadWeightCombobox(weight) {
 
 // 加载词类下拉框
 function createWordClassCombobox() {
-	$('#sceneElementEditForm-wordClass').combobox({
-		url : '../interactiveScene.action?type=createwordclasscombobox&a=' + Math.random(),
-		valueField : 'id',
-		textField : 'text',
-		panelHeight : '150px'
+	$.ajax({
+		url : '../interactiveSceneCall.action?a=' + Math.random(),
+		type : "post",
+		async : false,
+		data : {
+			type : 'createwordclasscombobox'
+		},
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$('#sceneElementEditForm-wordClass').combobox({
+					valueField : 'id',
+					textField : 'text',
+					data : data.rows,
+					panelHeight : '150px'
+				});
+			}
+		}
 	});
 }
 
@@ -627,7 +640,7 @@ function editElement(saveOrUpdateElementFlag) {
 		sceneElementId = sceneElementIdForUpdate;
 	}
 	var name = replaceSpace($("#sceneElementEditForm-sceneElementName").val());
-	var wordclass = $("#sceneElementEditForm-wordClass").combobox('getText');
+	var wordclass = $("#sceneElementEditForm-wordClass").combobox('getValue');
 	var weight = $("#sceneElementEditForm-weight").combobox('getText');
 	var infotalbepath = replaceSpace($("#sceneElementEditForm-infoTalbePath").combobox('getText'));
 	var cityname = $("#sceneElementEditForm-city").combotree('getText');
@@ -737,7 +750,7 @@ function deleteElement(event, id, weight, name) {
 						dataType : "json",
 						success : function(data, textStatus, jqXHR) {
 							if (data.success == true) {
-								loadWeightCombobox("");
+								("");
 								$("#sceneElementTable").datagrid("reload");
 								var collectionIntention = name;
 								deleteCollectionIntention(collectionIntention);

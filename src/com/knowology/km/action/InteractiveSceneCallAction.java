@@ -96,6 +96,9 @@ public class InteractiveSceneCallAction extends BaseAction {
 		if ("queryInterfaceInfo".equals(type)) {// 查询接口信息
 			m_result = InteractiveSceneCallDAO.queryInterfaceInfo(scenariosid, interfaceName);
 		}
+		if ("createwordclasscombobox".equals(type)) {// 创建词类下拉框
+			m_result = InteractiveSceneCallDAO.createwordclasscombobox();
+		}
 		return "success";
 	}
 
