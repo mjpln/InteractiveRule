@@ -14,7 +14,6 @@ import javax.servlet.jsp.jstl.sql.Result;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.knowology.Bean.User;
@@ -24,6 +23,7 @@ import com.knowology.bll.CommonLibMetafieldmappingDAO;
 import com.knowology.bll.CommonLibPatternkeyDAO;
 import com.knowology.bll.CommonLibQueryManageDAO;
 import com.knowology.bll.CommonLibServiceDAO;
+import com.knowology.bll.CommonLibWordDAO;
 import com.knowology.bll.CommonLibWordclassDAO;
 import com.knowology.bll.CommonLibWordpatDAO;
 import com.knowology.dal.Database;
@@ -2236,6 +2236,34 @@ public class InteractiveSceneCallDAO {
 		}
 		return null;
 	}
+	
+	/**
+	 * 分页查询场景要素值
+	 * 
+	 * @param sceneElementName 场景要素名称
+	 * @param scenariosid      场景ID
+	 * @return 场景要素值集合
+	 */
+	public static Object listPagingElementValue(String scenariosid, String wordclassid, int currentPage,
+			int pageSize) {
+		JSONObject jsonObj = new JSONObject();
+		JSONArray rows = new JSONArray();
+		int totalCount = CommonLibWordDAO.getWordCount(wordclassid, "");
+		Result rs = CommonLibWordDAO.select(wordclassid, "", currentPage, pageSize);
+		if (rs != null && rs.getRowCount() > 0) {
+			for (int i = 0; i < rs.getRowCount(); i++) {
+				JSONObject row = new JSONObject();
+				row.put("wordclassid", rs.getRows()[i].get("wordclassid").toString());
+				row.put("worditem", rs.getRows()[i].get("word").toString());
+				row.put("wordid", rs.getRows()[i].get("wordid").toString());
+				row.put("type", rs.getRows()[i].get("type").toString());
+				rows.add(row);
+			}
+		}
+		jsonObj.put("rows", rows);
+		jsonObj.put("total", totalCount);
+		return jsonObj;
+	}
 
 	/**
 	 * 判断系统场景要素
@@ -2420,8 +2448,8 @@ public class InteractiveSceneCallDAO {
 				@SuppressWarnings("unused")
 				String wordclassid = rs.getRows()[i].get("wordclassid").toString();
 				String wordclass = rs.getRows()[i].get("wordclass").toString();
-				row.put("id", wordclass);
-				row.put("text", wordclass.replace("父类", "").replace("父子句", ""));
+				row.put("id", wordclassid);
+				row.put("text", wordclass);
 				rows.add(row);
 			}
 			jsonObj.put("success", true);

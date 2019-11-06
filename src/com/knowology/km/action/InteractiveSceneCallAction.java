@@ -29,6 +29,7 @@ public class InteractiveSceneCallAction extends BaseAction {
 
 	private int page;
 	private int rows;
+	private String wordclassid;
 
 	public Object execute() {
 		if ("saveConfig".equals(type)) { // 解析并保存流程图
@@ -98,6 +99,9 @@ public class InteractiveSceneCallAction extends BaseAction {
 		}
 		if ("createwordclasscombobox".equals(type)) {// 创建词类下拉框
 			m_result = InteractiveSceneCallDAO.createwordclasscombobox();
+		}
+		if ("listPagingElementValue".equals(type)) {// 创建词类下拉框
+			m_result = InteractiveSceneCallDAO.listPagingElementValue(scenariosid, wordclassid, page, rows);
 		}
 		return "success";
 	}
@@ -276,6 +280,14 @@ public class InteractiveSceneCallAction extends BaseAction {
 
 	public void setInterfaceName(String interfaceName) {
 		this.interfaceName = interfaceName;
+	}
+	
+	public String getWordclassid() {
+		return wordclassid;
+	}
+
+	public void setWordclassid(String wordclassid) {
+		this.wordclassid = wordclassid;
 	}
 
 }

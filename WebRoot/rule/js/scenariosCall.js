@@ -249,6 +249,10 @@ function initSceneElements() {
 	});
 	// 添加词类编辑页面
 	$("#addWordClass").bind("click",function () {
+		var wordclassid = $("#sceneElementEditForm-wordClass").combobox('getValue');
+		if(wordclassid != '') {
+			loadElementValue(wordclassid);
+		}
 		$("#wordClassEditDiv").window('open');
 	});
 	// 关闭之前触发的事件
@@ -270,6 +274,7 @@ function initSceneElements() {
         }
     });
 }
+
 // 加载关联要素
 function loadCollectionElement() {
 	$.ajax({
@@ -512,6 +517,85 @@ function loadElementName() {
 	});
 }
 
+// 加载场景要素值
+function loadElementValue(wordclassid) {
+	$("#elementValueTable").datagrid({
+		title : '场景要素值显示区',
+		url : '../interactiveSceneCall.action',
+		pagination : true,
+		rownumbers : true,
+		queryParams : {
+			type : 'listPagingElementValue',
+			scenariosid : publicscenariosid,
+			wordclassid : replaceSpace(wordclassid)
+		},
+		pageSize : 10,
+		striped : true,
+		singleSelect : true,
+		columns : [ [
+				{
+					field : 'worditem',
+					title : '词条',
+					width : 200,
+					formatter : function(value, row, index) {
+						if (value != "" && value != null) {
+							value = value.replace(/\</g, "&lt;");
+							value = value.replace(/\>/g, "&gt;");
+							var val = "<a title='" + value + "'>" + value + "</a>";
+							return val;
+						} else {
+							return "";
+						}
+					}
+				},
+				{
+					field : 'type',
+					title : '类型',
+					width : 100,
+				},
+				{
+					field : 'wordid',
+					title : '词条ID',
+					hidden: true
+				},
+				{
+					field : "delete",
+					title : '操作',
+					width : 100,
+					align : 'center',
+					formatter : function(value, row, index) {
+						var wordid = row["wordid"];
+						var worditem = row["worditem"];
+						var a = '<a class="icon-delete btn_a" title="删除" onclick="deleteElementValue(event,'
+							+ ','
+							+ wordid
+							+ ',\''
+							+ worditem + '\')"></a>';
+						return a;
+					}
+				}
+			] ]
+	});
+	$("#sceneElementTable").datagrid('getPager').pagination( {
+		showPageList : false,
+		buttons : [ {
+			text : "新增",
+			iconCls : "icon-add",
+			handler : function() {
+				saveOrUpdateElementFlag = "save";
+				toEditElementPage(saveOrUpdateElementFlag); 
+			}
+		}, "-", {
+			text : "修改",
+			iconCls : "icon-edit",
+			handler : function() {
+				saveOrUpdateElementFlag ="update";
+				toEditElementPage(saveOrUpdateElementFlag); 
+			}
+		}]
+	});
+}
+
 // 加载优先级下拉框
 function loadWeightCombobox(weight) {
 	$.ajax({
@@ -604,7 +688,7 @@ function toEditElementPage(saveOrUpdateElementFlag){
 			createWordClassCombobox();	
 			loadWeightCombobox(row.weight);
 			$("#sceneElementEditForm-sceneElementName").textbox('setValue', row.name);
-			$("#sceneElementEditForm-wordClass").combobox('setValue', row.wordclass);
+			$("#sceneElementEditForm-wordClass").combobox('setValue', row.wordclassid);
 			$("#sceneElementEditForm-weight").combobox('setValue', row.weight);
 			$("#sceneElementEditForm-infoTalbePath").combobox('setValue', row.infotalbepath);
 			$("#sceneElementEditForm-itemMode").combobox('setValue', row.itemmode);
@@ -640,7 +724,7 @@ function editElement(saveOrUpdateElementFlag) {
 		sceneElementId = sceneElementIdForUpdate;
 	}
 	var name = replaceSpace($("#sceneElementEditForm-sceneElementName").val());
-	var wordclass = $("#sceneElementEditForm-wordClass").combobox('getValue');
+	var wordclass = $("#sceneElementEditForm-wordClass").combobox('getText');
 	var weight = $("#sceneElementEditForm-weight").combobox('getText');
 	var infotalbepath = replaceSpace($("#sceneElementEditForm-infoTalbePath").combobox('getText'));
 	var cityname = $("#sceneElementEditForm-city").combotree('getText');
