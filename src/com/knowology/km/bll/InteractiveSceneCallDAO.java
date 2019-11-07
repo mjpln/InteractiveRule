@@ -291,7 +291,7 @@ public class InteractiveSceneCallDAO {
 			List<SceneRule> sceneRules) {
 		String ruleResponse = "";
 		if (SceneTypeConsts.CALL_OUT.equals(sceneType)) {
-			ruleResponse += "业务信息获取(\"用户信息查询\")";
+			ruleResponse += "业务信息获取(\"用户信息查询\");";
 		}
 		ruleResponse += getCallRuleResponse(toNode);
 		SceneRule sceneRule = generateInteractiveRule(scenariosid, null, "交互", null, null, null, null, null, null, null,
@@ -797,7 +797,7 @@ public class InteractiveSceneCallDAO {
 		setItems.put("上文:节点名", toNode.getKey());
 		setItems.put("节点名", toNode.getKey());
 		String ruleResponse = ScenariosDAO.getRuleResponse(setItems, others);
-		ruleResponse += "业务信息获取(\"" + toNode.getInterfaceName() + "\")";
+		ruleResponse += "业务信息获取(\"" + toNode.getInterfaceName() + "\");";
 		return ruleResponse;
 	}
 
@@ -1032,13 +1032,8 @@ public class InteractiveSceneCallDAO {
 		}
 		if (StringUtils.isNotBlank(collectionIntention)) {
 			others = new ArrayList<String>();
-			if (SceneTypeConsts.CALL_OUT.equals(sceneType)) {
-				others.add("信息补全(\"" + collectionIntention + "\",\"上文\")");
-			}
-			if (SceneTypeConsts.CALL_IN.equals(sceneType)) {
-				others.add("信息补全(\"" + collectionIntention + "\",\"上文\",\"" + collectionIntention + "\")");
-				others.add("信息补全(\"" + collectionIntention + "\",\"上文\",\"" + collectionVariable + "\")");
-			}
+			others.add("信息补全(\"" + collectionIntention + "\",\"上文\",\"" + collectionIntention + "\")");
+			others.add("信息补全(\"" + collectionIntention + "\",\"上文\",\"" + collectionVariable + "\")");
 			ruleResponse = ScenariosDAO.getRuleResponse(null, others);
 			questionObject = "识别规则业务";
 			HashMap<String, String> collectionQuestions = queryCollectionQuestions(scenariosid);
