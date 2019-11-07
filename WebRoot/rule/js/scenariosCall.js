@@ -91,6 +91,14 @@ $(function() {
 	// 初始化条件组件
 	initCondition();
 	
+	if(sceneType ==  'callOut'){
+		// 初始化短信模板
+		initSmsTemplate();
+		
+		// 初始化号码属性
+		initPhoneAttributeNames();
+	}
+	
 });
 
 function initTTSNode() {
@@ -101,9 +109,6 @@ function initTTSNode() {
 	// 初始化用户回答
 	initCustomerAnswer();
 	
-	// 初始化短信模板
-	//initSmsTemplate();
-	   
 	// 初始化节点类型
 	$.each($("input[name='ttsNodeType']"),function (index) {
         if(index==0) {
@@ -1478,9 +1483,6 @@ function initConditionInterface(interfaceNameInput, interfaceParamInput) {
 }
 // 初始化条件组件
 function initCondition(){
-	
-	// 初始化号码属性
-	//initPhoneAttributeNames();
 	
 	$("#addCondition").bind("click",function () {
 		var conditionDivs = $("#conditions").find("div").eq(0).find('.condition-div');
