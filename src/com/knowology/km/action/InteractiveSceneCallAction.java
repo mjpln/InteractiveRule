@@ -29,7 +29,18 @@ public class InteractiveSceneCallAction extends BaseAction {
 
 	private int page;
 	private int rows;
-	private String wordclassid;
+	private String wordItem;
+	private String wordClass;
+	private String newWordItem;
+	private String wordId;
+	private String wordClassId;
+	private String wordItems;
+	private String wordAlias;
+	private String wordAliases;
+	private String standardWordId;
+	private String standardWordIds;
+	private String wordIds;
+	private String synonyms;
 
 	public Object execute() {
 		if ("saveConfig".equals(type)) { // 解析并保存流程图
@@ -100,9 +111,37 @@ public class InteractiveSceneCallAction extends BaseAction {
 		if ("createwordclasscombobox".equals(type)) {// 创建词类下拉框
 			m_result = InteractiveSceneCallDAO.createwordclasscombobox();
 		}
-		if ("listPagingElementValue".equals(type)) {// 创建词类下拉框
-			m_result = InteractiveSceneCallDAO.listPagingElementValue(scenariosid, wordclassid, page, rows);
+		if ("listPagingElementValue".equals(type)) {// 分页查询场景要素值
+			m_result = InteractiveSceneCallDAO.listPagingWordItem(scenariosid, wordClassId, wordClass, page, rows);
 		}
+		if ("listPagingElementAlias".equals(type)) {// 分页查询词条别名
+			m_result = InteractiveSceneCallDAO.listPagingWordAlias(scenariosid, wordItem, wordClass, page, rows);
+		}
+		if ("updateWordItem".equals(type)) {// 插入词条
+			m_result = InteractiveSceneCallDAO.updateWordItem(scenariosid, newWordItem, wordId, wordClassId);
+		}
+		if ("insertWordItem".equals(type)) {// 更新词条
+			m_result = InteractiveSceneCallDAO.insertWordItem(wordItems, wordClassId);
+		}
+		if ("saveWordItems".equals(type)) {// 批量保存词条
+			m_result = InteractiveSceneCallDAO.saveWordItems(scenariosid, wordIds, wordItems, wordClassId);
+		}
+		if ("saveWordAlias".equals(type)) {// 批量保存别名
+			m_result = InteractiveSceneCallDAO.saveWordAlias(scenariosid, wordClassId, wordClass, standardWordId, wordItem, wordIds, synonyms);
+		}
+		if ("deleteWordItem".equals(type)) {// 删除词条
+			m_result = InteractiveSceneCallDAO.deleteWordItem(wordId, wordClass, wordItem);
+		}
+		if ("updateWordAlias".equals(type)) {// 更新别名
+			m_result = InteractiveSceneCallDAO.updateWordAlias(wordAlias, wordId, wordClass);
+		}
+		if ("insertWordAlias".equals(type)) {// 插入别名
+			m_result = InteractiveSceneCallDAO.insertWordAlias(wordAliases, wordClassId, wordClass, standardWordId, wordItem);
+		}
+		if ("deleteWordAlias".equals(type)) {// 删除别名
+			m_result = InteractiveSceneCallDAO.deleteWordAlias(wordClassId, wordClass, standardWordId, wordItem, wordIds, wordAliases);
+		}
+		
 		return "success";
 	}
 
@@ -281,13 +320,101 @@ public class InteractiveSceneCallAction extends BaseAction {
 	public void setInterfaceName(String interfaceName) {
 		this.interfaceName = interfaceName;
 	}
-	
-	public String getWordclassid() {
-		return wordclassid;
+
+	public String getWordItem() {
+		return wordItem;
 	}
 
-	public void setWordclassid(String wordclassid) {
-		this.wordclassid = wordclassid;
+	public void setWordItem(String wordItem) {
+		this.wordItem = wordItem;
+	}
+
+	public String getWordClass() {
+		return wordClass;
+	}
+
+	public void setWordClass(String wordClass) {
+		this.wordClass = wordClass;
+	}
+
+	public String getNewWordItem() {
+		return newWordItem;
+	}
+
+	public void setNewWordItem(String newWordItem) {
+		this.newWordItem = newWordItem;
+	}
+
+	public String getWordId() {
+		return wordId;
+	}
+
+	public void setWordId(String wordId) {
+		this.wordId = wordId;
+	}
+
+	public String getWordClassId() {
+		return wordClassId;
+	}
+
+	public void setWordClassId(String wordClassId) {
+		this.wordClassId = wordClassId;
+	}
+
+	public String getWordItems() {
+		return wordItems;
+	}
+
+	public void setWordItems(String wordItems) {
+		this.wordItems = wordItems;
+	}
+
+	public String getWordAlias() {
+		return wordAlias;
+	}
+
+	public void setWordAlias(String wordAlias) {
+		this.wordAlias = wordAlias;
+	}
+
+	public String getWordAliases() {
+		return wordAliases;
+	}
+
+	public void setWordAliases(String wordAliases) {
+		this.wordAliases = wordAliases;
+	}
+
+	public String getStandardWordId() {
+		return standardWordId;
+	}
+
+	public void setStandardWordId(String standardWordId) {
+		this.standardWordId = standardWordId;
+	}
+
+	public String getStandardWordIds() {
+		return standardWordIds;
+	}
+
+	public void setStandardWordIds(String standardWordIds) {
+		this.standardWordIds = standardWordIds;
+	}
+	
+	public String getWordIds() {
+		return wordIds;
+	}
+
+	public void setWordIds(String wordIds) {
+		this.wordIds = wordIds;
+	}
+	
+	public String getSynonyms() {
+		return synonyms;
+	}
+
+	public void setSynonyms(String synonyms) {
+		this.synonyms = synonyms;
 	}
 
 }

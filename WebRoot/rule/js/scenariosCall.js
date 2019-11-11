@@ -32,6 +32,53 @@ var $GO = go.GraphObject.make;
 // 定义图表对象
 var myDiagram;
 
+/* 单元格可编辑 */
+var tab='';
+var editIndex = undefined;
+$.extend($.fn.datagrid.methods, {
+	editCell: function(jq,param){
+		return jq.each(function(){
+			var opts = $(this).datagrid('options');
+			var fields = $(this).datagrid('getColumnFields',true).concat($(this).datagrid('getColumnFields'));
+			for(var i=0; i<fields.length; i++){
+				var col = $(this).datagrid('getColumnOption', fields[i]);
+				col.editor1 = col.editor;
+				if (fields[i] != param.field){
+					col.editor = null;
+				}
+			}
+			$(this).datagrid('beginEdit', param.index);
+			for(var i=0; i<fields.length; i++){
+				var col = $(this).datagrid('getColumnOption', fields[i]);
+				col.editor = col.editor1;
+			}
+		});
+	}
+});
+function endEditing() {// 该方法用于关闭上一个焦点的editing状态
+	if (editIndex == undefined) {
+		return true
+	}
+	if ($(tab).datagrid('validateRow', editIndex)) {
+		$(tab).datagrid('endEdit', editIndex);
+		editIndex = undefined;
+		return true;
+	} else {
+		return false;
+	}
+	
+};
+/** 双击编辑 */
+function DbclkCommentCell(index, field, value) {
+	if (endEditing()) {
+		$(tab).datagrid('selectRow', index).datagrid('editCell', {index:index,field:field});
+		editIndex = index;
+	}
+};
+function singleClick(index,field,value) {
+	endEditing();
+}
+
 $(function() {
 	
 	// 所有URL参数
@@ -255,8 +302,9 @@ function initSceneElements() {
 	// 添加词类编辑页面
 	$("#addWordClass").bind("click",function () {
 		var wordclassid = $("#sceneElementEditForm-wordClass").combobox('getValue');
+		var wordClass = $("#sceneElementEditForm-wordClass").combobox('getText');
 		if(wordclassid != '') {
-			loadElementValue(wordclassid);
+			loadElementValue(wordclassid,wordClass);
 		}
 		$("#wordClassEditDiv").window('open');
 	});
@@ -523,25 +571,74 @@ function loadElementName() {
 }
 
 // 加载场景要素值
-function loadElementValue(wordclassid) {
+function loadElementValue(wordClassId,wordClass) {
+	tab='#elementValueTable';
 	$("#elementValueTable").datagrid({
-		title : '场景要素值显示区',
+		title : '词条显示区',
 		url : '../interactiveSceneCall.action',
 		pagination : true,
 		rownumbers : true,
 		queryParams : {
 			type : 'listPagingElementValue',
 			scenariosid : publicscenariosid,
-			wordclassid : replaceSpace(wordclassid)
+			wordClassId : replaceSpace(wordClassId),
+			wordClass : wordClass
 		},
 		pageSize : 10,
 		striped : true,
+		onDblClickCell: DbclkCommentCell,
 		singleSelect : true,
+		// 单击行事件
+		onClickRow : function(index, row) {
+			if(row && row.worditem != '') {
+				// 查询词条别名
+				loadElementAlias(row.wordid,row.worditem,wordClass,wordClassId);
+			}
+		},
+		toolbar: [{
+            text:'添加',
+            iconCls:'icon-add',
+            handler:function() {
+            	$('#elementValueTable').datagrid('insertRow',{
+            		index: 0,	
+            		row: {
+            			wordclassid: wordClassId,
+                		wordclass: wordClass,
+                		worditem: "",
+                		wordid: "",
+                		type: "标准名称"
+            		}
+            	});
+            	$("#elementValueTable").datagrid('beginEdit', 0);
+            }
+        },{
+            text:'保存',
+            iconCls:'icon-save',
+            handler:function() {
+            	var wordItems = [];
+            	var wordIds = [];
+            	var rows = $('#elementValueTable').datagrid('getRows');
+            	for(var i=0; i<rows.length; i++){
+                    var row = rows[i];
+                    var rowIndex = $('#elementValueTable').datagrid('getRowIndex',row);
+                    $("#elementValueTable").datagrid('endEdit', rowIndex);
+                    if(row.worditem == undefined || row.worditem == '') {
+                    	$("#elementValueTable").datagrid('beginEdit', rowIndex);
+                    	$.messager.alert('提示', "词条不能为空", "info");
+                    	return;
+                    }
+                    wordIds.push(row.wordid);
+                    wordItems.push(row.worditem);
+                }
+            	saveWordItems(wordIds.join(','),wordItems.join(','),wordClassId,wordClass);
+            }
+        }],
 		columns : [ [
 				{
 					field : 'worditem',
 					title : '词条',
-					width : 200,
+					width : 300,
+					editor: 'textbox',
 					formatter : function(value, row, index) {
 						if (value != "" && value != null) {
 							value = value.replace(/\</g, "&lt;");
@@ -557,6 +654,7 @@ function loadElementValue(wordclassid) {
 					field : 'type',
 					title : '类型',
 					width : 100,
+					hidden: true
 				},
 				{
 					field : 'wordid',
@@ -571,33 +669,321 @@ function loadElementValue(wordclassid) {
 					formatter : function(value, row, index) {
 						var wordid = row["wordid"];
 						var worditem = row["worditem"];
-						var a = '<a class="icon-delete btn_a" title="删除" onclick="deleteElementValue(event,'
-							+ ','
-							+ wordid
-							+ ',\''
-							+ worditem + '\')"></a>';
+						var wordclass = row["wordclass"];
+						var a = '<a class="icon-delete btn_a" title="删除" onclick="deleteWordItem('
+							+ index
+							+ ',\'' + wordid + '\''
+							+ ',\'' + worditem + '\''
+							+ ',\'' + wordclass + '\')"></a>';
 						return a;
 					}
 				}
 			] ]
 	});
-	$("#sceneElementTable").datagrid('getPager').pagination( {
-		showPageList : false,
-		buttons : [ {
-			text : "新增",
-			iconCls : "icon-add",
-			handler : function() {
-				saveOrUpdateElementFlag = "save";
-				toEditElementPage(saveOrUpdateElementFlag); 
+	
+	
+}
+
+// 加载词条别名
+function loadElementAlias(stdwordid,wordItem,wordClass,wordClassId) {
+	tab='#elementAliasTable';
+	$("#elementAliasTable").datagrid({
+		title : '别名显示区',
+		url : '../interactiveSceneCall.action',
+		pagination : true,
+		rownumbers : true,
+		queryParams : {
+			type : 'listPagingElementAlias',
+			scenariosid : publicscenariosid,
+			wordItem : replaceSpace(wordItem),
+			wordClass : replaceSpace(wordClass)
+		},
+		pageSize : 10,
+		striped : true,
+		onDblClickCell: DbclkCommentCell,
+		singleSelect : true,
+		toolbar: [{
+            text:'添加',
+            iconCls:'icon-add',
+            handler:function() {
+            	$('#elementAliasTable').datagrid('insertRow',{
+            		index: 0,	
+            		row: {
+            			stdwordid: stdwordid,
+            			wordclass: wordClass,
+            			worditem: wordItem,
+            			wordid: "",
+            			synonym: "",
+                		type: "其他别名"
+            		}
+            	});
+            	$("#elementAliasTable").datagrid('beginEdit', 0);
+            }
+        },{
+            text:'保存',
+            iconCls:'icon-save',
+            handler:function() {
+            	var wordIds = [];
+            	var synonyms = [];
+            	var rows = $('#elementAliasTable').datagrid('getRows');
+            	for(var i=0; i<rows.length; i++){
+                    var row = rows[i];
+                    var rowIndex = $('#elementAliasTable').datagrid('getRowIndex',row);
+                    $("#elementAliasTable").datagrid('endEdit', rowIndex);
+                    if(row.synonym == undefined || row.synonym == '') {
+                    	$("#elementAliasTable").datagrid('beginEdit', rowIndex);
+                    	$.messager.alert('提示', "别名不能为空", "info");
+                    	return;
+                    }
+                    wordIds.push(row.wordid);
+                    synonyms.push(row.synonym);
+                }
+            	saveWordAlias(wordClassId,wordClass,row.stdwordid,row.worditem,wordIds.join(','),synonyms.join(','));
+            }
+        }],
+		columns : [ [
+				{
+					field : 'synonym',
+					title : '别名',
+					width : 300,
+					editor: 'textbox',
+					formatter : function(value, row, index) {
+						if (value != "" && value != null) {
+							value = value.replace(/\</g, "&lt;");
+							value = value.replace(/\>/g, "&gt;");
+							var val = "<a title='" + value + "'>" + value + "</a>";
+							return val;
+						} else {
+							return "";
+						}
+					}
+				},
+				{
+					field : 'stdwordid',
+					title : 'id',
+					hidden: true
+				},
+				{
+					field : "delete",
+					title : '操作',
+					width : 100,
+					align : 'center',
+					formatter : function(value, row, index) {
+						var stdwordid = row["stdwordid"];
+						var wordid = row["wordid"];
+						var worditem = row["worditem"];
+						var synonym = row["synonym"];
+						var a = '<a class="icon-delete btn_a" title="删除" onclick="deleteWordAlias('
+							+ index
+							+ ',\''+wordClassId+'\''
+							+ ',\''+wordClass+'\''
+							+ ',\''+stdwordid+'\''
+							+ ',\''+worditem+'\''
+							+ ',\''+wordid+'\''
+							+ ',\''+synonym+'\')"></a>';
+						return a;
+					}
+				}
+			] ]
+	});
+}
+
+// 批量新增词条
+function saveWordItems(wordIds,wordItems,wordClassId,wordClass) {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'saveWordItems',
+			scenariosid : publicscenariosid,
+			wordIds : wordIds,
+			wordItems : wordItems,
+			wordClassId : wordClassId
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$('#elementValueTable').datagrid('reload');
+				$.messager.alert('提示', "保存成功", "info");
+			} else {
+				$.messager.alert('提示', "保存失败", "info");
 			}
-		}, "-", {
-			text : "修改",
-			iconCls : "icon-edit",
-			handler : function() {
-				saveOrUpdateElementFlag ="update";
-				toEditElementPage(saveOrUpdateElementFlag); 
+		}
+	});
+}
+
+// 新增词条
+function insertWordItem(wordClassId,wordClass,wordItems) {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'insertWordItem',
+			wordItems : wordItems,
+			wordClassId : wordClassId
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$.messager.alert('提示', "保存成功", "info");
+			} else {
+				$.messager.alert('提示', "保存失败", "info");
 			}
-		}]
+		}
+	});
+}
+
+// 更新词条
+function updateWordItem(wordId,wordItem,wordClassId,wordClass) {
+	$.messager.confirm('提示', '更新记录?', function(data) {
+		if (data) {
+			$.ajax({
+				url : '../interactiveSceneCall.action',
+				type : "post",
+				data : {
+					type : 'updateWordItem',
+					scenariosid : publicscenariosid,
+					wordId : wordId,
+					newWordItem : wordItem,
+					wordClassId : wordClassId
+				},
+				async : false,
+				dataType : "json",
+				success : function(data, textStatus, jqXHR) {
+					if(data.success) {
+						$.messager.alert('提示', "保存成功", "info");
+					} else {
+						$.messager.alert('提示', "保存成功", "info");
+					}
+				}
+			});
+		}
+	});
+}
+
+// 删除词条
+function deleteWordItem(index, wordId, wordItem, wordClass) {
+	if(wordItem == undefined || wordItem == '') {
+		$('#elementValueTable').datagrid('deleteRow', index);
+		return;
+	} 
+	$.messager.confirm('提示', '删除记录?', function(data) {
+		if (data) {
+			$.ajax({
+				url : '../interactiveSceneCall.action',
+				type : "post",
+				data : {
+					type : 'deleteWordItem',
+					wordId : wordId,
+					wordClass : wordClass,
+					wordItem : wordItem
+				},
+				async : false,
+				dataType : "json",
+				success : function(data, textStatus, jqXHR) {
+					if(data.success) {
+						$('#elementValueTable').datagrid('reload');
+						$.messager.alert('提示', "删除成功", "info");
+					} else {
+						$.messager.alert('提示', "删除失败", "info");
+					}
+				}
+			});
+		}
+	});
+}
+
+// 批量新增别名
+function saveWordAlias(wordClassId,wordClass,standardWordId,wordItem,wordIds,synonyms) {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'saveWordAlias',
+			scenariosid : publicscenariosid,
+			wordClassId : wordClassId,
+			wordClass : wordClass,
+			standardWordId : standardWordId,
+			wordItem : wordItem,
+			wordIds : wordIds,
+			synonyms : synonyms
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$('#elementAliasTable').datagrid('reload');
+				$.messager.alert('提示', "保存成功", "info");
+			} else {
+				$.messager.alert('提示', "保存失败", "info");
+			}
+		}
+	});
+}
+
+// 更新别名
+function updateWordAlias(wordAliasEditIndex,oldWordAlias,newWordAlias,wordid,wordclass) {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'updateWordAlias',
+			wordAlias: newWordAlias, 
+			wordId: wordid, 
+			wordClass: wordclass
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$.messager.alert('提示', "更新成功", "info");
+			} else {
+				var rows=$('#elementAliasTable').datagrid('getRows');//获取所有当前加载的数据行
+				var row=rows[wordAliasEditIndex];
+				row.synonym = oldWordAlias;
+        		$('#elementAliasTable').datagrid('updateRow',{
+	    			index: wordAliasEditIndex,
+	    			row: row
+        		});
+				$.messager.alert('提示', "更新失败", "info");
+			}
+		}
+	});
+}
+// 删除别名
+function deleteWordAlias(index, wordClassId, wordClass, standardWordId, wordItem, wordId, wordAlias) {
+	if(wordAlias == undefined || wordAlias == '') {
+		$('#elementAliasTable').datagrid('deleteRow', index);
+		return;
+	} 
+	$.messager.confirm('提示', '删除记录?', function(data) {
+		if (data) {
+			$.ajax({
+				url : '../interactiveSceneCall.action',
+				type : "post",
+				data : {
+					type : 'deleteWordAlias',
+					wordClassId: wordClassId, 
+					wordClass: wordClass, 
+					standardWordId: standardWordId,
+					wordItem: wordItem,
+					wordIds: wordId,
+					wordAliases: wordAlias
+				},
+				async : false,
+				dataType : "json",
+				success : function(data, textStatus, jqXHR) {
+					if(data.success) {
+						$('#elementAliasTable').datagrid('reload');
+						$.messager.alert('提示', "删除成功", "info");
+					} else {
+						$.messager.alert('提示', "删除失败", "info");
+					}
+				}
+			});
+		}
 	});
 }
 
