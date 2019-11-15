@@ -1,13 +1,11 @@
 package com.knowology.km.bll;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.jstl.sql.Result;
@@ -22,10 +20,7 @@ import com.knowology.bll.CommonLibInteractiveSceneDAO;
 import com.knowology.bll.CommonLibKbDataDAO;
 import com.knowology.bll.CommonLibMetafieldmappingDAO;
 import com.knowology.bll.CommonLibPatternkeyDAO;
-import com.knowology.bll.CommonLibQueryManageDAO;
 import com.knowology.bll.CommonLibServiceDAO;
-import com.knowology.bll.CommonLibSynonymDAO;
-import com.knowology.bll.CommonLibWordDAO;
 import com.knowology.bll.CommonLibWordclassDAO;
 import com.knowology.bll.CommonLibWordpatDAO;
 import com.knowology.dal.Database;
@@ -37,6 +32,7 @@ import com.knowology.km.constant.CollectionIntentionConsts;
 import com.knowology.km.constant.CollectionStatusConsts;
 import com.knowology.km.constant.InteracviteTypeConsts;
 import com.knowology.km.constant.ParamTypeConsts;
+import com.knowology.km.constant.RegnitionRuleTypeConsts;
 import com.knowology.km.constant.ResponseTypeConsts;
 import com.knowology.km.constant.RuleTypeConsts;
 import com.knowology.km.constant.SceneTypeConsts;
@@ -54,6 +50,7 @@ import com.knowology.km.pojo.LinkData;
 import com.knowology.km.pojo.NodeData;
 import com.knowology.km.pojo.NodePort;
 import com.knowology.km.pojo.OtherResponse;
+import com.knowology.km.pojo.ReturnKeyValue;
 import com.knowology.km.pojo.SceneElement;
 import com.knowology.km.pojo.SceneRule;
 import com.knowology.km.pojo.TTSNode;
@@ -85,8 +82,6 @@ public class InteractiveSceneCallDAO {
 	 * @return 保存结果
 	 */
 	public static Object saveSceneRules(String sceneJson, String scenariosid, String scenariosType) {
-		queryRecognitionQuestions(scenariosid);
-		queryCollectionQuestions(scenariosid);
 		weight = 0;
 		sceneType = scenariosType;
 		// 保存数据
@@ -1039,13 +1034,11 @@ public class InteractiveSceneCallDAO {
 			others.add("信息补全(\"" + collectionIntention + "\",\"上文\",\"" + collectionVariable + "\")");
 			ruleResponse = ScenariosDAO.getRuleResponse(null, others);
 			questionObject = "识别规则业务";
-			HashMap<String, String> collectionQuestions = queryCollectionQuestions(scenariosid);
-			standardQuestion = collectionQuestions.get(collectionIntention.trim());
+			standardQuestion = "<识别规则业务>"+collectionIntention.trim();
 		}
 		if (StringUtils.isNotBlank(customerAnswer)) {
 			questionObject = "识别规则业务";
-			HashMap<String, String> recognitionQuestions = queryRecognitionQuestions(scenariosid);
-			standardQuestion = recognitionQuestions.get(customerAnswer.trim());
+			standardQuestion = "<识别规则业务>"+customerAnswer.trim();
 			others = new ArrayList<String>();
 			setItems = new HashMap<String, String>();
 			others.add("信息补全(\"用户回答\",\"上文\")");
@@ -1107,8 +1100,7 @@ public class InteractiveSceneCallDAO {
 		others.add("信息补全(\"query\",\"上文\")");
 		String ruleResponse = ScenariosDAO.getRuleResponse(setItems, others);
 		String questionObject = "识别规则业务";
-		HashMap<String, String> recognitionQuestions = queryRecognitionQuestions(scenariosid);
-		String standardQuestion = recognitionQuestions.get("未获取到按键值");
+		String standardQuestion = "<识别规则业务>未获取到按键值";
 		SceneRule sceneRule = ScenariosDAO.buildSceneRuleInfo(scenariosid, null, RuleTypeConsts.REGNITION_RULE,
 				conditions, questionObject, standardQuestion, ruleResponse, ResponseTypeConsts.WRITTEN_RESPONSE_RULE,
 				(weight++) + "");
@@ -1285,70 +1277,6 @@ public class InteractiveSceneCallDAO {
 			node.setFromLinks(fromNodeLinkMap.get(node.getKey()));
 		}
 		return nodeDataList;
-	}
-
-	/**
-	 * 查询用户意图
-	 */
-	public static HashMap<String, String> queryRecognitionQuestions(String scenariosId) {
-		HashMap<String, String> recognitionQuestions = new HashMap<String, String>();
-		/**
-		 * 查询系统用户意图
-		 */
-		Result result = ScenariosDAO.queryPublicRegnitionRule();
-		if (result != null && result.getRowCount() > 0) {
-			if (result != null && result.getRowCount() > 0) {
-				for (int i = 0; i < result.getRowCount(); i++) {
-					String abstractStr = (String) result.getRows()[i].get("abs");
-					String systemAnswer = abstractStr.substring(abstractStr.indexOf(">") + 1);
-					recognitionQuestions.put(systemAnswer, abstractStr);
-				}
-			}
-		}
-		/**
-		 * 查询自定义用户意图
-		 */
-		result = ScenariosDAO.queryBusinessRegnitionRule();
-		if (result != null && result.getRowCount() > 0) {
-			for (int i = 0; i < result.getRowCount(); i++) {
-				String abstractStr = (String) result.getRows()[i].get("abs");
-				String customerAnswer = abstractStr.substring(abstractStr.indexOf(">") + 1);
-				recognitionQuestions.put(customerAnswer, abstractStr);
-			}
-		}
-		return recognitionQuestions;
-	}
-
-	/**
-	 * 查询关联意图
-	 */
-	public static HashMap<String, String> queryCollectionQuestions(String scenariosId) {
-		HashMap<String, String> collectionQuestions = new HashMap<String, String>();
-		/**
-		 * 查询公共关联意图
-		 */
-		Result result = ScenariosDAO.queryPublicCollectionIntention();
-		if (result != null && result.getRowCount() > 0) {
-			if (result != null && result.getRowCount() > 0) {
-				for (int i = 0; i < result.getRowCount(); i++) {
-					String abstractStr = (String) result.getRows()[i].get("abs");
-					String collectionIntention = abstractStr.substring(abstractStr.indexOf(">") + 1);
-					collectionQuestions.put(collectionIntention, abstractStr);
-				}
-			}
-		}
-		/**
-		 * 查询自定义关联意图
-		 */
-		result = ScenariosDAO.queryBusinessRegnitionRule();
-		if (result != null && result.getRowCount() > 0) {
-			for (int i = 0; i < result.getRowCount(); i++) {
-				String abstractStr = (String) result.getRows()[i].get("abs");
-				String collectionIntention = abstractStr.substring(abstractStr.indexOf(">") + 1);
-				collectionQuestions.put(collectionIntention, abstractStr);
-			}
-		}
-		return collectionQuestions;
 	}
 
 	/**
@@ -1823,189 +1751,6 @@ public class InteractiveSceneCallDAO {
 	}
 
 	/**
-	 * 新增用户回答
-	 * 
-	 * @param scenariosid       场景ID
-	 * @param customerAnswer    用户回答
-	 * @param simpleWordPattern 简单词模
-	 * @param wordPatternType   词模类型
-	 * @param request
-	 * @return
-	 */
-	public static Object saveCustomerAnswer(String scenariosid, String customerAnswer, String simpleWordPattern,
-			String wordPatternType, HttpServletRequest request) {
-		JSONObject jsonObj = new JSONObject();
-		// 用户回答是否已存在
-		HashMap<String, String> recognitionQuestions = queryRecognitionQuestions(scenariosid);
-		if (!recognitionQuestions.isEmpty()) {
-			if (recognitionQuestions.containsKey(customerAnswer)) {
-				jsonObj.put("success", false);
-				jsonObj.put("checkInfo", "用户回答已存在");
-				return jsonObj;
-			}
-		}
-		// 获取场景名称
-		Result result = CommonLibServiceDAO.getServiceInfoByserviceid(scenariosid);
-		if (result == null || result.getRowCount() == 0) {
-			jsonObj.put("success", false);
-			jsonObj.put("checkInfo", "场景信息未查询到");
-			return jsonObj;
-		}
-		String scenariosName = result.getRows()[0].get("service") + "";
-		// 用户回答父类新增词条
-		JSONObject res = (JSONObject) WordClassDAO.select("sys" + scenariosName + "用户回答父类", true, "全部", 0, 10);
-		if (res.getInteger("total") == 0) {
-			jsonObj.put("success", false);
-			jsonObj.put("checkInfo", "sys" + scenariosName + "用户回答父类未查询到");
-			return jsonObj;
-		}
-		String wordClassId = res.getJSONArray("root").getJSONObject(0).getString("wordclassid");
-		res = (JSONObject) WorditemDAO.insert(customerAnswer, (String) res.get("wordclass"), wordClassId, "", true);
-		if (!res.getBooleanValue("success")) {
-			jsonObj.put("success", false);
-			jsonObj.put("checkInfo", "sys" + scenariosName + "用户回答父类插入词条失败");
-			return jsonObj;
-		}
-		// 新增用户回答
-		String robotId = ScenariosDAO.getSceneRobotID(scenariosid); // 机器人ID
-		String cityCode = StringUtils.isNotBlank(robotId) ? ScenariosDAO.getRobotCityCode(robotId) : "全国"; // 地市ID
-		jsonObj = (JSONObject) addRecognitionRule(customerAnswer, simpleWordPattern, wordPatternType, cityCode,
-				request);
-		if (!jsonObj.getBooleanValue("success")) {
-			return jsonObj;
-		}
-		// 刷新用户回答
-		initCustomerAnswer(scenariosid);
-		jsonObj.put("success", true);
-		jsonObj.put("checkInfo", "保存成功");
-		return jsonObj;
-	}
-
-	/**
-	 * 新增关联意图
-	 * 
-	 * @param scenariosid         场景ID
-	 * @param collectionIntention 关联意图
-	 * @param simpleWordPattern   简单词模
-	 * @param wordPatternType     词模类型
-	 * @param request
-	 * @return
-	 */
-	public static Object saveCollectionIntention(String scenariosid, String collectionIntention,
-			String simpleWordPattern, String wordPatternType, HttpServletRequest request) {
-		JSONObject jsonObj = new JSONObject();
-		// 关联意图是否已存在
-		HashMap<String, String> collectionQuestions = queryCollectionQuestions(scenariosid);
-		if (!collectionQuestions.isEmpty()) {
-			if (collectionQuestions.containsKey(collectionIntention)) {
-				jsonObj.put("checkInfo", "关联意图已存在");
-				return jsonObj;
-			}
-		}
-		// 添加词模返回值
-		if (simpleWordPattern.indexOf("&" + collectionIntention + "=") > -1) {
-			Result patternkeyRs = CommonLibPatternkeyDAO.InsertSelect(collectionIntention);
-			if (!(patternkeyRs != null && patternkeyRs.getRowCount() > 0)) {
-				User user = (User) GetSession.getSessionByKey("accessUser");
-				CommonLibPatternkeyDAO.Insert(collectionIntention, user);
-			}
-		}
-		// 添加关联意图
-		String robotId = ScenariosDAO.getSceneRobotID(scenariosid); // 机器人ID
-		String cityCode = StringUtils.isNotBlank(robotId) ? ScenariosDAO.getRobotCityCode(robotId) : "全国"; // 地市ID
-		jsonObj = (JSONObject) addRecognitionRule(collectionIntention, simpleWordPattern, wordPatternType, cityCode,
-				request);
-		if (!jsonObj.getBooleanValue("success")) {
-			return jsonObj;
-		}
-		// 刷新关联意图
-		initCollectionIntention(scenariosid);
-		jsonObj.put("success", true);
-		jsonObj.put("checkInfo", "保存成功");
-		return jsonObj;
-	}
-
-	/**
-	 * 添加识别规则业务
-	 * 
-	 * @param standardQuestion  标准问
-	 * @param simpleWordPattern 简单词模
-	 * @param wordPatternType   词模类型
-	 * @param cityCode          归属地市
-	 * @param request
-	 * @return
-	 */
-	public static Object addRecognitionRule(String standardQuestion, String simpleWordPattern, String wordPatternType,
-			String cityCode, HttpServletRequest request) {
-		JSONObject jsonObj = new JSONObject();
-		jsonObj.put("success", false);
-		// 获取商家根问题库
-		User user = (User) GetSession.getSessionByKey("accessUser"); // 获取用户
-		String serviceType = user.getIndustryOrganizationApplication(); // 获取商家
-		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), serviceType, "", "全国", "");
-		if (result == null || result.getRowCount() == 0) {
-			return jsonObj;
-		}
-		String rootServiceName = result.getRows()[0].get("service") + "";
-		// 识别规则业务ID
-		String serviceId = ScenariosDAO.getRegnitionRuleServiceId(rootServiceName.trim());
-		// 新增标准问
-		QuestionManageDAO.createNormalQuery(user, serviceId, standardQuestion);
-		List<String> serviceIds = new ArrayList<String>();
-		serviceIds.add(serviceId);
-		String kbdataid = getCustomerAnswerKbdataId(serviceId, standardQuestion);
-		// 新增词模
-		return saveWordpat(kbdataid, standardQuestion, simpleWordPattern, wordPatternType, cityCode, request);
-	}
-
-	/**
-	 * 初始化用户答案
-	 */
-	public static Object initCustomerAnswer(String scenariosId) {
-		JSONObject jsonObj = new JSONObject();
-		JSONArray jsonArray = new JSONArray();
-		HashMap<String, String> recognitionQuestions = queryRecognitionQuestions(scenariosId);
-		if (recognitionQuestions.isEmpty()) {
-			jsonObj.put("success", false);
-		}
-		for (Entry<String, String> recognitionQuestion : recognitionQuestions.entrySet()) {
-			JSONObject temObj = new JSONObject();
-			temObj.put("id", recognitionQuestion.getKey());
-			temObj.put("text", recognitionQuestion.getKey());
-			jsonArray.add(temObj);
-		}
-		jsonObj.put("success", true);
-		jsonObj.put("rows", jsonArray);
-		return jsonObj;
-	}
-
-	/**
-	 * 初始化关联意图
-	 */
-	public static Object initCollectionIntention(String scenariosid) {
-		JSONObject jsonObj = new JSONObject();
-		JSONArray jsonArray = new JSONArray();
-		HashMap<String, String> collectionQuestions = queryCollectionQuestions(scenariosid);
-		if (collectionQuestions.isEmpty()) {
-			jsonObj.put("success", false);
-		}
-		// 【收集任意类型】选项
-		JSONObject temObj = new JSONObject();
-		temObj.put("id", CollectionIntentionConsts.SYSTEM_ANY);
-		temObj.put("text", CollectionIntentionConsts.SYSTEM_ANY);
-		jsonArray.add(temObj);
-		for (Entry<String, String> collectionQuestion : collectionQuestions.entrySet()) {
-			temObj = new JSONObject();
-			temObj.put("id", collectionQuestion.getKey());
-			temObj.put("text", collectionQuestion.getKey());
-			jsonArray.add(temObj);
-		}
-		jsonObj.put("success", true);
-		jsonObj.put("rows", jsonArray);
-		return jsonObj;
-	}
-
-	/**
 	 * 获取用户回答摘要ID
 	 * 
 	 * @param serviceId      识别规则业务ID
@@ -2218,7 +1963,7 @@ public class InteractiveSceneCallDAO {
 	 * 
 	 * @param sceneElementName 场景要素名称
 	 * @param scenariosid      场景ID
-	 * @return 场景要素值集合
+	 * @return 场景要素值集合 {id:场景要素值,text:场景要素值}
 	 */
 	public static Object listAllElementValue(String scenariosid, String sceneElementName) {
 		JSONObject jsonObj = (JSONObject) InteractiveSceneDAO.queryElement(scenariosid);
@@ -2414,7 +2159,6 @@ public class InteractiveSceneCallDAO {
 		if (rs != null && rs.getRowCount() > 0) {
 			for (int i = 0; i < rs.getRowCount(); i++) {
 				JSONObject row = new JSONObject();
-				@SuppressWarnings("unused")
 				String wordclassid = rs.getRows()[i].get("wordclassid").toString();
 				String wordclass = rs.getRows()[i].get("wordclass").toString();
 				row.put("id", wordclassid);
@@ -2430,420 +2174,42 @@ public class InteractiveSceneCallDAO {
 	}
 	
 	/**
-	 * 分页查询词条
+	 * 新增场景要素词模
 	 * 
-	 * @param scenariosid 场景ID
-	 * @param wordclassid 词类ID
-	 * @param wordClass   词类名称
-	 * @param currentPage 当前页码
-	 * @param pageSize    分页条数
+	 * @param scenariosid         场景ID
+	 * @param sceneName 场景名称
+	 * @param elementName 关联意图
+	 * @param simpleWordPattern   简单词模
+	 * @param wordPatternType     词模类型
+	 * @param returnKeyValueJsonStr 词模返回值JSON[{"returnKey":"",returnValue:""}]
+	 * @param request
 	 * @return
 	 */
-	public static Object listPagingWordItem(String scenariosid, String wordclassid, String wordClass, int currentPage,
-			int pageSize) {
+	public static Object addSceneElementWordPattern(String scenariosid, String sceneName, String sceneType, String elementName,
+			String simpleWordPattern, String wordPatternType, String returnKeyValueJsonStr, HttpServletRequest request) {
 		JSONObject jsonObj = new JSONObject();
-		JSONArray rows = new JSONArray();
-		int totalCount = CommonLibWordDAO.getWordCount(wordclassid, "");
-		Result rs = CommonLibWordDAO.select(wordclassid, "", currentPage, pageSize);
-		if (rs != null && rs.getRowCount() > 0) {
-			for (int i = 0; i < rs.getRowCount(); i++) {
-				JSONObject row = new JSONObject();
-				row.put("wordclassid", rs.getRows()[i].get("wordclassid").toString());
-				row.put("wordclass", wordClass);
-				row.put("worditem", rs.getRows()[i].get("word").toString());
-				row.put("wordid", rs.getRows()[i].get("wordid").toString());
-				row.put("type", rs.getRows()[i].get("type").toString());
-				rows.add(row);
+		// 添加词模返回值
+		if (simpleWordPattern.indexOf("&" + elementName + "=") > -1) {
+			Result patternkeyRs = CommonLibPatternkeyDAO.InsertSelect(elementName);
+			if (!(patternkeyRs != null && patternkeyRs.getRowCount() > 0)) {
+				User user = (User) GetSession.getSessionByKey("accessUser");
+				CommonLibPatternkeyDAO.Insert(elementName, user);
 			}
 		}
-		jsonObj.put("rows", rows);
-		jsonObj.put("total", totalCount);
-		return jsonObj;
-	}
-
-	/**
-	 * 分页查询词条别名
-	 * 
-	 * @param scenariosid 场景ID
-	 * @param wordItem    词条
-	 * @param wordClass   词类
-	 * @param currentPage 页码
-	 * @param pageSize    条数
-	 * @return
-	 */
-	public static Object listPagingWordAlias(String scenariosid, String wordItem, String wordClass, int currentPage, int pageSize) {
-		JSONObject jsonObj = new JSONObject();
-		JSONArray rows = new JSONArray();
-		int totalCount = 0;
-		Result rs = CommonLibSynonymDAO.getSynonymCount("", true, true, "", wordItem, wordClass, "基础");
-		if (rs != null && rs.getRowCount() > 0) {
-			totalCount = rs.getRowCount();
-			rs = CommonLibSynonymDAO.select((currentPage-1) * pageSize, currentPage * pageSize, "", true, true, "", wordItem, wordClass, "基础");
-			if (rs != null && rs.getRowCount() > 0) {
-				for (int i = 0; i < rs.getRowCount(); i++) {
-					JSONObject row = new JSONObject();
-					row.put("stdwordid", rs.getRows()[i].get("stdwordid").toString());
-					row.put("wordclass", rs.getRows()[i].get("wordclass").toString());
-					row.put("synonym", rs.getRows()[i].get("word").toString());
-					row.put("worditem", rs.getRows()[i].get("worditem").toString());
-					row.put("wordid", rs.getRows()[i].get("wordid").toString());
-					row.put("type", rs.getRows()[i].get("type").toString());
-					rows.add(row);
-				}
-			}
+		StringBuffer returnValues = new StringBuffer();
+		List<ReturnKeyValue> returnKeyValueList = JSONObject.parseArray(returnKeyValueJsonStr, ReturnKeyValue.class);
+		for(ReturnKeyValue returnKeyValue : returnKeyValueList) {
+			returnValues.append(returnKeyValue.getReturnKey()).append("=").append(returnKeyValue.getReturnValue()).append("&");
 		}
-		jsonObj.put("rows", rows);
-		jsonObj.put("total", totalCount);
-		return jsonObj;
-	}
-	
-	/**
-	 * 更新词条
-	 * 
-	 * @param newworditem 新词条
-	 * @param wordid 词条ID
-	 * @param wordClassId 词类ID
-	 * @param scenariosid 场景ID
-	 * @return
-	 */
-	public static Object updateWordItem(String scenariosid, String newworditem, String wordid, String wordClassId) {
-		JSONObject jsonObj = new JSONObject();
-		// 获取用户
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int count = CommonLibWordDAO.update(user, "", newworditem, "", "标准名称", wordid, wordClassId, "", "", "");
-		if(count > 0) {
-			jsonObj.put("success", true);
-		} else {
-			jsonObj.put("success", false);
-		}
-		return jsonObj;
-	}
-	
-	/**
-	 * 插入词条
-	 * 
-	 * @param wordItems   词条集合，逗号分割
-	 * @param wordClassId 词类ID
-	 * @return
-	 */
-	public static Object insertWordItem(String wordItems, String wordClassId) {
-		JSONObject jsonObj = new JSONObject();
-		// 获取用户
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		String[] wordItemArray = wordItems.split("\\,");
-		if(wordItemArray.length > 0) {
-			for(String wordItem : wordItemArray) {
-				if(!CommonLibWordDAO.exist(wordItem, wordClassId)) {
-					CommonLibWordDAO.insert(wordItem, wordClassId, user);
-				}
-			}
-			jsonObj.put("success", true);
+		// 识别规则业务新增标准问
+		jsonObj = (JSONObject) ScenariosDAO.insertRecognitionRuleNormalQuery(sceneType, RegnitionRuleTypeConsts.COLLETION_INTENTION, sceneName, elementName, returnKeyValueJsonStr, scenariosid);
+		if(!jsonObj.getBooleanValue("success")) {
 			return jsonObj;
 		}
-		jsonObj.put("success", false);
-		return jsonObj;
-	}
-	
-	/**
-	 * 删除词条
-	 * 
-	 * @param wordId 词条ID
-	 * @param wordClass 词类名称
-	 * @param wordItem  词条名称
-	 * @return
-	 */
-	public static Object deleteWordItem(String wordId, String wordClass, String wordItem) {
-		JSONObject jsonObj = new JSONObject();
-		// 获取用户
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int count = CommonLibWordDAO.delete(user, wordId, wordClass, "", wordItem, "");
-		if(count > 0) {
-			jsonObj.put("success", true);
-		} else {
-			jsonObj.put("success", false);
-		}
-		return jsonObj;
-	}
-	
-	/**
-	 * 新增别名
-	 * 
-	 * @param wordAliases    别名集合，逗号分割
-	 * @param wordClassId    词类ID
-	 * @param wordClass      词类名称
-	 * @param standardWordId 词条ID
-	 * @param wordItem       词条名称
-	 * @return
-	 */
-	public static Object insertWordAlias(String wordAliases, String wordClassId, String wordClass, String standardWordId, String wordItem) {
-		JSONObject jsonObj = new JSONObject();
-		// 获取用户
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		List<String> wordAliasList = new ArrayList<String>();
-		if(StringUtils.isNotBlank(wordAliases)) {
-			String[] wordAliasArray = wordAliases.split("\\|");
-			if(wordAliasArray.length > 0) {
-				wordAliasList = Arrays.asList(wordAliasArray);
-				for(String wordAlias : wordAliasList) {
-					if(!CommonLibWordDAO.exist(standardWordId, wordAlias)) {
-						CommonLibWordDAO.insertOtherWord(wordAlias, standardWordId, wordClassId, user);
-					}
-				}
-				jsonObj.put("success", true);
-				return jsonObj;
-			}
-		}
-		jsonObj.put("success", false);
-		return jsonObj;
-	}
-	
-	/**
-	 * 更新别名
-	 * 
-	 * @param wordAlias 别名
-	 * @param wordId    别名ID
-	 * @param wordClass 词类名称
-	 * @return
-	 */
-	public static Object updateWordAlias(String wordAlias, String wordId, String wordClass) {
-		JSONObject jsonObj = new JSONObject();
-		// 获取用户
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int count = CommonLibSynonymDAO.update(user, "", wordAlias, "", "其他别名", wordId, "", wordClass);
-		if(count > 0) {
-			jsonObj.put("success", true);
-		} else {
-			jsonObj.put("success", false);
-		}
-		return jsonObj;
-	}
-	
-	/**
-	 * 删除别名
-	 * 
-	 * @param wordClassId    词类ID
-	 * @param wordClass      词类名称
-	 * @param standardWordId 词类ID
-	 * @param wordItem       词条名称
-	 * @param wordIds        别名ID集合，逗号分割
-	 * @param wordAliases    别名集合，逗号分割
-	 * @return
-	 */
-	public static Object deleteWordAlias(String wordClassId, String wordClass, String standardWordId, String wordItem, String wordIds, String wordAliases) {
-		JSONObject jsonObj = new JSONObject();
-		// 获取用户
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int count = CommonLibSynonymDAO.delete(user, wordIds, wordAliases, wordItem, wordClass);
-		if(count > 0) {
-			jsonObj.put("success", true);
-		} else {
-			jsonObj.put("success", false);
-		}
-		return jsonObj;
-	}
-
-	/**
-	 * 批量保存词条
-	 * 
-	 * @param scenariosid 场景ID
-	 * @param wordIds     词条ID
-	 * @param wordItems   词条名称
-	 * @param wordClassId 词类ID
-	 * @return
-	 */
-	public static Object saveWordItems(String scenariosid, String wordIds, String wordItems, String wordClassId) {
-		JSONObject jsonObj = new JSONObject();
-		if(StringUtils.isNotBlank(wordItems)) {
-			String[] wordItemsArray = wordItems.split("\\,");
-			try {
-				for(int i = 0; i < wordItemsArray.length; i++) {
-					if(StringUtils.isNotBlank(wordIds) && wordIds.split("\\,").length > 0 && StringUtils.isNotBlank(wordIds.split("\\,")[i])) {
-						// 更新词条
-						updateWordItem(scenariosid, wordItemsArray[i], wordIds.split("\\,")[i], wordClassId);
-					} else {
-						insertWordItem(wordItemsArray[i], wordClassId);
-					}
-				}
-				jsonObj.put("success", true);
-				return jsonObj;
-			} catch(Exception e) {
-				logger.error("保存词条异常"+e.getStackTrace());
-				jsonObj.put("success", false);
-			}
-		}
-		jsonObj.put("success", false);
-		return jsonObj;
-	}
-	
-	/**
-	 * 保存别名
-	 * 
-	 * @param scenariosid    场景ID
-	 * @param wordClassId    词类ID
-	 * @param wordClass      词类名称
-	 * @param standardWordId 词条ID
-	 * @param wordItem       词条名称
-	 * @param wordIds        别名ID集合，逗号分割
-	 * @param synonyms       别名集合，逗号分割
-	 * @return
-	 */
-	public static Object saveWordAlias(String scenariosid, String wordClassId, String wordClass, String standardWordId,
-			String wordItem, String wordIds, String synonyms) {
-		JSONObject jsonObj = new JSONObject();
-		if(StringUtils.isNotBlank(synonyms)) {
-			String[] synonymsArray = synonyms.split("\\,");
-			try {
-				for(int i = 0; i < synonymsArray.length; i++) {
-					if(StringUtils.isNotBlank(wordIds) && wordIds.split("\\,").length > 0 && StringUtils.isNotBlank(wordIds.split("\\,")[i])) {
-						// 更新别名
-						updateWordAlias(synonymsArray[i], wordIds.split("\\,")[i], wordClass);
-					} else {
-						insertWordAlias(synonymsArray[i], wordClassId, wordClass, standardWordId, wordItem);
-					}
-				}
-				jsonObj.put("success", true);
-				return jsonObj;
-			} catch(Exception e) {
-				logger.error("保存别名异常"+e.getStackTrace());
-				jsonObj.put("success", false);
-			}
-		}
-		jsonObj.put("success", false);
-		return jsonObj;
-	}
-	
-	/**
-	 * 分页查询词类
-	 * 
-	 * @param scenariosid 场景ID
-	 * @param wordClass 词类名称
-	 * @param currentPage 当前页码
-	 * @param pageSize  分页条数
-	 * @return
-	 */
-	public static Object listPagingWordClass(String scenariosid, String wordClass, int currentPage, int pageSize) {
-		JSONObject jsonObj = new JSONObject();
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int totalCount = CommonLibWordclassDAO.getCount(user, wordClass, true, "", "基础");
-		JSONArray rows = CommonLibWordclassDAO.select(user, wordClass, true, "", "基础", (currentPage-1) * pageSize, currentPage * pageSize);
-		jsonObj.put("success", true);
-		jsonObj.put("totalCount", totalCount);
-		jsonObj.put("rows", rows);
-		return null;
-	}
-
-	/**
-	 * 插入词类
-	 * 
-	 * @param scenariosid 场景ID
-	 * @param wordClassList 词类集合
-	 * @return
-	 */
-	public static Object insertWordClass(String scenariosid, List<String> wordClassList) {
-		JSONObject jsonObj = new JSONObject();
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int count = CommonLibWordclassDAO.insertWithSource(user, wordClassList, "", "基础");
-		jsonObj.put("success", count > 0);
-		return jsonObj;
-	}
-	
-	/**
-	 * 更新词类
-	 * 
-	 * @param scenariosid 场景ID
-	 * @param wordClassId 词类ID
-	 * @param wordClass 词类名称
-	 * @return
-	 */
-	public static Object updateWordClass(String scenariosid, String wordClassId, String wordClass) {
-		JSONObject jsonObj = new JSONObject();
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int count = CommonLibWordclassDAO.update(user, wordClassId, "", wordClass, "", "", "基础");
-		jsonObj.put("success", count > 0);
-		return jsonObj;
-	}
-	
-	/**
-	 * 删除词类
-	 * 
-	 * @param scenariosid 场景ID
-	 * @param wordClassId 词类ID
-	 * @param wordClass   词类名称
-	 * @return
-	 */
-	public static Object deleteWordClass(String scenariosid, String wordClassId, String wordClass) {
-		JSONObject jsonObj = new JSONObject();
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int count = CommonLibWordclassDAO.delete(user, wordClassId, wordClass, "", "基础");
-		jsonObj.put("success", count > 0);
-		return jsonObj;
-	}
-	
-	/**
-	 * 批量保存词类
-	 * 
-	 * @param scenariosid   场景ID
-	 * @param wordClassIds  词类ID集合
-	 * @param wordClassList 词类集合
-	 * @return
-	 */
-	public static Object batchSaveWordClass(String scenariosid, String[] wordClassIds, String[] wordClassList) {
-		JSONObject jsonObj = new JSONObject();
-		List<String> newWordClassList = new ArrayList<String>();
-		if(wordClassList != null && wordClassList.length > 0) {
-			try {
-				for(int i = 0; i<wordClassList.length; i++) {
-					String wordClass = wordClassList[i];
-					if(wordClassIds != null && wordClassIds.length > 0 && StringUtils.isNotBlank(wordClassIds[i])) {
-						if(!newWordClassList.contains(wordClass)) {
-							newWordClassList.add(wordClass);
-						}
-					} else {
-						updateWordClass(scenariosid, wordClassIds[i], wordClass);
-					}
-				}
-				if(!newWordClassList.isEmpty()) {
-					insertWordClass(scenariosid, newWordClassList);
-				}
-				jsonObj.put("success", true);
-				return jsonObj;
-			} catch(Exception e) {
-				logger.error("批量保存词类异常："+e.getStackTrace());
-			}
-		}
-		jsonObj.put("success", false);
-		return jsonObj;
-	}
-	
-	public static Object listPagingNormalQuery(String serviceId, String normalQuery, int currentPage, int pageSize) {
-		JSONObject jsonObj = new JSONObject();
-		JSONArray rows = new JSONArray();
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		Result rs = CommonLibQueryManageDAO.selectNormalQuery(serviceId, normalQuery, "", "", currentPage, pageSize);
-		if (rs != null && rs.getRowCount() > 0) {
-			for(int i=0; i<rs.getRowCount(); i++) {
-				JSONObject row = new JSONObject();
-			}
-		}
-			//serviceid = serviceRs.getRows()[0].get("serviceid").toString();
-		jsonObj.put("success", count > 0);
-		return jsonObj;
-	}
-	
-	public static Object insertNormalQuery(String serviceId, String normalQuery, String customerQuery) {
-		JSONObject jsonObj = new JSONObject();
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int count = CommonLibQueryManageDAO.addNormalQueryAndCustomerQuery(serviceId, normalQuery, customerQuery, "全国", user, "全国", "全国");
-		jsonObj.put("success", count > 0);
-		return jsonObj;
-	}
-	
-	
-	public static Object deleteNormalQuery(String serviceId, List<String> normalQueryIdList) {
-		JSONObject jsonObj = new JSONObject();
-		User user = (User) GetSession.getSessionByKey("accessUser");
-		int count = CommonLibQueryManageDAO._deleteNormalQuery(normalQueryIdList, user);
-		jsonObj.put("success", count > 0);
-		return jsonObj;
+		// 标准问添加词模
+		String serviceId = ScenariosDAO.getRegnitionRuleServiceId(sceneType, sceneName); // 识别规则业务ID
+		String kbdataid = getCustomerAnswerKbdataId(serviceId , elementName);
+		String cityCode = ScenariosDAO.getCityCode(scenariosid,sceneType);
+		return saveWordpat(kbdataid, elementName, simpleWordPattern, wordPatternType, cityCode , request);
 	}
 }

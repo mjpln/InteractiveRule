@@ -68,11 +68,14 @@
 			<div id="myOverViewDiv"
 				style="width: 160px;  margin-right: 2px; background-color: whitesmoke; border: solid 1px black "></div>
 			<div style="text-align:center;margin-top:2px;">
-				<div >
+				<div>
 					<a id="saveBtSubmit" class="easyui-linkbutton" data-options="iconCls:'icon-save'">确认修改</a>
 				</div>
 				<div style = "margin-top:2px">
 					<a id="undoBtSubmit" class="easyui-linkbutton" data-options="iconCls:'icon-undo'">撤销修改</a>
+				</div>
+				<div style = "margin-top:2px">
+					<a id="elementManageBtn" class="easyui-linkbutton" data-options="iconCls:'icon-undo'">场景要素管理</a>
 				</div>
 			</div>
 		</div>
@@ -563,7 +566,7 @@
 					<td><input id="sceneElementEditForm-weight" name="sceneElementEditForm-weight" style="width: 300px;"></input></td>
 				</tr>
 				<tr>
-					<td>选择已有要素:</td>
+					<td>对应词类:</td>
 					<td>
 						<input class="easyui-combobox" id="sceneElementEditForm-wordClass" name="sceneElementEditForm-wordClass" style="width: 270px;"></input>
 						<a id="addWordClass" name="addWordClass" href="javascript:void(0)" class="easyui-linkbutton" 
@@ -615,107 +618,92 @@
 	<!-- 场景要素新增和编辑 window end -->
 	
 	<!-- 场景要素值新增和编辑 window start -->
-	<div id="wordClassEditDiv" class="easyui-window" title="场景要素值新增" data-options="modal:true,closed:true,iconCls:'icon-save'" style="width:900px;height:500px;">
+	<div id="wordEditDiv" class="easyui-window" title="场景要素值编辑区" data-options="modal:true,closed:true,iconCls:'icon-save'" style="width:1100px;height:500px;">
+		<form id="wordClassQueryForm" class="easyui-form">
+			<div id="wordClassQueryDiv" style="height: 30px;">
+				<span style="font-size: 12px; margin-left: 10px">词类：</span>
+				<input id="wordClassQueryForm-wordClass" name="wordClassQueryForm-wordClass" type="text" class="easyui-textbox" style="width: 100px;" />
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-search" onclick="searchWordClass()">查询</a>
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-add" onclick="addWordClass()">新增</a>
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-save" onclick="saveWordClass()">保存</a>
+			</div>
+		</form>
+		<form id="wordItemQueryForm" class="easyui-form">
+			<div id="wordItemQueryDiv" style="height: 30px;">
+				<span style="font-size: 12px; margin-left: 10px">词条：</span>
+				<input id="wordItemQueryForm-wordItem" name="wordItemQueryForm-wordItem" type="text" class="easyui-textbox" style="width: 100px;" />
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-search" onclick="searchWordItem()">查询</a>
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-add" onclick="addWordItem()">新增</a>
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-save" onclick="saveWordItem()">保存</a>
+			</div>
+		</form>
+		<form id="wordAliasQueryForm" class="easyui-form">
+			<div id="wordAliasQueryDiv" style="height: 30px;">
+				<span style="font-size: 12px; margin-left: 10px">别名：</span>
+				<input id="wordAliasQueryForm-wordAlias" name="wordAliasQueryForm-wordAlias" type="text" class="easyui-textbox" style="width: 100px;" />
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-search" onclick="searchWordAlias()">查询</a>
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-add" onclick="addWordAlias()">新增</a>
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-save" onclick="saveWordAlias()">保存</a>
+			</div>
+		</form>
 		<table>
 			<tr>
 				<td>
-					<table id="elementValueTable" class="easyui-datagrid" style="width:450px;height:300px;"></table>
+					<table id="wordClassTable" class="easyui-datagrid" style="width:400px;height:400px;"></table>
 				</td>
 				<td>
-					<table id="elementAliasTable" class="easyui-datagrid" style="width:450px;height:300px;"></table>
+					<table id="wordItemTable" class="easyui-datagrid" style="width:350px;height:400px;"></table>
+				</td>
+				<td>
+					<table id="wordAliasTable" class="easyui-datagrid" style="width:350px;height:400px;"></table>
 				</td>
 			</tr>
 		</table>
 	</div>
 		
-	<!-- 添加用户答案 -->
-	<div id="customerAnswerAddPage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
-		title="添加用户答案" style="width:650px;">
-		<form id="customerAnswerAddForm" class="easyui-form">
-		    <table style="width:100%;">
-		    	<tr>
-					<td><span class="span_class">标题:</span></td>
-					<td><span><input id="customerAnswerAdd-customerAnswer" class="easyui-textbox" style="width: 500px;" /></span></td>
-				</tr>
-				<tr>
-					<td><span class="span_class">词模类型:</span></td>
-					<td><span>
-						<select id="customerAnswerAdd-wordtype" class="easyui-combobox" style="width: 150px;">
-							<option value="0">简单词模</option>
-							<option value="1">排除词模</option>
-							<option value="2">选择词模</option>
-							<option value="3">特征词模</option>
-							<option value="4">等于词模</option>
-						</select>
-					</span></td>
-				</tr>
-				<tr>
-					<td><span class="span_class">生成词模:</span></td>
-					<td><span><input id="customerAnswerAdd-keywords" class="easyui-textbox" style="width: 500px;"></input></span></td>
-					<td><span><a id="customerAnswerAdd-analyzeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
-									data-options="iconCls:'icon-save'">生成</a> </span></td>
-				</tr>
-				<tr>
-					<td class="span_class" valign="top">新增词模:</td>
-					<td>
-						<span>
-							<textarea id="customerAnswerAdd-wordclasses" style="width: 500px; height： 100px; font-size: 12px;"></textarea>
-						</span>
-					</td>
-				</tr>
-		    </table>
+	<!-- 意图管理 -->
+	<div id="recognitionIntentionManagePage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
+		title="意图管理" style="width:500px;height:400px;">
+		<form id="intentionQueryForm" class="easyui-form">
+			<div id="intentionQueryDiv" style="height: 30px;">
+				<span style="font-size: 12px; margin-left: 10px">意图名称：</span>
+				<input id="intentionQueryForm-intention" name="intentionQueryForm-intention" type="text" class="easyui-textbox" style="width: 100px;" />
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-search" onclick="searchRecognitionIntention()">查询</a>
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-add" onclick="addRecognitionIntention()">新增</a>
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-save" onclick="saveRecognitionIntention()">保存</a>
+				<a class="easyui-linkbutton" plain="fasle" iconCls="icon-edit" onclick="generateRecognitionIntention()">生成意图</a>
+			</div>
 		</form>
-		<div style="text-align: center; padding: 10px">
-			<a id="customerAnswerAdd-saveBtn" href="javascript:void(0)" class="easyui-linkbutton" 
-				data-options="iconCls:'icon-save'">保存</a> 
-			<a id="customerAnswerAdd-closeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
-				data-options="iconCls:'icon-clear'">关闭</a>
-		</div>
+		<table id="recognitionIntentionManageTable" style="width:500px;height:400px;"></table>
 	</div>
 	
 	<!-- 添加关联意图 -->
 	<div id="collectionIntentionAddPage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
 		title="添加关联意图" style="width:650px;">
 		<form id="collectionIntentionAddForm" class="easyui-form">
-		    <table style="width:100%;">
-		    	<tr>
-					<td><span class="span_class">标题:</span></td>
-					<td><span><input id="collectionIntentionAdd-title" class="easyui-textbox" style="width: 500px;" /></span></td>
+			<table style="width:100%;">
+				<tr>
+					<td><span class="span_class">场景要素:</span></td>
+					<td><span><input class="easyui-combobox" style="width: 500px;" id="collectionIntentionAddForm-sceneElementName" name="collectionIntentionAddForm-sceneElementName" /></span></td>
 				</tr>
 				<tr>
-					<td><span class="span_class">词模类型:</span></td>
-					<td><span>
-						<select id="collectionIntentionAdd-wordtype" class="easyui-combobox" style="width: 150px;">
-							<option value="0">简单词模</option>
-							<option value="1">排除词模</option>
-							<option value="2">选择词模</option>
-							<option value="3">特征词模</option>
-							<option value="4">等于词模</option>
-						</select>
-					</span></td>
+					<td><span class="span_class">场景要素值:</span></td>
+					<td><span><input class="easyui-combobox" style="width: 500px;" id="collectionIntentionAddForm-sceneElementValue" name="collectionIntentionAddForm-sceneElementValue" /></span></td>
 				</tr>
-				<tr>
-					<td><span class="span_class">生成词模:</span></td>
-					<td><span><input id="collectionIntentionAdd-keywords" class="easyui-textbox" style="width: 500px;"></input></span></td>
-					<td><span><a id="collectionIntentionAdd-analyzeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
-									data-options="iconCls:'icon-save'">生成</a> </span></td>
-				</tr>
-				<tr>
-					<td class="span_class" valign="top">新增词模:</td>
-					<td>
-						<span>
-							<textarea id="collectionIntentionAdd-wordclasses" style="width: 500px; height： 100px; font-size: 12px;"></textarea>
-						</span>
-					</td>
-				</tr>
-		    </table>
+			</table>
 		</form>
 		<div style="text-align: center; padding: 10px">
-			<a id="collectionIntentionAdd-saveBtn" href="javascript:void(0)" class="easyui-linkbutton" 
-				data-options="iconCls:'icon-save'">保存</a> 
+			<a id="collectionIntentionAdd-generateBtn" href="javascript:void(0)" class="easyui-linkbutton" 
+				data-options="iconCls:'icon-save'">生成意图</a> 
 			<a id="collectionIntentionAdd-closeBtn" href="javascript:void(0)" class="easyui-linkbutton" 
 				data-options="iconCls:'icon-clear'">关闭</a>
 		</div>
+	</div>
+	
+	<!-- 添加客户问页面 -->
+	<div id="customerQueryPage" class="easyui-window" data-options="modal:true,closed:true,iconCls:'icon-add'" 
+		title="添加客户问" style="width:600px;height:500px;">
+		<iframe id="customerQueryIframe" name="customerQueryIframe" width="100%" height="100%" align="center" src="">
 	</div>
 	
 	<!-- 词模 -->

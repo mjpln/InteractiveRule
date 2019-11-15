@@ -55,12 +55,12 @@ $.extend($.fn.datagrid.methods, {
 		});
 	}
 });
-function endEditing() {// 该方法用于关闭上一个焦点的editing状态
+function endEditing(tableId) {// 该方法用于关闭上一个焦点的editing状态
 	if (editIndex == undefined) {
 		return true
 	}
-	if ($(tab).datagrid('validateRow', editIndex)) {
-		$(tab).datagrid('endEdit', editIndex);
+	if ($(tableId).datagrid('validateRow', editIndex)) {
+		$(tableId).datagrid('endEdit', editIndex);
 		editIndex = undefined;
 		return true;
 	} else {
@@ -69,15 +69,12 @@ function endEditing() {// 该方法用于关闭上一个焦点的editing状态
 	
 };
 /** 双击编辑 */
-function DbclkCommentCell(index, field, value) {
-	if (endEditing()) {
-		$(tab).datagrid('selectRow', index).datagrid('editCell', {index:index,field:field});
+function DbclkCommentCell(tableId, index, field, value) {
+	if (endEditing(tableId)) {
+		$(tableId).datagrid('selectRow', index).datagrid('editCell', {index:index,field:field});
 		editIndex = index;
 	}
 };
-function singleClick(index,field,value) {
-	endEditing();
-}
 
 $(function() {
 	
@@ -190,6 +187,314 @@ function initTTSNode() {
             });
         }
     });
+	
+	// 保存回复内容
+	$('#saveRule0').click(function() {
+		var nodeData = public_thisGraphObj.part.data;
+		var array = $('#myNormalEditForm').serializeArray();
+		var t={};
+		$.each(array,function(index, value){
+			t[this.name] = this.value;
+		});
+		if(t.interactiveType == '') {
+			$.messager.alert('提示', "请填写交互类型", "info");
+			return;
+		}
+		if(t.endFlag == '') {
+			$.messager.alert('提示', "请选择是否为末梢节点", "info");
+			return;
+		}
+		if(t.interactiveType == '词模匹配' && t.wordsContent == '') {
+			$.messager.alert('提示', "请填写话术文字", "info");
+			return;
+		}
+		if(t.interactiveType == '键值补全' && t.menuStartWords == '') {
+			$.messager.alert('提示', "请填写开始话语", "info");
+			return;
+		}
+		if(t.interactiveType == '键值补全' && t.menuOptions == '') {
+			$.messager.alert('提示', "请填写菜单选项", "info");
+			return;
+		}
+		if(nodeData.category == "Normal" && t.ttsNodeType == undefined || t.ttsNodeType == '') {
+			$.messager.alert('提示', "请选择【意图节点】或【跳转节点】", "info");
+			return;
+		}
+		// 获取已选的用户回答
+	    var checkedArray = [];   
+	    $('[name=customerAnswer]:checkbox:checked').each(function() {
+	    	checkedArray.push({'text':$(this).val()});
+	    });
+	    if(nodeData.category == "Normal" && t.ttsNodeType == "0" && checkedArray.length == 0) {
+			$.messager.alert('提示', "请选择用户回答", "info");
+			return;
+		}
+	    t.checkedArray = checkedArray;
+		addToTTSResponse(t);
+	});
+	
+	// 关闭回复内容
+	$('#closeRule0').click(function() {
+		$('#myNormalEditDiv').hide();
+	});
+	
+	// 添加用户答案页面
+	$('#customerAnswerAdd-toPageBtn').click(function() {
+		loadRecognitionIntention();
+		$('#recognitionIntentionManagePage').window('open');
+	});
+	
+	// 关闭用户答案页面
+	$('#customerAnswerAdd-closeBtn').click(function() {
+		$('#intentionManagePage').window('close');
+		
+	});
+	
+	// 生成词模
+	$('#customerAnswerAdd-analyzeBtn').click(function() {
+		var customerAnswerKeywords = $.trim($("#customerAnswerAdd-keywords").textbox('getValue'));
+		addWordPatternFlag = 'customerAnswer';
+		autoGenerateWordPattern(customerAnswerKeywords);
+	});
+	
+	// 保存用户答案
+	$('#customerAnswerAdd-saveBtn').click(function() {
+		saveCustomerAnswer();
+	});
+	
+	// 保存自学习词模
+	$('#autoworrdpat-saveBtn').click(function() {
+		addAutoWordpat();
+		if(addWordPatternFlag == 'customerAnswer') {
+			$('#customerAnswerAdd-wordclasses').val(autoWordPattern);
+		}
+		if(addWordPatternFlag == 'collectionIntention') {
+			var collectionType = $('#collectionType').combobox('getValue');
+			if(collectionType == 'elementCollection') {
+				var elementName = $('#collectionElement').combobox('getValue');
+				$('#collectionIntentionAdd-wordclasses').val(autoWordPattern+"&"+elementName+"=");
+			} 
+			if(collectionType == 'userInfoCollection') {
+				$('#collectionIntentionAdd-wordclasses').val(autoWordPattern);
+			}
+		}
+	});
+	
+	// 关闭自学习词模页面
+	$('#autoworrdpat-closeBtn').click(function() {
+		$('#autoworrdpat').window('close');
+	});
+	
+	// 打开其他回复内容
+	$('#otherResponseShowBtn').click(function() {
+		$('#otherResponseHideBtn').show();
+		$('#otherResponseShowBtn').hide();
+		$('#other-response-table').show();
+	});
+	
+	// 收起其他回复内容
+	$('#otherResponseHideBtn').click(function() {
+		$('#otherResponseHideBtn').hide();
+		$('#otherResponseShowBtn').show();
+		$('#other-response-table').hide();
+	});
+	
+	// 发送短信复选框点击事件
+	$('#sms-checkbox').click(function() {
+		if($('#sms-checkbox').is(':checked')) {
+			$('#sms-template-span').show();
+			$('#sms-varibales-span').show();
+		} else {
+			$('#sms-template-span').hide();
+			$('#sms-varibales-span').hide();
+		}
+	});
+}
+// 加载识别规则业务
+function loadRecognitionIntention() {
+	var normalQuery = $('#intentionQueryForm-intention').textbox('getValue');
+	var tableId='#recognitionIntentionManageTable';
+	$(tableId).datagrid({
+		title : '',
+		url : '../interactiveSceneCall.action',
+		pagination : false,
+		rownumbers : true,
+		queryParams : {
+			type : 'listRecognitionRuleNormalQuery',
+			sceneType : sceneType,
+			recognitionType : 'customerIntention',
+			scenariosName : publicscenariosname,
+			normalQuery : normalQuery,
+			scenariosid : publicscenariosid
+		},
+		striped : true,
+		onDblClickCell: function(index, field, value) {
+			DbclkCommentCell(tableId, index, field, value);
+		},
+		singleSelect : true,
+		toolbar: "#intentionQueryDiv",
+		columns : [ [
+				{
+					field : 'normalQuery',
+					title : '意图名称',
+					width : 300,
+					editor: 'textbox',
+					formatter : function(value, row, index) {
+						if (value != "" && value != null) {
+							value = value.replace(/\</g, "&lt;");
+							value = value.replace(/\>/g, "&gt;");
+							var val = "<a title='" + value + "'>" + value + "</a>";
+							return val;
+						} else {
+							return "";
+						}
+					}
+				},
+				{
+					field : "delete",
+					title : '操作',
+					width : 100,
+					align : 'center',
+					formatter : function(value, row, index) {
+						var deleteFlag = row["deleteFlag"];
+						var normalQuery = row["normalQuery"];
+						var kbdataid = row["kbdataid"];
+						var a = '';
+						if(deleteFlag) {
+							a = '<a class="icon-delete btn_a" title="删除" onclick="deleteRecognitionIntention(' + index + ',\'' + kbdataid + '\',\'' + normalQuery + '\')"></a>';
+						}
+						return a;
+					}
+				}
+			] ]
+	});
+}
+// 生成意图
+function generateRecognitionIntention() {
+	var row = $('#recognitionIntentionManageTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择一行", "info");
+		return;
+	} 
+	// 跳转到客户问界面
+	var returnKeyValueArray = [];
+	var returnKeyValue = {};
+	returnKeyValue.returnKey = "用户回答";
+	returnKeyValue.returnValue = row.normalQuery;
+	returnKeyValueArray.push(returnKeyValue);
+	getCustomerQueryPageUrl(row.normalQuery,row.normalQuery,returnKeyValueArray);
+}
+// 查询识别规则业务
+function searchRecognitionIntention() {
+	var tableId='#recognitionIntentionManageTable';
+	var normalQuery = $('#intentionQueryForm-intention').textbox('getValue');
+	$(tableId).datagrid('reload', {
+		type : 'listRecognitionRuleNormalQuery',
+		sceneType : sceneType,
+		recognitionType : 'customerIntention',
+		scenariosName : publicscenariosname,
+		normalQuery : normalQuery,
+		scenariosid : publicscenariosid
+	});
+}
+// 新增识别规则业务
+function addRecognitionIntention() {
+	var tableId='#recognitionIntentionManageTable';
+	$(tableId).datagrid('insertRow',{
+		index: 0,	
+		row: {
+			abstract: "",
+			normalQuery: "",
+			deleteFlag : true
+		}
+	});
+	$(tableId).datagrid('beginEdit', 0);
+}
+// 保存识别规则业务
+function saveRecognitionIntention() {
+	var tableId='#recognitionIntentionManageTable';
+	var kbdataIds = [];
+	var normalQueries = [];
+	var returnKeyValueJsons = [];
+	var rows = $(tableId).datagrid('getRows');
+	for(var i=0; i<rows.length; i++){
+        var row = rows[i];
+        var rowIndex = $(tableId).datagrid('getRowIndex',row);
+        $(tableId).datagrid('endEdit', rowIndex);
+        if(row.normalQuery == undefined || row.normalQuery == '') {
+        	$(tableId).datagrid('beginEdit', rowIndex);
+        	$.messager.alert('提示', "意图名称不能为空", "info");
+        	return;
+        }
+        
+        var returnKeyValueArray = [];
+		var returnKeyValue = {};
+		returnKeyValue.returnKey = "用户回答";
+		returnKeyValue.returnValue = row.normalQuery;
+		returnKeyValueArray.push(returnKeyValue);
+       
+        kbdataIds.push(row.kbdataid);
+        normalQueries.push(row.normalQuery);
+        returnKeyValueJsons.push(JSON.stringify(returnKeyValueArray));
+    }
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'saveRecognitionRuleNormalQuery',
+			scenariosid : publicscenariosid,
+			sceneType : sceneType,
+			recognitionType : 'customerIntention', 
+			scenariosName : publicscenariosname,
+			kbdataIds : kbdataIds.join('@@'),
+			normalQueries : normalQueries.join('@@'),
+			returnKeyValueJsons : returnKeyValueJsons.join('@@')
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$.messager.alert('提示', "保存成功", "info");
+			} else {
+				$.messager.alert('提示', "保存失败", "info");
+			}
+		}
+	});
+}
+// 删除识别规则业务
+function deleteRecognitionIntention(index,kbdataid,normalQuery) {
+	var tableId='#recognitionIntentionManageTable';
+	if(normalQuery == '') {
+		$(tableId).datagrid('deleteRow',index);
+		return;
+	}
+	$.messager.confirm('提示', '删除记录?', function(data) {
+		if (data) {
+			$.ajax({
+				url : '../interactiveSceneCall.action',
+				type : "post",
+				data : {
+					type : 'deleteRecognitionRuleNormalQuery',
+					scenariosid : publicscenariosid,
+					sceneType : sceneType,
+					recognitionType : 'customerIntention', 
+					scenariosName : publicscenariosname, 
+					kbdataId : kbdataid,
+					normalQuery : normalQuery
+				},
+				async : false,
+				dataType : "json",
+				success : function(data, textStatus, jqXHR) {
+					if(data.success) {
+						$(tableId).datagrid('reload');
+						$.messager.alert('提示', "删除成功", "info");
+					} else {
+						$.messager.alert('提示', "删除失败", "info");
+					}
+				}
+			});
+		}
+	});
 }
 
 // 初始化信息收集组件
@@ -214,6 +519,76 @@ function initCollection() {
 	// 初始化场景要素
 	initSceneElements();
 	
+	// 保存信息收集
+	$('#saveCollection').click(function() {
+		var nodeData = public_thisGraphObj.part.data;
+		var array = $('#collectionform').serializeArray();
+		var t={};
+		$.each(array,function(index, value){
+			t[this.name] = this.value;
+		});
+		if(t.collectionName == '') {
+			$.messager.alert('提示', "请填写信息名称", "info");
+			return;
+		}
+		if(t.collectionType == '') {
+			$.messager.alert('提示', "请选择采集类型", "info");
+			return;
+		}
+		if(t.collectionIntention == '') {
+			$.messager.alert('提示', "请选择关联意图", "info");
+			return;
+		}
+		if(t.interactiveType == '') {
+			$.messager.alert('提示', "请选择交互类型", "info");
+			return;
+		}
+		if(t.collectionType == 'elementCollection' && t.collectionElement == '') {
+			$.messager.alert('提示', "请选择关联要素", "info");
+			return;
+		}
+		if(t.interactiveType == '词模匹配' && t.collectionWords == '') {
+			$.messager.alert('提示', "请填写反问话术", "info");
+			return;
+		}
+		if(t.interactiveType == '键值补全' && t.menuStartWords == '') {
+			$.messager.alert('提示', "请填写开始话语", "info");
+			return;
+		}
+		if(t.interactiveType == '键值补全' && t.menuOptions == '') {
+			$.messager.alert('提示', "请填写菜单选项", "info");
+			return;
+		}
+		if(t.interactiveType == '键值补全' && t.menuEndWords == '') {
+			//$.messager.alert('提示', "请填写结束话语", "info");
+			//return;
+		}
+		var collectionText = "";
+		if(t.interactiveType == '词模匹配') {
+			collectionText += "询问文本：" + t.collectionWords + "\n";
+			collectionText += "参数名称：" + t.collectionParam + "\n";
+		}
+		if(t.interactiveType == '键值补全') {
+			collectionText += "询问文本：" + t.menuStartWords + "\n";
+			collectionText += "参数名称：" + t.collectionParam + "\n";
+			collectionText += "菜单选项：" + t.menuOptions + "\n";
+		}
+		if(t.collectionType == 'elementCollection') {
+			collectionText += "关联要素：" + t.collectionElement + "\n";
+		}
+		collectionText += "关联意图：" + t.collectionIntention + "\n";
+		myDiagram.model.setDataProperty(nodeData, 'collectionText', collectionText);
+		$.each(t,function(index,value){
+	    	myDiagram.model.setDataProperty(nodeData, index, value);
+	    });
+		$('#myCollectionEditDiv').hide();
+	});
+	
+	// 关闭信息收集
+	$('#closeCollection').click(function() {
+		$('#myCollectionEditDiv').hide();
+	});
+	
 }
 
 // 初始化收集类型
@@ -233,11 +608,13 @@ function initCollectionType() {
 				$('#collectionform-collectionParam-tr').show();
 				$('#collectionform-collectionTimes-tr').hide();
 				$('#collectionform-collectionElement-tr').show();
+				$('#toAddCollectionIntentionPageBtn').show();
 			}
 			if(newVal == 'userInfoCollection') {
 				$('#collectionform-collectionParam-tr').show();
 				$('#collectionform-collectionTimes-tr').show();
 				$('#collectionform-collectionElement-tr').hide();
+				$('#toAddCollectionIntentionPageBtn').hide();
 			}
         } 
 	});
@@ -285,7 +662,8 @@ function initSceneElements() {
 	loadCollectionElement();
 	// 关联要素添加按钮
 	$("#addSceneElementBtn").bind("click",function () {
-		openElement();
+		var saveOrUpdateElementFlag = "save";
+		toEditElementPage(saveOrUpdateElementFlag);
 	});
 	// 保存场景要素
 	$("#sceneElementEditDiv #saveElement").click(function() {
@@ -301,15 +679,13 @@ function initSceneElements() {
 	});
 	// 添加词类编辑页面
 	$("#addWordClass").bind("click",function () {
-		var wordclassid = $("#sceneElementEditForm-wordClass").combobox('getValue');
+		var wordClassid = $("#sceneElementEditForm-wordClass").combobox('getValue');
 		var wordClass = $("#sceneElementEditForm-wordClass").combobox('getText');
-		if(wordclassid != '') {
-			loadElementValue(wordclassid,wordClass);
-		}
-		$("#wordClassEditDiv").window('open');
+		loadWordClass(wordClass);
+		$("#wordEditDiv").window('open');
 	});
 	// 关闭之前触发的事件
-	$('#wordClassEditDiv').window({
+	$('#wordEditDiv').window({
         onBeforeClose: function () { 
         	// 刷新词类下拉框
         	createWordClassCombobox();
@@ -368,9 +744,8 @@ function loadCollectionElement() {
 }
 // 打开场景要素编辑区
 function openElement() {
-	$('#sceneElementDiv').window('open');
-	$("#sceneElementQueryForm-sceneElementName").textbox('setValue', "");
 	loadElementName();
+	$('#sceneElementDiv').window('open');
 }
 
 // 查询场景要素
@@ -570,74 +945,162 @@ function loadElementName() {
 	});
 }
 
-// 加载场景要素值
-function loadElementValue(wordClassId,wordClass) {
-	tab='#elementValueTable';
-	$("#elementValueTable").datagrid({
-		title : '词条显示区',
+// 加载词类
+function loadWordClass(wordClass) {
+	$('#wordClassQueryForm-wordClass').textbox('setValue',wordClass);
+	var tableId='#wordClassTable';
+	$(tableId).datagrid({
+		title : '词类显示区',
 		url : '../interactiveSceneCall.action',
 		pagination : true,
 		rownumbers : true,
 		queryParams : {
-			type : 'listPagingElementValue',
+			type : 'listPagingWordClass',
 			scenariosid : publicscenariosid,
-			wordClassId : replaceSpace(wordClassId),
 			wordClass : wordClass
 		},
 		pageSize : 10,
 		striped : true,
-		onDblClickCell: DbclkCommentCell,
+		onDblClickCell: function(index, field, value) {
+			DbclkCommentCell(tableId, index, field, value);
+		},
+		singleSelect : true,
+		// 单击行事件
+		onClickRow : function(index, row) {
+			if(row && row.wordclassid != '') {
+				// 查询词条
+				loadWordItem(row.wordclassid,row.wordclass);
+			} 
+		},
+		toolbar: "#wordClassQueryDiv",
+		columns : [ [
+				{
+					field : 'wordclass',
+					title : '词类',
+					width : 300,
+					editor: 'textbox',
+					formatter : function(value, row, index) {
+						if (value != "" && value != null) {
+							value = value.replace(/\</g, "&lt;");
+							value = value.replace(/\>/g, "&gt;");
+							var val = "<a title='" + value + "'>" + value + "</a>";
+							return val;
+						} else {
+							return "";
+						}
+					}
+				},
+				{
+					field : 'wordclassid',
+					title : '词类ID',
+					hidden: true
+				},
+				{
+					field : "delete",
+					title : '操作',
+					width : 100,
+					align : 'center',
+					formatter : function(value, row, index) {
+						var wordclassid = row["wordclassid"];
+						var wordclass = row["wordclass"];
+						var a = '<a class="icon-delete btn_a" title="删除" onclick="deleteWordClass('
+							+ index
+							+ ',\'' + wordclassid + '\''
+							+ ',\'' + wordclass + '\')"></a>';
+						return a;
+					}
+				}
+			] ],
+		onLoadSuccess:function(data) {
+			if(data.total > 0) {
+				var rows = data.rows;
+				loadWordItem(rows[0].wordclassid,rows[0].wordclass);
+			} else {
+				$('#wordItemTable').datagrid('loadData',{'total':'0',rows:[]});
+			}
+        }
+	});
+}
+
+// 词类查询
+function searchWordClass() {
+	var tableId='#wordClassTable';
+	wordClass = $('#wordClassQueryForm-wordClass').textbox('getValue');
+	$(tableId).datagrid('load', {
+		type : 'listPagingWordClass',
+		scenariosid : publicscenariosid,
+		wordClass : wordClass
+	});
+}
+// 词类新增
+function addWordClass() {
+	var tableId='#wordClassTable';
+	$(tableId).datagrid('insertRow',{
+		index: 0,	
+		row: {
+			wordclassid: "",
+    		wordclass: ""
+		}
+	});
+	$(tableId).datagrid('beginEdit', 0);
+}
+// 词类保存
+function saveWordClass() {
+	var tableId='#wordClassTable';
+	var wordClassIds = [];
+	var wordClasses = [];
+	var rows = $(tableId).datagrid('getRows');
+	for(var i=0; i<rows.length; i++){
+        var row = rows[i];
+        var rowIndex = $(tableId).datagrid('getRowIndex',row);
+        $(tableId).datagrid('endEdit', rowIndex);
+        if(row.wordclass == undefined || row.wordclass == '') {
+        	$(tableId).datagrid('beginEdit', rowIndex);
+        	$.messager.alert('提示', "词类不能为空", "info");
+        	return;
+        }
+        wordClassIds.push(row.wordclassid);
+        wordClasses.push(row.wordclass);
+    }
+	saveWordClasses(wordClassIds.join(','), wordClasses.join(','));
+}
+
+// 加载词条
+function loadWordItem(wordClassId,wordClass) {
+	var tableId='#wordItemTable';
+	var wordItem = $('#wordItemQueryForm-wordItem').textbox('getValue');
+	$("#wordItemTable").datagrid({
+		title : '词条显示区',
+		url : '../interactiveSceneCall.action',
+		pagination : true,
+		rownumbers : true,
+		singleSelect : true,
+		queryParams : {
+			type : 'listPagingWordItem',
+			scenariosid : publicscenariosid,
+			wordClassId : replaceSpace(wordClassId),
+			wordClass : wordClass,
+			wordItem : wordItem
+		},
+		pageSize : 10,
+		striped : true,
+		onDblClickCell: function(index, field, value) {
+			DbclkCommentCell(tableId, index, field, value);
+		},
 		singleSelect : true,
 		// 单击行事件
 		onClickRow : function(index, row) {
 			if(row && row.worditem != '') {
 				// 查询词条别名
-				loadElementAlias(row.wordid,row.worditem,wordClass,wordClassId);
-			}
+				loadWordAlias(row.wordid,row.worditem,wordClass,wordClassId);
+			} 
 		},
-		toolbar: [{
-            text:'添加',
-            iconCls:'icon-add',
-            handler:function() {
-            	$('#elementValueTable').datagrid('insertRow',{
-            		index: 0,	
-            		row: {
-            			wordclassid: wordClassId,
-                		wordclass: wordClass,
-                		worditem: "",
-                		wordid: "",
-                		type: "标准名称"
-            		}
-            	});
-            	$("#elementValueTable").datagrid('beginEdit', 0);
-            }
-        },{
-            text:'保存',
-            iconCls:'icon-save',
-            handler:function() {
-            	var wordItems = [];
-            	var wordIds = [];
-            	var rows = $('#elementValueTable').datagrid('getRows');
-            	for(var i=0; i<rows.length; i++){
-                    var row = rows[i];
-                    var rowIndex = $('#elementValueTable').datagrid('getRowIndex',row);
-                    $("#elementValueTable").datagrid('endEdit', rowIndex);
-                    if(row.worditem == undefined || row.worditem == '') {
-                    	$("#elementValueTable").datagrid('beginEdit', rowIndex);
-                    	$.messager.alert('提示', "词条不能为空", "info");
-                    	return;
-                    }
-                    wordIds.push(row.wordid);
-                    wordItems.push(row.worditem);
-                }
-            	saveWordItems(wordIds.join(','),wordItems.join(','),wordClassId,wordClass);
-            }
-        }],
+		toolbar: '#wordItemQueryDiv',
 		columns : [ [
 				{
 					field : 'worditem',
 					title : '词条',
-					width : 300,
+					width : 200,
 					editor: 'textbox',
 					formatter : function(value, row, index) {
 						if (value != "" && value != null) {
@@ -653,7 +1116,6 @@ function loadElementValue(wordClassId,wordClass) {
 				{
 					field : 'type',
 					title : '类型',
-					width : 100,
 					hidden: true
 				},
 				{
@@ -678,74 +1140,115 @@ function loadElementValue(wordClassId,wordClass) {
 						return a;
 					}
 				}
-			] ]
+			] ],
+		onLoadSuccess:function(data) {
+			if(data.total > 0) {
+				var rows = data.rows;
+				loadWordAlias(rows[0].wordid,rows[0].worditem,wordClass,wordClassId);
+			} else {
+				loadWordAlias('','',wordClass,wordClassId);
+			}
+        }
 	});
-	
-	
+}
+// 查询词条
+function searchWordItem() {
+	var tableId='#wordItemTable';
+	var wordItem = $('#wordItemQueryForm-wordItem').textbox('getValue');
+	var row = $('#wordClassTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择词类", "info");
+    	return;
+	}
+	var wordClassId = row.wordclassid;
+	var wordClass = row.wordclass;
+	$(tableId).datagrid('load', {
+		type : 'listPagingWordItem',
+		scenariosid : publicscenariosid,
+		wordClassId : replaceSpace(wordClassId),
+		wordClass : replaceSpace(wordClass),
+		wordItem : replaceSpace(wordItem)
+	});
+}
+// 新增词条
+function addWordItem() {
+	var row = $('#wordClassTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择词类", "info");
+    	return;
+	}
+	var wordClassId = row.wordclassid;
+	var wordClass = row.wordclass;
+	$('#wordItemTable').datagrid('insertRow',{
+		index: 0,	
+		row: {
+			wordclassid: wordClassId,
+    		wordclass: wordClass,
+    		worditem: "",
+    		wordid: "",
+    		type: "标准名称"
+		}
+	});
+	$("#wordItemTable").datagrid('beginEdit', 0);
+}
+// 保存词条
+function saveWordItem() {
+	var row = $('#wordClassTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择词类", "info");
+    	return;
+	}
+	var wordClassId = row.wordclassid;
+	var wordClass = row.wordclass;
+	var wordItems = [];
+	var wordIds = [];
+	var rows = $('#wordItemTable').datagrid('getRows');
+	for(var i=0; i<rows.length; i++){
+        var row = rows[i];
+        var rowIndex = $('#wordItemTable').datagrid('getRowIndex',row);
+        $("#wordItemTable").datagrid('endEdit', rowIndex);
+        if(row.worditem == undefined || row.worditem == '') {
+        	$("#wordItemTable").datagrid('beginEdit', rowIndex);
+        	$.messager.alert('提示', "词条不能为空", "info");
+        	return;
+        }
+        wordIds.push(row.wordid);
+        wordItems.push(row.worditem);
+    }
+	saveWordItems(wordIds.join(','),wordItems.join(','),wordClassId,wordClass);
 }
 
-// 加载词条别名
-function loadElementAlias(stdwordid,wordItem,wordClass,wordClassId) {
-	tab='#elementAliasTable';
-	$("#elementAliasTable").datagrid({
-		title : '别名显示区',
-		url : '../interactiveSceneCall.action',
-		pagination : true,
-		rownumbers : true,
-		queryParams : {
-			type : 'listPagingElementAlias',
-			scenariosid : publicscenariosid,
-			wordItem : replaceSpace(wordItem),
-			wordClass : replaceSpace(wordClass)
-		},
-		pageSize : 10,
-		striped : true,
-		onDblClickCell: DbclkCommentCell,
-		singleSelect : true,
-		toolbar: [{
-            text:'添加',
-            iconCls:'icon-add',
-            handler:function() {
-            	$('#elementAliasTable').datagrid('insertRow',{
-            		index: 0,	
-            		row: {
-            			stdwordid: stdwordid,
-            			wordclass: wordClass,
-            			worditem: wordItem,
-            			wordid: "",
-            			synonym: "",
-                		type: "其他别名"
-            		}
-            	});
-            	$("#elementAliasTable").datagrid('beginEdit', 0);
-            }
-        },{
-            text:'保存',
-            iconCls:'icon-save',
-            handler:function() {
-            	var wordIds = [];
-            	var synonyms = [];
-            	var rows = $('#elementAliasTable').datagrid('getRows');
-            	for(var i=0; i<rows.length; i++){
-                    var row = rows[i];
-                    var rowIndex = $('#elementAliasTable').datagrid('getRowIndex',row);
-                    $("#elementAliasTable").datagrid('endEdit', rowIndex);
-                    if(row.synonym == undefined || row.synonym == '') {
-                    	$("#elementAliasTable").datagrid('beginEdit', rowIndex);
-                    	$.messager.alert('提示', "别名不能为空", "info");
-                    	return;
-                    }
-                    wordIds.push(row.wordid);
-                    synonyms.push(row.synonym);
-                }
-            	saveWordAlias(wordClassId,wordClass,row.stdwordid,row.worditem,wordIds.join(','),synonyms.join(','));
-            }
-        }],
-		columns : [ [
+// 加载别名
+function loadWordAlias(stdwordid,wordItem,wordClass,wordClassId) {
+	var tableId='#wordAliasTable';
+	var wordAlias=$('#wordAliasQueryForm-wordAlias').textbox('getValue');
+	var columns = [];
+	if(stdwordid != '' && wordItem != '' && wordClass != '' && wordClassId != '') {
+		$("#wordAliasTable").datagrid({
+			title : '别名显示区',
+			url : '../interactiveSceneCall.action',
+			pagination : true,
+			rownumbers : true,
+			singleSelect : true,
+			queryParams : {
+				type : 'listPagingWordAlias',
+				scenariosid : publicscenariosid,
+				wordItem : replaceSpace(wordItem),
+				wordClass : replaceSpace(wordClass),
+				wordAlias: wordAlias
+			},
+			pageSize : 10,
+			striped : true,
+			onDblClickCell: function(index, field, value) {
+				DbclkCommentCell(tableId, index, field, value);
+			},
+			singleSelect : true,
+			toolbar: '#wordAliasQueryDiv',
+			columns : [ [
 				{
 					field : 'synonym',
 					title : '别名',
-					width : 300,
+					width : 200,
 					editor: 'textbox',
 					formatter : function(value, row, index) {
 						if (value != "" && value != null) {
@@ -757,11 +1260,6 @@ function loadElementAlias(stdwordid,wordItem,wordClass,wordClassId) {
 							return "";
 						}
 					}
-				},
-				{
-					field : 'stdwordid',
-					title : 'id',
-					hidden: true
 				},
 				{
 					field : "delete",
@@ -785,10 +1283,159 @@ function loadElementAlias(stdwordid,wordItem,wordClass,wordClassId) {
 					}
 				}
 			] ]
+		});
+	} else {
+		$("#wordAliasTable").datagrid({
+			title : '别名显示区',
+			toolbar: '#wordAliasQueryDiv'
+		});
+	}
+}
+// 查询别名
+function searchWordAlias() {
+	var row = $('#wordClassTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择词类", "info");
+    	return;
+	}
+	var wordClassId = row.wordclassid;
+	var wordClass = row.wordclass;
+	row = $('#wordItemTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择词条", "info");
+    	return;
+	}
+	var wordItem = row.worditem;
+	var tableId='#wordAliasTable';
+	var wordAlias = $('#wordAliasQueryForm-wordAlias').textbox('getValue');
+	$(tableId).datagrid('load', {
+		type : 'listPagingWordAlias',
+		scenariosid : publicscenariosid,
+		wordItem : replaceSpace(wordItem),
+		wordClass : replaceSpace(wordClass),
+		wordAlias: wordAlias
+	});
+}
+// 添加别名
+function addWordAlias() {
+	var row = $('#wordClassTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择词类", "info");
+    	return;
+	}
+	var wordClassId = row.wordclassid;
+	var wordClass = row.wordclass;
+	row = $('#wordItemTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择词条", "info");
+    	return;
+	}
+	var wordItem = row.worditem;
+	var stdwordid = row.stdwordid;
+	$('#wordAliasTable').datagrid('insertRow',{
+		index: 0,	
+		row: {
+			stdwordid: stdwordid,
+			wordclass: wordClass,
+			worditem: wordItem,
+			wordid: "",
+			synonym: "",
+    		type: "其他别名"
+		}
+	});
+	$("#wordAliasTable").datagrid('beginEdit', 0);
+}
+// 保存别名
+function saveWordAlias() {
+	var row = $('#wordClassTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择词类", "info");
+    	return;
+	}
+	var wordClassId = row.wordclassid;
+	var wordClass = row.wordclass;
+	row = $('#wordItemTable').datagrid('getSelected');
+	if(!row) {
+		$.messager.alert('提示', "请选择词条", "info");
+    	return;
+	}
+	var wordItem = row.worditem;
+	var stdwordid = row.wordid;
+	var wordIds = [];
+	var synonyms = [];
+	var rows = $('#wordAliasTable').datagrid('getRows');
+	for(var i=0; i<rows.length; i++){
+        var row = rows[i];
+        var rowIndex = $('#wordAliasTable').datagrid('getRowIndex',row);
+        $("#wordAliasTable").datagrid('endEdit', rowIndex);
+        if(row.synonym == undefined || row.synonym == '') {
+        	$("#wordAliasTable").datagrid('beginEdit', rowIndex);
+        	$.messager.alert('提示', "别名不能为空", "info");
+        	return;
+        }
+        wordIds.push(row.wordid);
+        synonyms.push(row.synonym);
+    }
+	saveWordAliases(wordClassId,wordClass,stdwordid,wordItem,wordIds.join(','),synonyms.join(','));
+}
+
+// 保存词类
+function saveWordClasses(wordClassIds, wordClasses) {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'saveWordClasses',
+			scenariosid : publicscenariosid,
+			wordClassIds : wordClassIds,
+			wordClasses : wordClasses
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$('#wordClassTable').datagrid('reload');
+				$.messager.alert('提示', "保存成功", "info");
+			} else {
+				$.messager.alert('提示', "保存失败", "info");
+			}
+		}
 	});
 }
 
-// 批量新增词条
+// 删除词类
+function deleteWordClass(index, wordClassId, wordClass) {
+	if(wordClass == undefined || wordClass == '') {
+		$('#wordClassTable').datagrid('deleteRow', index);
+		return;
+	} 
+	$.messager.confirm('提示', '删除记录?', function(data) {
+		if (data) {
+			$.ajax({
+				url : '../interactiveSceneCall.action',
+				type : "post",
+				data : {
+					type : 'deleteWordClass',
+					scenariosid : publicscenariosid,
+					wordClassId : wordClassId,
+					wordClass : wordClass
+				},
+				async : false,
+				dataType : "json",
+				success : function(data, textStatus, jqXHR) {
+					if(data.success) {
+						$('#wordClassTable').datagrid('reload');
+						$.messager.alert('提示', "删除成功", "info");
+					} else {
+						$.messager.alert('提示', "删除失败", "info");
+					}
+				}
+			});
+		}
+	});
+}
+
+// 保存词条
 function saveWordItems(wordIds,wordItems,wordClassId,wordClass) {
 	$.ajax({
 		url : '../interactiveSceneCall.action',
@@ -804,61 +1451,11 @@ function saveWordItems(wordIds,wordItems,wordClassId,wordClass) {
 		dataType : "json",
 		success : function(data, textStatus, jqXHR) {
 			if(data.success) {
-				$('#elementValueTable').datagrid('reload');
+				$('#wordItemTable').datagrid('reload');
 				$.messager.alert('提示', "保存成功", "info");
 			} else {
 				$.messager.alert('提示', "保存失败", "info");
 			}
-		}
-	});
-}
-
-// 新增词条
-function insertWordItem(wordClassId,wordClass,wordItems) {
-	$.ajax({
-		url : '../interactiveSceneCall.action',
-		type : "post",
-		data : {
-			type : 'insertWordItem',
-			wordItems : wordItems,
-			wordClassId : wordClassId
-		},
-		async : false,
-		dataType : "json",
-		success : function(data, textStatus, jqXHR) {
-			if(data.success) {
-				$.messager.alert('提示', "保存成功", "info");
-			} else {
-				$.messager.alert('提示', "保存失败", "info");
-			}
-		}
-	});
-}
-
-// 更新词条
-function updateWordItem(wordId,wordItem,wordClassId,wordClass) {
-	$.messager.confirm('提示', '更新记录?', function(data) {
-		if (data) {
-			$.ajax({
-				url : '../interactiveSceneCall.action',
-				type : "post",
-				data : {
-					type : 'updateWordItem',
-					scenariosid : publicscenariosid,
-					wordId : wordId,
-					newWordItem : wordItem,
-					wordClassId : wordClassId
-				},
-				async : false,
-				dataType : "json",
-				success : function(data, textStatus, jqXHR) {
-					if(data.success) {
-						$.messager.alert('提示', "保存成功", "info");
-					} else {
-						$.messager.alert('提示', "保存成功", "info");
-					}
-				}
-			});
 		}
 	});
 }
@@ -866,7 +1463,7 @@ function updateWordItem(wordId,wordItem,wordClassId,wordClass) {
 // 删除词条
 function deleteWordItem(index, wordId, wordItem, wordClass) {
 	if(wordItem == undefined || wordItem == '') {
-		$('#elementValueTable').datagrid('deleteRow', index);
+		$('#wordItemTable').datagrid('deleteRow', index);
 		return;
 	} 
 	$.messager.confirm('提示', '删除记录?', function(data) {
@@ -884,7 +1481,7 @@ function deleteWordItem(index, wordId, wordItem, wordClass) {
 				dataType : "json",
 				success : function(data, textStatus, jqXHR) {
 					if(data.success) {
-						$('#elementValueTable').datagrid('reload');
+						$('#wordItemTable').datagrid('reload');
 						$.messager.alert('提示', "删除成功", "info");
 					} else {
 						$.messager.alert('提示', "删除失败", "info");
@@ -896,7 +1493,7 @@ function deleteWordItem(index, wordId, wordItem, wordClass) {
 }
 
 // 批量新增别名
-function saveWordAlias(wordClassId,wordClass,standardWordId,wordItem,wordIds,synonyms) {
+function saveWordAliases(wordClassId,wordClass,standardWordId,wordItem,wordIds,synonyms) {
 	$.ajax({
 		url : '../interactiveSceneCall.action',
 		type : "post",
@@ -914,7 +1511,7 @@ function saveWordAlias(wordClassId,wordClass,standardWordId,wordItem,wordIds,syn
 		dataType : "json",
 		success : function(data, textStatus, jqXHR) {
 			if(data.success) {
-				$('#elementAliasTable').datagrid('reload');
+				$('#wordAliasTable').datagrid('reload');
 				$.messager.alert('提示', "保存成功", "info");
 			} else {
 				$.messager.alert('提示', "保存失败", "info");
@@ -923,39 +1520,10 @@ function saveWordAlias(wordClassId,wordClass,standardWordId,wordItem,wordIds,syn
 	});
 }
 
-// 更新别名
-function updateWordAlias(wordAliasEditIndex,oldWordAlias,newWordAlias,wordid,wordclass) {
-	$.ajax({
-		url : '../interactiveSceneCall.action',
-		type : "post",
-		data : {
-			type : 'updateWordAlias',
-			wordAlias: newWordAlias, 
-			wordId: wordid, 
-			wordClass: wordclass
-		},
-		async : false,
-		dataType : "json",
-		success : function(data, textStatus, jqXHR) {
-			if(data.success) {
-				$.messager.alert('提示', "更新成功", "info");
-			} else {
-				var rows=$('#elementAliasTable').datagrid('getRows');//获取所有当前加载的数据行
-				var row=rows[wordAliasEditIndex];
-				row.synonym = oldWordAlias;
-        		$('#elementAliasTable').datagrid('updateRow',{
-	    			index: wordAliasEditIndex,
-	    			row: row
-        		});
-				$.messager.alert('提示', "更新失败", "info");
-			}
-		}
-	});
-}
 // 删除别名
 function deleteWordAlias(index, wordClassId, wordClass, standardWordId, wordItem, wordId, wordAlias) {
 	if(wordAlias == undefined || wordAlias == '') {
-		$('#elementAliasTable').datagrid('deleteRow', index);
+		$('#wordAliasTable').datagrid('deleteRow', index);
 		return;
 	} 
 	$.messager.confirm('提示', '删除记录?', function(data) {
@@ -976,7 +1544,7 @@ function deleteWordAlias(index, wordClassId, wordClass, standardWordId, wordItem
 				dataType : "json",
 				success : function(data, textStatus, jqXHR) {
 					if(data.success) {
-						$('#elementAliasTable').datagrid('reload');
+						$('#wordAliasTable').datagrid('reload');
 						$.messager.alert('提示', "删除成功", "info");
 					} else {
 						$.messager.alert('提示', "删除失败", "info");
@@ -1175,16 +1743,27 @@ function editElement(saveOrUpdateElementFlag) {
 // 添加场景要素词模
 function saveElementWordPattern(elementName, wordClassName) {
 	var simpleWordPattern = wordClassName + "#无序#编者=\"场景要素词模\""+"&针对问题=\""+elementName+"\""+"&"+elementName+"="+"<!"+wordClassName+">"+"&置信度=\"1.1\"";
+	var returnKeyValueArray = [];
+	var returnKeyValue = {};
+	returnKeyValue.returnKey = elementName;
+	returnKeyValue.returnValue = "<!"+wordClassName+">";
+	returnKeyValueArray.push(returnKeyValue);
+	returnKeyValue.returnKey = "置信度";
+	returnKeyValue.returnValue = "\"1.1\"";
+	returnKeyValueArray.push(returnKeyValue);
 	$.ajax({
 		url : '../interactiveSceneCall.action',
 		type : 'post',
 		dataType : 'json',
 		data : {
+			type : "addSceneElementWordPattern",
 			scenariosid : publicscenariosid,
-			collectionIntention : elementName,
-			wordPatternType : 0,
+			scenariosName : publicscenariosname,
+			sceneType : sceneType,
+			normalQuery : elementName,
 			simpleWordPattern : simpleWordPattern,
-			type : "saveCollectionIntention",
+			wordPatternType : 0,
+			returnKeyValueJsonStr: JSON.stringify(returnKeyValueArray)
 		},
 		success : function(data) {
 			loadCollectionElement();
@@ -1339,8 +1918,12 @@ function initCustomerAnswer() {
 		url : '../interactiveSceneCall.action',
 		type : "post",
 		data : {
-			type : 'queryCustomerAnswer',
-			scenariosid : publicscenariosid
+			type : 'listRecognitionRuleNormalQuery',
+			sceneType : sceneType,
+			recognitionType : 'customerIntention',
+			scenariosid : publicscenariosid,
+			scenariosName : publicscenariosname,
+			normalQuery : ''
 		},
 		async : false,
 		dataType : "json",
@@ -1349,7 +1932,7 @@ function initCustomerAnswer() {
 				var infos = data.rows;
 				var customerAnswerHtml = '';
 				for(var i=0; i<infos.length; i++) {
-					customerAnswerHtml += '</br>&nbsp;&nbsp;<input name="customerAnswer" type="checkbox" value="'+infos[i].id+'"/>'+infos[i].id;												
+					customerAnswerHtml += '</br>&nbsp;&nbsp;<input name="customerAnswer" type="checkbox" value="'+infos[i].normalQuery+'"/>'+infos[i].normalQuery;												
 				}
 				customerAnswerHtml += '</br>&nbsp;&nbsp;<input name="customerAnswer" type="checkbox" value="跳出"/>跳出';
 				$("#customerAnswerSpan").html('');
@@ -1429,33 +2012,112 @@ function initCollectionIntention() {
 	$('#toAddCollectionIntentionPageBtn').click(function() {
 		var collectionType = $('#collectionType').combobox('getValue');
 		if(collectionType == 'elementCollection') {
-			var elementName = $('#collectionElement').combobox('getValue');
-			if(elementName == undefined || elementName == '') {
+			var selectedSceneElementName = $('#collectionElement').combobox('getValue');
+			if(selectedSceneElementName == undefined || selectedSceneElementName == '') {
 				$.messager.alert('提示', "请选择关联要素", "info");
 				return;
 			}
-			$('#collectionIntentionAdd-title').textbox('setValue', elementName);
-			$('#collectionIntentionAdd-title').textbox('disable'); 
+			// 初始化场景要素与场景要素值
+			var sceneElementNameInput = 'collectionIntentionAddForm-sceneElementName';
+			var sceneElementValueInput = 'collectionIntentionAddForm-sceneElementValue';
+			$.ajax({
+				url : '../interactiveSceneCall.action',
+				type : "post",
+				data : {
+					type : 'listAllSceneElement',
+					scenariosid : publicscenariosid
+				},
+				async : false,
+				dataType : "json",
+				success : function(data, textStatus, jqXHR) {
+					if(data.total > 0) {
+						$("#"+sceneElementNameInput).combobox({
+							valueField: 'id',    
+					        textField: 'text',
+					        data : data.rows,
+					        onChange: function(newVal, oldVal) {
+					        	// 加载场景要素值
+			        			$("#"+sceneElementValueInput).combobox({
+			        				url : '../interactiveSceneCall.action?type=listAllElementValue&scenariosid='+publicscenariosid+'&sceneElementName='+newVal,
+									valueField: 'id',    
+							        textField: 'text',
+									loadFilter:function(data){
+										var newData = [];
+										for(var i in data){
+											if(data[i].id != "(空)" && data[i].id != "交互" && data[i].id != "已选" && data[i].id != "缺失"){
+												newData.push(data[i]);
+											}
+										}
+										return newData;
+									}
+								});
+					        },
+					        onLoadSuccess: function(){
+						        $(this).combobox('setValue',selectedSceneElementName);
+						    } 
+						});
+					}
+				}
+			});
+			$('#collectionIntentionAddPage').window('open');
 		}
-		$('#collectionIntentionAdd-wordclasses').val('');
-		$('#collectionIntentionAddPage').window('open');
 	});
-	// 添加关联意图
-	$('#collectionIntentionAdd-saveBtn').click(function() {
-		saveCollectionIntention();
+	// 生成意图
+	$('#collectionIntentionAdd-generateBtn').click(function() {
+		var sceneElementName = $('#collectionIntentionAddForm-sceneElementName').combobox('getValue');
+		var sceneElementValue = $('#collectionIntentionAddForm-sceneElementValue').combobox('getValue');
+		if(sceneElementName == '' || sceneElementValue == '') {
+			$.messager.alert('提示', "请选择场景要素或场景要素值", "info");
+			return;
+		}
+		// 获取客户问跳转地址
+		var returnKeyValueArray = [];
+		var returnKeyValue = {};
+		returnKeyValue.returnKey = sceneElementName;
+		returnKeyValue.returnValue = sceneElementValue;
+		returnKeyValueArray.push(returnKeyValue);
+		getCustomerQueryPageUrl(sceneElementName,sceneElementValue,returnKeyValueArray);
 	});
 	// 关闭关联意图
 	$('#collectionIntentionAdd-closeBtn').click(function() {
 		$('#collectionIntentionAddPage').window('close');
 	});
-	// 生成词模
-	$('#collectionIntentionAdd-analyzeBtn').click(function() {	
-		var collectionIntentionKeyWords = $.trim($("#collectionIntentionAdd-keywords").textbox('getValue'));
-		addWordPatternFlag = 'collectionIntention';
-		autoGenerateWordPattern(collectionIntentionKeyWords);
-	});
 	// 加载关联意图
 	loadCollectionIntention();
+}
+
+// 获取客户问跳转地址
+function getCustomerQueryPageUrl(normalQuery,customerQuery,returnKeyValueArray) {
+	$.ajax({
+		url : '../interactiveSceneCall.action',
+		type : "post",
+		data : {
+			type : 'getCustomerQueryPageUrl',
+			scenariosid : publicscenariosid,
+			sceneType : sceneType,
+			scenariosName : publicscenariosname,
+			normalQuery : normalQuery,
+			customerQuery : customerQuery,
+			returnKeyValueJsonStr : JSON.stringify(returnKeyValueArray)
+		},
+		async : false,
+		dataType : "json",
+		success : function(data, textStatus, jqXHR) {
+			if(data.success) {
+				$('#collectionIntentionAddPage').window('close');
+				$('#recognitionIntentionManagePage').window('close');
+				// 跳转到添加客户问界面
+				toCustomerQueryPage(data.customerQueryPageUrl);
+			} else {
+				$.messager.alert('提示', data.msg, "info");
+			}
+		}
+	});
+}
+// 跳转到添加客户问界面
+function toCustomerQueryPage(customerQueryPageUrl) {
+	$('#customerQueryIframe').attr("src",customerQueryPageUrl);  
+	$('#customerQueryPage').window('open');
 }
 // 加载关联意图
 function loadCollectionIntention() {
@@ -1463,8 +2125,12 @@ function loadCollectionIntention() {
 		url : '../interactiveSceneCall.action',
 		type : "post",
 		data : {
-			type : 'queryCollectionIntention',
-			scenariosid: publicscenariosid
+			type : 'listRecognitionRuleNormalQuery',
+			sceneType : sceneType,
+			recognitionType : 'collectionIntention',
+			scenariosid : publicscenariosid,
+			scenariosName : publicscenariosname,
+			normalQuery : ''
 		},
 		async : false,
 		dataType : "json",
@@ -1474,8 +2140,8 @@ function loadCollectionIntention() {
 				// 关联意图下拉框
 				$("#collectionIntention").combobox({
 					width: 240,
-					valueField: 'id',    
-			        textField: 'text',
+					valueField: 'normalQuery',    
+			        textField: 'normalQuery',
 			        data : collectionIntentions
 				});
 			}
@@ -1536,12 +2202,119 @@ function initDTMFPress()
             });
         }
     });
+    
+ // DTMF按键收集按钮
+	$("#saveDTMFPress").bind("click",function () {
+		var nodeData = public_thisGraphObj.part.data;
+		var array = $('#dTMFPressform').serializeArray();
+		var t={};
+		$.each(array,function(index, value){
+			if(this.name == "pressType" || this.name=="pressTimeOut"
+				|| this.name=="maxLength" || this.name=="minLength") {
+				t[this.name] = parseInt(this.value);
+				return true;
+			}
+		});
+		$.each(array,function(index, value){
+			t[this.name] = this.value;
+		});
+		if(t.dtmfName == '') {
+			$.messager.alert('提示', "请填写DTMF名称", "info");
+			return;
+		}
+		if(t.dtmfAlias == '') {
+			$.messager.alert('提示', "请填写DTMF别名", "info");
+			return;
+		}
+		if(t.dtmfAnswer == '') {
+			$.messager.alert('提示', "请填写DTMF话术", "info");
+			return;
+		}
+		if(isNaN(t.pressType)) {
+			$.messager.alert('提示', "请选择DTMF设置", "info");
+			return;
+		}
+		if(t.attemptLimit == '') {
+			$.messager.alert('提示', "请选择尝试次数", "info");
+			return;
+		}
+		if(t.pressTimeOut == '') {
+			$.messager.alert('提示', "请填写超时时间", "info");
+			return;
+		}
+		if(t.pressTimeOutAnswer == '') {
+			$.messager.alert('提示', "请填写超时话术", "info");
+			return;
+		}
+		if(!isEnglish(t.dtmfAlias)) {
+			$.messager.alert('提示', "DTMF别名请填写英文", "info");
+			return;
+		}
+		if(isNaN(t.pressTimeOut)) {
+			$.messager.alert("提示","超时时间，格式不合法","info");
+			return;
+		}
+		if(t.pressType==0 && t.pressNumbers == '') {
+			$.messager.alert("提示","请输入按键值","info");
+			return;
+		}
+		if(t.pressType==0 && !checkPressNumber(t.pressNumbers)) {
+			$.messager.alert("提示","按键值不合法","info");
+			return;
+		}
+		if(t.pressType==1 && (isNaN(t.maxLength) || isNaN(t.minLength))) {
+			$.messager.alert("提示","最短，最大长度，格式不合法","info");
+			return;
+		}
+		if(t.pressType==1 && t.endPressNumber == '') {
+			$.messager.alert("提示","请选择结束按键","info");
+			return;
+		}
+		if(t.pressType == 0) {
+			t.maxLength = 1;
+			t.minLength = 1;
+			t.endPressNumber = "";
+		}
+        $.each(t,function(index,value){
+        	myDiagram.model.setDataProperty(nodeData, index, value);
+        });
+        myDiagram.model.setDataProperty(nodeData, "text", t.dtmfName);
+        $("#closeDTMFPress").trigger("click");
+    })
+    $("#closeDTMFPress").bind("click",function () {
+        $('#myDTMFPressDiv').hide();
+	});
 
 }
 
 
 function initTransfer()
 {
+	$("#saveTransfer").bind("click", function () {
+		var nodeData = public_thisGraphObj.part.data;
+		var array = $('#Transferform').serializeArray();
+		$.each(array,function(index, value){
+			myDiagram.model.setDataProperty(nodeData, this.name, this.value);
+		});
+		if(nodeData.transferName == '') {
+			$.messager.alert("提示","请填写转人工名称","info");
+			return;
+		}
+		if(nodeData.transferNumber == '') {
+			$.messager.alert("提示","请填写转人工号码","info");
+			return;
+		}
+		if(!checkPhoneNumber(nodeData.transferNumber) && !checkTelePhone(nodeData.transferNumber)) {
+			$.messager.alert("提示","转人工号码格式不正确","info");
+			return;
+		}
+		myDiagram.model.setDataProperty(nodeData, "text", nodeData.transferName);
+		$('#myTransferDiv').hide();
+	});
+	
+	$("#closeTransfer").bind("click",function () {
+        $('#myTransferDiv').hide();
+	});
 }
 
 var condition = "<div class=\"form-div and-condition-div\">" +
@@ -1870,6 +2643,85 @@ function initConditionInterface(interfaceNameInput, interfaceParamInput) {
 // 初始化条件组件
 function initCondition(){
 	
+	$("#saveCondition").bind("click",function () {
+		var nodeData = public_thisGraphObj.part.data;
+		var array = $('#Conditionform').serializeArray();
+		var conditions = [];
+		var bottomArray = [];
+		var conditionDivs = $("#conditions").find("div").eq(0).find('.condition-div');
+		var conditionCount = conditionDivs.length;
+		for(var conditionIdx=0; conditionIdx < conditionCount; conditionIdx++) {
+			var andConditionDivs = $("#conditions").find("div").eq(0).find('.condition-div').eq(conditionIdx).find("div[add='andconditions']").find('.and-condition-div');
+			var andConditionCount = andConditionDivs.length;
+			var conditionInfo = {};
+			var andConditions = [];
+			var conditionName = $('#condition_name'+'_cdt'+conditionIdx).textbox('getValue');
+			bottomArray[conditionIdx] = {'text':conditionName};
+			for(var variableIdx=0; variableIdx < andConditionCount; variableIdx++) {
+				var andCondition = {};
+				var variableTypeInput = "variable_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramNameAttrInput = "param_name_attr" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramNameElementInput = "param_name_element" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramNameOtherInput = "param_name_other" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramRelationInput = "param_relation" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var paramTypeInput = "param_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var elementValueInput = "element_value" + "_cdt"+conditionIdx + "_and"+variableIdx; 
+			    var elementValueInsertBtn = "element_value_insert_btn" + "_cdt"+conditionIdx + "_and"+variableIdx; 
+			    var paramValueInput = "param_value" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var isUpDownInput = "isUpDown" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var upDownTypeInput = "upDownType" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var updownRatioInput = "updownRatio" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var interfaceNameInput = "interface_name" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var interfaceParamInput = "interface_param" + "_cdt"+conditionIdx + "_and"+variableIdx;
+			    var variableType = $('#'+variableTypeInput).combobox('getValue');
+				if(variableType == "attr") {
+					andCondition.paramName = $("#"+paramNameAttrInput).combobox("getValue");
+					andCondition.paramValue = $("#"+paramValueInput).textbox("getValue");
+				} 
+				if(variableType == "element") {
+					andCondition.paramName = $("#"+paramNameElementInput).combobox("getValue");
+					andCondition.paramValue = $("#"+elementValueInput).combobox("getValue");
+				} 
+				if(variableType == "interface") {
+					andCondition.interfaceName = $("#"+interfaceNameInput).combobox("getValue");
+					andCondition.paramName = $("#"+interfaceParamInput).combobox("getValue");
+					andCondition.paramValue = $("#"+paramValueInput).textbox("getValue");
+				} 
+				if(variableType == "other") {
+					andCondition.paramName = $("#"+paramNameOtherInput).textbox("getValue");
+					andCondition.paramValue = $("#"+paramValueInput).textbox("getValue");
+				} 
+				andCondition.variableType = variableType;
+				andCondition.paramRelation = $("#"+paramRelationInput).combobox("getValue");
+				andCondition.paramType = $("#"+paramTypeInput).combobox("getValue");
+				andConditions[variableIdx] = andCondition;
+			}
+			conditionInfo.conditionName = conditionName;
+			conditionInfo.andConditions = andConditions;
+			conditions[conditionIdx] = conditionInfo;
+		}
+		$.each(array,function(index, value){
+			myDiagram.model.setDataProperty(nodeData, this.name, this.value);
+		});
+		if(nodeData.conditionNodeName == '') {
+			$.messager.alert("提示","请填写组件名称","info");
+			return;
+		}
+		if(bottomArray.length == 0) {
+			$.messager.alert("提示","请填写条件","info");
+			return;
+		}
+		myDiagram.model.setDataProperty(nodeData, "text", nodeData.conditionNodeName);
+		myDiagram.model.setDataProperty(nodeData, "conditionNodeName", nodeData.conditionNodeName);
+		myDiagram.model.setDataProperty(nodeData, "conditions", conditions);
+		myDiagram.model.setDataProperty(nodeData, "bottomArray", bottomArray);
+		$('#myConditionDiv').hide();
+	});
+	
+	$("#closeCondition").bind("click",function () {
+        $('#myConditionDiv').hide();
+	});	
+	
 	$("#addCondition").bind("click",function () {
 		var conditionDivs = $("#conditions").find("div").eq(0).find('.condition-div');
 		var conditionCount = conditionDivs.length;
@@ -1964,6 +2816,33 @@ function loadInterfaceName() {
 function initURLAction(){
 	addInKeyDiv();
 	addOutKeyDiv();
+	
+	$("#saveURLAction").bind("click", function () {		
+		var nodeData = public_thisGraphObj.part.data;
+		var array = $('#URLActionform').serializeArray();
+		var t={};
+		$.each(array,function(index, value){
+			t[this.name] = this.value;
+		});
+		$.each(t,function(index,value){
+        	myDiagram.model.setDataProperty(nodeData, index, value);
+        });
+		// 校验格式
+		if(t.actionName == '') {
+			$.messager.alert("提示","请填写组件名称","info");
+			return;
+		}
+		if(t.interfaceName == '') {
+			$.messager.alert("提示","请选择调用接口","info");
+			return;
+		}
+		myDiagram.model.setDataProperty(nodeData, "text", t.actionName);
+		$('#myURLActionDiv').hide();
+	});
+	
+	$("#closeURLAction").bind("click",function () {
+        $('#myURLActionDiv').hide();
+	});
 	
 	// 接口名称
 	loadInterfaceName();
@@ -3450,432 +4329,27 @@ function setTTSResponseValue() {
 // 鼠标点击事件	
 function buttonClick() {
 	
-	// 添加用户答案页面
-	$('#customerAnswerAdd-toPageBtn').click(function() {
-		$('#customerAnswerAdd-wordclasses').val('');
-		$('#customerAnswerAddPage').window('open');
-		
-	});
-	
-	// 关闭用户答案页面
-	$('#customerAnswerAdd-closeBtn').click(function() {
-		$('#customerAnswerAddPage').window('close');
-		
-	});
-	
-	// 生成词模
-	$('#customerAnswerAdd-analyzeBtn').click(function() {
-		var customerAnswerKeywords = $.trim($("#customerAnswerAdd-keywords").textbox('getValue'));
-		addWordPatternFlag = 'customerAnswer';
-		autoGenerateWordPattern(customerAnswerKeywords);
-	});
-	
-	// 保存用户答案
-	$('#customerAnswerAdd-saveBtn').click(function() {
-		saveCustomerAnswer();
-	});
-	
-	// 保存自学习词模
-	$('#autoworrdpat-saveBtn').click(function() {
-		addAutoWordpat();
-		if(addWordPatternFlag == 'customerAnswer') {
-			$('#customerAnswerAdd-wordclasses').val(autoWordPattern);
-		}
-		if(addWordPatternFlag == 'collectionIntention') {
-			var collectionType = $('#collectionType').combobox('getValue');
-			if(collectionType == 'elementCollection') {
-				var elementName = $('#collectionElement').combobox('getValue');
-				$('#collectionIntentionAdd-wordclasses').val(autoWordPattern+"&"+elementName+"=");
-			} 
-			if(collectionType == 'userInfoCollection') {
-				$('#collectionIntentionAdd-wordclasses').val(autoWordPattern);
-			}
-		}
-	});
-	
-	// 关闭自学习词模页面
-	$('#autoworrdpat-closeBtn').click(function() {
-		$('#autoworrdpat').window('close');
-	});
-	
 	// 保存流程图
 	$('#saveBtSubmit').click(function() {
 		savaAndSubmitNoVerification();
 	});
 
-	// 保存回复内容
-	$('#saveRule0').click(function() {
-		var nodeData = public_thisGraphObj.part.data;
-		var array = $('#myNormalEditForm').serializeArray();
-		var t={};
-		$.each(array,function(index, value){
-			t[this.name] = this.value;
-		});
-		if(t.interactiveType == '') {
-			$.messager.alert('提示', "请填写交互类型", "info");
-			return;
-		}
-		if(t.endFlag == '') {
-			$.messager.alert('提示', "请选择是否为末梢节点", "info");
-			return;
-		}
-		if(t.interactiveType == '词模匹配' && t.wordsContent == '') {
-			$.messager.alert('提示', "请填写话术文字", "info");
-			return;
-		}
-		if(t.interactiveType == '键值补全' && t.menuStartWords == '') {
-			$.messager.alert('提示', "请填写开始话语", "info");
-			return;
-		}
-		if(t.interactiveType == '键值补全' && t.menuOptions == '') {
-			$.messager.alert('提示', "请填写菜单选项", "info");
-			return;
-		}
-		if(nodeData.category == "Normal" && t.ttsNodeType == undefined || t.ttsNodeType == '') {
-			$.messager.alert('提示', "请选择【意图节点】或【跳转节点】", "info");
-			return;
-		}
-		// 获取已选的用户回答
-	    var checkedArray = [];   
-	    $('[name=customerAnswer]:checkbox:checked').each(function() {
-	    	checkedArray.push({'text':$(this).val()});
-	    });
-	    if(nodeData.category == "Normal" && t.ttsNodeType == "0" && checkedArray.length == 0) {
-			$.messager.alert('提示', "请选择用户回答", "info");
-			return;
-		}
-	    t.checkedArray = checkedArray;
-		addToTTSResponse(t);
-	});
-	
-	// 关闭回复内容
-	$('#closeRule0').click(function() {
-		$('#myNormalEditDiv').hide();
-	});
-	
-	// 保存结束语
-	$('#saveConclusion').click(function() {
-		var nodeData = public_thisGraphObj.part.data;
-		var conclusion = $("#conclusion").textbox('getValue');
-		myDiagram.model.setDataProperty(nodeData, 'text', conclusion);
-	});
-	
-	// 关闭结束语
-	$('#closeConclusion').click(function() {
-		$('#myEndEditDiv').hide();
-	});
-	
 	// 流程图撤销操作
 	$('#undoBtSubmit').click(function() {
 		myDiagram.model.undoManager.undo();
 	});
-
-	// 打开其他回复内容
-	$('#otherResponseShowBtn').click(function() {
-		$('#otherResponseHideBtn').show();
-		$('#otherResponseShowBtn').hide();
-		$('#other-response-table').show();
+	
+	// 场景要素管理界面
+	$('#elementManageBtn').click(function() {
+		openElement();
 	});
 	
-	// 收起其他回复内容
-	$('#otherResponseHideBtn').click(function() {
-		$('#otherResponseHideBtn').hide();
-		$('#otherResponseShowBtn').show();
-		$('#other-response-table').hide();
-	});
-	
-	// 发送短信复选框点击事件
-	$('#sms-checkbox').click(function() {
-		if($('#sms-checkbox').is(':checked')) {
-			$('#sms-template-span').show();
-			$('#sms-varibales-span').show();
-		} else {
-			$('#sms-template-span').hide();
-			$('#sms-varibales-span').hide();
-		}
-	});
-	
-	// 保存信息收集
-	$('#saveCollection').click(function() {
-		var nodeData = public_thisGraphObj.part.data;
-		var array = $('#collectionform').serializeArray();
-		var t={};
-		$.each(array,function(index, value){
-			t[this.name] = this.value;
-		});
-		if(t.collectionName == '') {
-			$.messager.alert('提示', "请填写信息名称", "info");
-			return;
-		}
-		if(t.collectionType == '') {
-			$.messager.alert('提示', "请选择采集类型", "info");
-			return;
-		}
-		if(t.collectionIntention == '') {
-			$.messager.alert('提示', "请选择关联意图", "info");
-			return;
-		}
-		if(t.interactiveType == '') {
-			$.messager.alert('提示', "请选择交互类型", "info");
-			return;
-		}
-		if(t.collectionType == 'elementCollection' && t.collectionElement == '') {
-			$.messager.alert('提示', "请选择关联要素", "info");
-			return;
-		}
-		if(t.interactiveType == '词模匹配' && t.collectionWords == '') {
-			$.messager.alert('提示', "请填写反问话术", "info");
-			return;
-		}
-		if(t.interactiveType == '键值补全' && t.menuStartWords == '') {
-			$.messager.alert('提示', "请填写开始话语", "info");
-			return;
-		}
-		if(t.interactiveType == '键值补全' && t.menuOptions == '') {
-			$.messager.alert('提示', "请填写菜单选项", "info");
-			return;
-		}
-		if(t.interactiveType == '键值补全' && t.menuEndWords == '') {
-			//$.messager.alert('提示', "请填写结束话语", "info");
-			//return;
-		}
-		var collectionText = "";
-		if(t.interactiveType == '词模匹配') {
-			collectionText += "询问文本：" + t.collectionWords + "\n";
-			collectionText += "参数名称：" + t.collectionParam + "\n";
-		}
-		if(t.interactiveType == '键值补全') {
-			collectionText += "询问文本：" + t.menuStartWords + "\n";
-			collectionText += "参数名称：" + t.collectionParam + "\n";
-			collectionText += "菜单选项：" + t.menuOptions + "\n";
-		}
-		if(t.collectionType == 'elementCollection') {
-			collectionText += "关联要素：" + t.collectionElement + "\n";
-		}
-		collectionText += "关联意图：" + t.collectionIntention + "\n";
-		myDiagram.model.setDataProperty(nodeData, 'collectionText', collectionText);
-		$.each(t,function(index,value){
-	    	myDiagram.model.setDataProperty(nodeData, index, value);
-	    });
-		$('#myCollectionEditDiv').hide();
-	});
-	
-	// 关闭信息收集
-	$('#closeCollection').click(function() {
-		$('#myCollectionEditDiv').hide();
-	});
-	
-	// DTMF按键收集按钮
-	$("#saveDTMFPress").bind("click",function () {
-		var nodeData = public_thisGraphObj.part.data;
-		var array = $('#dTMFPressform').serializeArray();
-		var t={};
-		$.each(array,function(index, value){
-			if(this.name == "pressType" || this.name=="pressTimeOut"
-				|| this.name=="maxLength" || this.name=="minLength") {
-				t[this.name] = parseInt(this.value);
-				return true;
-			}
-		});
-		$.each(array,function(index, value){
-			t[this.name] = this.value;
-		});
-		if(t.dtmfName == '') {
-			$.messager.alert('提示', "请填写DTMF名称", "info");
-			return;
-		}
-		if(t.dtmfAlias == '') {
-			$.messager.alert('提示', "请填写DTMF别名", "info");
-			return;
-		}
-		if(t.dtmfAnswer == '') {
-			$.messager.alert('提示', "请填写DTMF话术", "info");
-			return;
-		}
-		if(isNaN(t.pressType)) {
-			$.messager.alert('提示', "请选择DTMF设置", "info");
-			return;
-		}
-		if(t.attemptLimit == '') {
-			$.messager.alert('提示', "请选择尝试次数", "info");
-			return;
-		}
-		if(t.pressTimeOut == '') {
-			$.messager.alert('提示', "请填写超时时间", "info");
-			return;
-		}
-		if(t.pressTimeOutAnswer == '') {
-			$.messager.alert('提示', "请填写超时话术", "info");
-			return;
-		}
-		if(!isEnglish(t.dtmfAlias)) {
-			$.messager.alert('提示', "DTMF别名请填写英文", "info");
-			return;
-		}
-		if(isNaN(t.pressTimeOut)) {
-			$.messager.alert("提示","超时时间，格式不合法","info");
-			return;
-		}
-		if(t.pressType==0 && t.pressNumbers == '') {
-			$.messager.alert("提示","请输入按键值","info");
-			return;
-		}
-		if(t.pressType==0 && !checkPressNumber(t.pressNumbers)) {
-			$.messager.alert("提示","按键值不合法","info");
-			return;
-		}
-		if(t.pressType==1 && (isNaN(t.maxLength) || isNaN(t.minLength))) {
-			$.messager.alert("提示","最短，最大长度，格式不合法","info");
-			return;
-		}
-		if(t.pressType==1 && t.endPressNumber == '') {
-			$.messager.alert("提示","请选择结束按键","info");
-			return;
-		}
-		if(t.pressType == 0) {
-			t.maxLength = 1;
-			t.minLength = 1;
-			t.endPressNumber = "";
-		}
-        $.each(t,function(index,value){
-        	myDiagram.model.setDataProperty(nodeData, index, value);
-        });
-        myDiagram.model.setDataProperty(nodeData, "text", t.dtmfName);
-        $("#closeDTMFPress").trigger("click");
-    })
-    $("#closeDTMFPress").bind("click",function () {
-        $('#myDTMFPressDiv').hide();
-	});
-	
-	$("#saveURLAction").bind("click", function () {		
-		var nodeData = public_thisGraphObj.part.data;
-		var array = $('#URLActionform').serializeArray();
-		var t={};
-		$.each(array,function(index, value){
-			t[this.name] = this.value;
-		});
-		$.each(t,function(index,value){
-        	myDiagram.model.setDataProperty(nodeData, index, value);
-        });
-		// 校验格式
-		if(t.actionName == '') {
-			$.messager.alert("提示","请填写组件名称","info");
-			return;
-		}
-		if(t.interfaceName == '') {
-			$.messager.alert("提示","请选择调用接口","info");
-			return;
-		}
-		myDiagram.model.setDataProperty(nodeData, "text", t.actionName);
-		$('#myURLActionDiv').hide();
-	});
-	
-	$("#saveTransfer").bind("click", function () {
-		var nodeData = public_thisGraphObj.part.data;
-		var array = $('#Transferform').serializeArray();
-		$.each(array,function(index, value){
-			myDiagram.model.setDataProperty(nodeData, this.name, this.value);
-		});
-		if(nodeData.transferName == '') {
-			$.messager.alert("提示","请填写转人工名称","info");
-			return;
-		}
-		if(nodeData.transferNumber == '') {
-			$.messager.alert("提示","请填写转人工号码","info");
-			return;
-		}
-		if(!checkPhoneNumber(nodeData.transferNumber) && !checkTelePhone(nodeData.transferNumber)) {
-			$.messager.alert("提示","转人工号码格式不正确","info");
-			return;
-		}
-		myDiagram.model.setDataProperty(nodeData, "text", nodeData.transferName);
-		$('#myTransferDiv').hide();
+	// 词类词条管理界面
+	$('#wordManageBtn').click(function() {
+		loadWordClass('');
+		$("#wordEditDiv").window('open');
 	});
 
-	$("#saveCondition").bind("click",function () {
-		var nodeData = public_thisGraphObj.part.data;
-		var array = $('#Conditionform').serializeArray();
-		var conditions = [];
-		var bottomArray = [];
-		var conditionDivs = $("#conditions").find("div").eq(0).find('.condition-div');
-		var conditionCount = conditionDivs.length;
-		for(var conditionIdx=0; conditionIdx < conditionCount; conditionIdx++) {
-			var andConditionDivs = $("#conditions").find("div").eq(0).find('.condition-div').eq(conditionIdx).find("div[add='andconditions']").find('.and-condition-div');
-			var andConditionCount = andConditionDivs.length;
-			var conditionInfo = {};
-			var andConditions = [];
-			var conditionName = $('#condition_name'+'_cdt'+conditionIdx).textbox('getValue');
-			bottomArray[conditionIdx] = {'text':conditionName};
-			for(var variableIdx=0; variableIdx < andConditionCount; variableIdx++) {
-				var andCondition = {};
-				var variableTypeInput = "variable_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var paramNameAttrInput = "param_name_attr" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var paramNameElementInput = "param_name_element" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var paramNameOtherInput = "param_name_other" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var paramRelationInput = "param_relation" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var paramTypeInput = "param_type" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var elementValueInput = "element_value" + "_cdt"+conditionIdx + "_and"+variableIdx; 
-			    var elementValueInsertBtn = "element_value_insert_btn" + "_cdt"+conditionIdx + "_and"+variableIdx; 
-			    var paramValueInput = "param_value" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var isUpDownInput = "isUpDown" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var upDownTypeInput = "upDownType" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var updownRatioInput = "updownRatio" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var interfaceNameInput = "interface_name" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var interfaceParamInput = "interface_param" + "_cdt"+conditionIdx + "_and"+variableIdx;
-			    var variableType = $('#'+variableTypeInput).combobox('getValue');
-				if(variableType == "attr") {
-					andCondition.paramName = $("#"+paramNameAttrInput).combobox("getValue");
-					andCondition.paramValue = $("#"+paramValueInput).textbox("getValue");
-				} 
-				if(variableType == "element") {
-					andCondition.paramName = $("#"+paramNameElementInput).combobox("getValue");
-					andCondition.paramValue = $("#"+elementValueInput).combobox("getValue");
-				} 
-				if(variableType == "interface") {
-					andCondition.interfaceName = $("#"+interfaceNameInput).combobox("getValue");
-					andCondition.paramName = $("#"+interfaceParamInput).combobox("getValue");
-					andCondition.paramValue = $("#"+paramValueInput).textbox("getValue");
-				} 
-				if(variableType == "other") {
-					andCondition.paramName = $("#"+paramNameOtherInput).textbox("getValue");
-					andCondition.paramValue = $("#"+paramValueInput).textbox("getValue");
-				} 
-				andCondition.variableType = variableType;
-				andCondition.paramRelation = $("#"+paramRelationInput).combobox("getValue");
-				andCondition.paramType = $("#"+paramTypeInput).combobox("getValue");
-				andConditions[variableIdx] = andCondition;
-			}
-			conditionInfo.conditionName = conditionName;
-			conditionInfo.andConditions = andConditions;
-			conditions[conditionIdx] = conditionInfo;
-		}
-		$.each(array,function(index, value){
-			myDiagram.model.setDataProperty(nodeData, this.name, this.value);
-		});
-		if(nodeData.conditionNodeName == '') {
-			$.messager.alert("提示","请填写组件名称","info");
-			return;
-		}
-		if(bottomArray.length == 0) {
-			$.messager.alert("提示","请填写条件","info");
-			return;
-		}
-		myDiagram.model.setDataProperty(nodeData, "text", nodeData.conditionNodeName);
-		myDiagram.model.setDataProperty(nodeData, "conditionNodeName", nodeData.conditionNodeName);
-		myDiagram.model.setDataProperty(nodeData, "conditions", conditions);
-		myDiagram.model.setDataProperty(nodeData, "bottomArray", bottomArray);
-		$('#myConditionDiv').hide();
-	});
-	
-    $("#closeURLAction").bind("click",function () {
-        $('#myURLActionDiv').hide();
-	});
-    $("#closeTransfer").bind("click",function () {
-        $('#myTransferDiv').hide();
-	});
-    $("#closeCondition").bind("click",function () {
-        $('#myConditionDiv').hide();
-	});	
 }
 
 // 显示为赋值隐藏的链接

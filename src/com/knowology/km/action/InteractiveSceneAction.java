@@ -354,8 +354,11 @@ public class InteractiveSceneAction extends BaseAction {
 		}
 		
 		//添加基础词类
-		String  wordclasses = "sys"+scName+"上文:节点名"+"父类"+"\n"+ "sys"+scName+"用户回答父类";
-		res= (JSONObject) WordClassDAO.insert(wordclasses, "当前商家");
+		StringBuffer wordclasses = new StringBuffer();
+		wordclasses.append("sys"+scName+"上文:节点名父类").append("\n");
+		wordclasses.append("sys"+scName+"用户回答父类").append("\n");
+		wordclasses.append("sys"+scName+"信息收集父类");
+		res= (JSONObject) WordClassDAO.insert(wordclasses.toString(), "当前商家");
 		if(res.getBooleanValue("success")!=true)
 		{
 			createSD.put("errorCode", "300004");
