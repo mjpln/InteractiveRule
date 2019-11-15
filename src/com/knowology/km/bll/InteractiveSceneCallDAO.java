@@ -1802,24 +1802,29 @@ public class InteractiveSceneCallDAO {
 		JSONObject jsonObj = new JSONObject();
 		try {
 			String queryPhoneAttributeNamesUrl = getQueryAttributeNamesUrl();
-			// 创建GET请求
-			logger.info("查询号码属性接口，请求地址：" + queryPhoneAttributeNamesUrl);
-			String response = HttpclientUtil.get(queryPhoneAttributeNamesUrl);
-			@SuppressWarnings("rawtypes")
-			ResponseData responseData = JSONObject.parseObject(response, ResponseData.class);
-			logger.info("查询号码属性接口，响应参数：" + responseData.toString());
-			if (responseData.getCode() == 0) {
-				jsonObj.put("success", true);
-				jsonObj.put("rows", responseData.getData());
+			if(StringUtils.isNotBlank(queryPhoneAttributeNamesUrl)) {
+				// 创建GET请求
+				logger.info("查询号码属性接口，请求地址：" + queryPhoneAttributeNamesUrl);
+				String response = HttpclientUtil.get(queryPhoneAttributeNamesUrl);
+				@SuppressWarnings("rawtypes")
+				ResponseData responseData = JSONObject.parseObject(response, ResponseData.class);
+				logger.info("查询号码属性接口，响应参数：" + responseData.toString());
+				if (responseData.getCode() == 0) {
+					jsonObj.put("success", true);
+					jsonObj.put("rows", responseData.getData());
+				} else {
+					jsonObj.put("success", false);
+				}
+				return jsonObj;
 			} else {
-				jsonObj.put("success", false);
+				logger.error("查询号码属性接口，接口地址未配置");
 			}
-			return jsonObj;
+			
 		} catch (Exception e) {
-			e.printStackTrace();
-			jsonObj.put("success", false);
-			return jsonObj;
+			logger.error("查询号码属性接口，系统异常：", e);
 		}
+		jsonObj.put("success", false);
+		return jsonObj;
 	}
 
 	/**

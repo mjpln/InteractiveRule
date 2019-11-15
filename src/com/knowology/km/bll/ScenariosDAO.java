@@ -512,7 +512,7 @@ public class ScenariosDAO {
 				"");
 		if (result != null && result.getRowCount() > 0) {
 			String commonQuestionServiceName = result.getRows()[0].get("service") + "";
-			String sql = "select k.KBDATAID,k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and s.parentName='信息收集' and s.brand = ? ";
+			String sql = "select s.serviceid,k.KBDATAID,k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and s.parentName='信息收集' and s.brand = ? ";
 			Result rs = Database.executeQuery(sql, commonQuestionServiceName);
 			return rs;
 		}
@@ -534,7 +534,7 @@ public class ScenariosDAO {
 				"");
 		if (result != null && result.getRowCount() > 0) {
 			String commonQuestionServiceName = result.getRows()[0].get("service") + "";
-			String sql = "select k.KBDATAID,k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and s.parentName='用户意图' and s.brand = ? ";
+			String sql = "select s.serviceid,k.KBDATAID,k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.service='识别规则业务' and s.parentName='用户意图' and s.brand = ? ";
 			Result rs = Database.executeQuery(sql, commonQuestionServiceName);
 			return rs;
 		}
@@ -1263,7 +1263,7 @@ public class ScenariosDAO {
 	 * 根据业务ID查询标准问
 	 */
 	public static Result listNormalQueryByserviceId(String serviceId) {
-		String sql = "select k.KBDATAID,k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.serviceid = ?";
+		String sql = "select s.serviceid,k.KBDATAID,k.abstract as abs from service s,kbdata k where s.serviceid = k.serviceid and s.serviceid = ?";
 		Result result = Database.executeQuery(sql, serviceId);
 		return result;
 	}
@@ -1372,26 +1372,28 @@ public class ScenariosDAO {
 		if (RegnitionRuleTypeConsts.COLLETION_INTENTION.equals(recognitionType)) {
 			result = ScenariosDAO.queryPublicCollectionIntention();
 		}
+		String serviceId = null;
 		String abstractStr = null;
 		String kbdataid = null;
 		String normalQueryStr = null;
 		if (result != null && result.getRowCount() > 0) {
 			for (int i = 0; i < result.getRowCount(); i++) {
-				abstractStr = (String) result.getRows()[i].get("abs");
-				kbdataid = String.valueOf(result.getRows()[i].get("kbdataid"));
+				serviceId = result.getRows()[i].get("serviceid").toString();
+				abstractStr = (String) result.getRows()[i].get("abs").toString();
+				kbdataid = result.getRows()[i].get("kbdataid").toString();
 				normalQueryStr = abstractStr.substring(abstractStr.indexOf(">") + 1);
 				if (StringUtils.isNotBlank(normalQuery)) {
 					if (normalQueryStr.indexOf(normalQuery) > -1) {
 						if (!normalQuerySet.contains(normalQueryStr)) {
 							normalQuerySet.add(normalQueryStr);
-							JSONObject row = buildRegnitionRuleNormalQueryRow(kbdataid, normalQueryStr, abstractStr, false);
+							JSONObject row = buildRegnitionRuleNormalQueryRow(serviceId, kbdataid, normalQueryStr, abstractStr, false);
 							rows.add(row);
 						}
 					}
 				} else {
 					if (!normalQuerySet.contains(normalQueryStr)) {
 						normalQuerySet.add(normalQueryStr);
-						JSONObject row = buildRegnitionRuleNormalQueryRow(kbdataid, normalQueryStr, abstractStr, false);
+						JSONObject row = buildRegnitionRuleNormalQueryRow(serviceId, kbdataid, normalQueryStr, abstractStr, false);
 						rows.add(row);
 					}
 				}
@@ -1400,25 +1402,25 @@ public class ScenariosDAO {
 		// 查询自定义识别规则业务
 		if (RegnitionRuleTypeConsts.CUSTOMER_INTENTION.equals(recognitionType)
 				|| RegnitionRuleTypeConsts.COLLETION_INTENTION.equals(recognitionType)) {
-			String serviceId = ScenariosDAO.getRegnitionRuleServiceId(sceneType, sceneName);
+			serviceId = ScenariosDAO.getRegnitionRuleServiceId(sceneType, sceneName);
 			result = ScenariosDAO.listNormalQueryByserviceId(serviceId);
 			if (result != null && result.getRowCount() > 0) {
 				for (int i = 0; i < result.getRowCount(); i++) {
-					abstractStr = (String) result.getRows()[i].get("abs");
-					kbdataid = String.valueOf(result.getRows()[i].get("kbdataid"));
+					abstractStr = (String) result.getRows()[i].get("abs").toString();
+					kbdataid = result.getRows()[i].get("kbdataid").toString();
 					normalQueryStr = abstractStr.substring(abstractStr.indexOf(">") + 1);
 					if (StringUtils.isNotBlank(normalQuery)) {
 						if (normalQueryStr.indexOf(normalQuery) > -1) {
 							if (!normalQuerySet.contains(normalQueryStr)) {
 								normalQuerySet.add(normalQueryStr);
-								JSONObject row = buildRegnitionRuleNormalQueryRow(kbdataid, normalQueryStr, abstractStr, true);
+								JSONObject row = buildRegnitionRuleNormalQueryRow(serviceId, kbdataid, normalQueryStr, abstractStr, true);
 								rows.add(row);
 							}
 						}
 					} else {
 						if (!normalQuerySet.contains(normalQueryStr)) {
 							normalQuerySet.add(normalQueryStr);
-							JSONObject row = buildRegnitionRuleNormalQueryRow(kbdataid, normalQueryStr, abstractStr, true);
+							JSONObject row = buildRegnitionRuleNormalQueryRow(serviceId, kbdataid, normalQueryStr, abstractStr, true);
 							rows.add(row);
 						}
 					}
@@ -1440,15 +1442,17 @@ public class ScenariosDAO {
 	/**
 	 * 识别规则业务信息
 	 * 
+	 * @param serviceId   业务树ID
 	 * @param kbdataid    标准问ID
 	 * @param normalQuery 标准问
 	 * @param abstractStr 摘要
 	 * @param deleteFlag  允许删除
 	 * @return
 	 */
-	private static JSONObject buildRegnitionRuleNormalQueryRow(String kbdataid, String normalQuery, String abstractStr,
-			boolean deleteFlag) {
+	private static JSONObject buildRegnitionRuleNormalQueryRow(String serviceId, String kbdataid, String normalQuery,
+			String abstractStr, boolean deleteFlag) {
 		JSONObject row = new JSONObject();
+		row.put("serviceId", serviceId);
 		row.put("abstract", abstractStr);
 		row.put("normalQuery", normalQuery);
 		row.put("kbdataid", kbdataid);
@@ -1698,6 +1702,7 @@ public class ScenariosDAO {
 	/**
 	 * 获取客户问页面跳转地址
 	 * 
+	 * @param serviceId             业务树ID
 	 * @param scenariosid           场景ID
 	 * @param sceneType             场景类型
 	 * @param scenariosName         场景名称
@@ -1706,7 +1711,7 @@ public class ScenariosDAO {
 	 * @param returnKeyValueJsonStr 返回值JSON[{"returnKey":"",returnValue:""}]
 	 * @return
 	 */
-	public static Object getCustomerQueryPageUrl(String scenariosid, String sceneType, String scenariosName,
+	public static Object getCustomerQueryPageUrl(String serviceId, String scenariosid, String sceneType, String scenariosName,
 			String normalQuery, String customerQuery, String returnKeyValueJsonStr) {
 		JSONObject jsonObj = new JSONObject();
 		Result rsConfig = CommonLibMetafieldmappingDAO.getConfigValue("菜单地址配置", "场景配置之跳转客户问");
@@ -1715,7 +1720,9 @@ public class ScenariosDAO {
 			User user = (User) GetSession.getSessionByKey("accessUser");
 			String userId = user.getUserID();
 			String serviceType = user.getIndustryOrganizationApplication();
-			String serviceId = ScenariosDAO.getRegnitionRuleServiceId(sceneType, scenariosName); // 业务ID
+			if(StringUtils.isBlank(serviceId)) {
+				serviceId = ScenariosDAO.getRegnitionRuleServiceId(sceneType, scenariosName); // 业务ID
+			}
 			String cityCode = ScenariosDAO.getCityCode(scenariosid, sceneType); // 地市编码
 			StringBuffer returnValues = new StringBuffer();
 			List<ReturnKeyValue> returnKeyValueList = JSONObject.parseArray(returnKeyValueJsonStr,

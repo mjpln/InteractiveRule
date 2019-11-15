@@ -57,6 +57,7 @@ public class InteractiveSceneCallAction extends BaseAction {
 	private String kbdataIds;
 	private String kbdataId;
 	private String returnKeyValueJsons;
+	private String serviceId;
 	
 
 	public Object execute() {
@@ -204,7 +205,7 @@ public class InteractiveSceneCallAction extends BaseAction {
 			m_result = ScenariosDAO.insertNormalQueryWithReturnValues(scenariosid, sceneType, scenariosName, normalQuery, returnKeyValueJsonStr);
 		}
 		if ("getCustomerQueryPageUrl".equals(type)) {// 获取客户问页面跳转地址
-			m_result = ScenariosDAO.getCustomerQueryPageUrl(scenariosid, sceneType, scenariosName, normalQuery,
+			m_result = ScenariosDAO.getCustomerQueryPageUrl(serviceId, scenariosid, sceneType, scenariosName, normalQuery,
 					customerQuery, returnKeyValueJsonStr);
 		}
 		return "success";
@@ -659,5 +660,15 @@ public class InteractiveSceneCallAction extends BaseAction {
 	public void setReturnKeyValueJsons(String returnKeyValueJsons) {
 		this.returnKeyValueJsons = returnKeyValueJsons;
 	}
-	 
+
+
+	public String getServiceId() {
+		return serviceId;
+	}
+
+
+	public void setServiceId(String serviceId) {
+		this.serviceId = serviceId;
+	}
+	
 }

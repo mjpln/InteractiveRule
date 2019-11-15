@@ -382,7 +382,7 @@ function generateRecognitionIntention() {
 	returnKeyValue.returnKey = "用户回答";
 	returnKeyValue.returnValue = row.normalQuery;
 	returnKeyValueArray.push(returnKeyValue);
-	getCustomerQueryPageUrl(row.normalQuery,row.normalQuery,returnKeyValueArray);
+	getCustomerQueryPageUrl(row.serviceId,row.normalQuery,row.normalQuery,returnKeyValueArray);
 }
 // 查询识别规则业务
 function searchRecognitionIntention() {
@@ -2076,7 +2076,7 @@ function initCollectionIntention() {
 		returnKeyValue.returnKey = sceneElementName;
 		returnKeyValue.returnValue = sceneElementValue;
 		returnKeyValueArray.push(returnKeyValue);
-		getCustomerQueryPageUrl(sceneElementName,sceneElementValue,returnKeyValueArray);
+		getCustomerQueryPageUrl('',sceneElementName,sceneElementValue,returnKeyValueArray);
 	});
 	// 关闭关联意图
 	$('#collectionIntentionAdd-closeBtn').click(function() {
@@ -2087,12 +2087,13 @@ function initCollectionIntention() {
 }
 
 // 获取客户问跳转地址
-function getCustomerQueryPageUrl(normalQuery,customerQuery,returnKeyValueArray) {
+function getCustomerQueryPageUrl(serviceId,normalQuery,customerQuery,returnKeyValueArray) {
 	$.ajax({
 		url : '../interactiveSceneCall.action',
 		type : "post",
 		data : {
 			type : 'getCustomerQueryPageUrl',
+			serviceId : serviceId,
 			scenariosid : publicscenariosid,
 			sceneType : sceneType,
 			scenariosName : publicscenariosname,
@@ -2104,8 +2105,6 @@ function getCustomerQueryPageUrl(normalQuery,customerQuery,returnKeyValueArray) 
 		dataType : "json",
 		success : function(data, textStatus, jqXHR) {
 			if(data.success) {
-				$('#collectionIntentionAddPage').window('close');
-				$('#recognitionIntentionManagePage').window('close');
 				// 跳转到添加客户问界面
 				toCustomerQueryPage(data.customerQueryPageUrl);
 			} else {
