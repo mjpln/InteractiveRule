@@ -15,6 +15,7 @@ import java.util.Set;
 
 import javax.servlet.jsp.jstl.sql.Result;
 
+import com.knowology.km.util.NumberUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -398,7 +399,7 @@ public class ScenariosDAO {
 		if (rsConfig != null && rsConfig.getRowCount() > 0) {
 			for (int i = 0; i < rsConfig.getRowCount(); i++) {
 				String seneRobotIDConfig = (String) rsConfig.getRows()[i].get("name").toString();
-				if (scenariosid.equals(seneRobotIDConfig.split("::")[0])) {
+				if (NumberUtil.formatSceneId(scenariosid).equals(NumberUtil.formatSceneId(seneRobotIDConfig.split("::")[0]))) {
 					return seneRobotIDConfig.split("::")[1];
 				}
 			}
