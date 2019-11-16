@@ -75,15 +75,15 @@ public class MetafieldDao {
 	/**
 	 * 删除配置键
 	 * 
-	 * @param standardKeyId        参数配置键ID
 	 * @param metafiledMappingName 参数配置名
 	 * @param standardKey          参数配置键值
 	 * @return
 	 */
-	public static Object deleteKey(String standardKeyId, String metafiledMappingName, String standardKey) {
+	public static Object deleteKey(String metafiledMappingName, String standardKey) {
 		JSONObject jsonObj = new JSONObject();
 		// 获取当前用户
 		User user = (User) GetSession.getSessionByKey("accessUser");
+		String standardKeyId = getStandardKeyId(metafiledMappingName, standardKey);
 		int deleteCount = CommonLibStandardkeyDAO.delete(user, standardKeyId, metafiledMappingName, standardKey);
 		if (deleteCount > 0) {
 			jsonObj.put("success", true);
@@ -154,7 +154,7 @@ public class MetafieldDao {
 		JSONObject jsonObj = new JSONObject();
 		// 获取当前用户
 		User user = (User) GetSession.getSessionByKey("accessUser");
-		String standarValuedId = getStandardValueId(metafieldMapping, standardkey);
+		String standarValuedId = getStandardValueId(metafieldMapping, standardkey, newStandardValue);
 		int updateCount = CommonLibStandardvalueDAO.update(user, oldStandardValue, newStandardValue, standarValuedId,
 				null);
 		if (updateCount > 0) {
@@ -182,6 +182,52 @@ public class MetafieldDao {
 		User user = (User) GetSession.getSessionByKey("accessUser");
 		int updateCount = CommonLibStandardvalueDAO.delete(user, standarValuedId, standardValue, standardKey,
 				metafieldMapping);
+		if (updateCount > 0) {
+			jsonObj.put("success", true);
+			jsonObj.put("msg", "删除成功");
+			return jsonObj;
+		}
+		jsonObj.put("success", false);
+		jsonObj.put("msg", "删除失败");
+		return jsonObj;
+	}
+	
+	/**
+	 * 删除配置值
+	 * 
+	 * @param standardValue    参数配置值
+	 * @param standardKey      参数配置键
+	 * @param metafieldMapping 参数配置名
+	 * @return
+	 */
+	public static Object deleteConfigValue(String metafieldMapping, String standardKey, String standardValue) {
+		JSONObject jsonObj = new JSONObject();
+		User user = (User) GetSession.getSessionByKey("accessUser");
+		String standardValuedId = getStandardValueId(metafieldMapping, standardKey, standardValue);
+		int updateCount = CommonLibStandardvalueDAO.delete(user, standardValuedId , standardValue, standardKey,
+				metafieldMapping);
+		if (updateCount > 0) {
+			jsonObj.put("success", true);
+			jsonObj.put("msg", "删除成功");
+			return jsonObj;
+		}
+		jsonObj.put("success", false);
+		jsonObj.put("msg", "删除失败");
+		return jsonObj;
+	}
+	
+	/**
+	 * 删除配置值
+	 * 
+	 * @param metafieldMapping 参数配置名
+	 * @param standardValue    参数配置值
+	 * @return
+	 */
+	public static Object deleteConfigValue(String metafieldMapping, String standardValue) {
+		JSONObject jsonObj = new JSONObject();
+		User user = (User) GetSession.getSessionByKey("accessUser");
+		String standardValuedId = getStandardValueId(metafieldMapping, standardValue);
+		int updateCount = CommonLibStandardvalueDAO.delete(user, standardValuedId);
 		if (updateCount > 0) {
 			jsonObj.put("success", true);
 			jsonObj.put("msg", "删除成功");
@@ -238,15 +284,37 @@ public class MetafieldDao {
 	 * 
 	 * @param metafieldMapping 参数配置名
 	 * @param standardKey      参数配置键
+	 * @param standardValue    参数配置值
 	 * @return
 	 */
-	public static String getStandardValueId(String metafieldMapping, String standardKey) {
-		String sql = "select s.metafieldid, s.name from metafield t,metafield s,metafieldmapping a where t.metafieldmappingid=a.metafieldmappingid and t.metafieldid=s.stdmetafieldid and a.name =? and t.name =? order by s.metafieldid";
+	public static String getStandardValueId(String metafieldMapping, String standardKey, String standardValue) {
+		String sql = "select s.metafieldid, s.name from metafield t,metafield s,metafieldmapping a where t.metafieldmappingid=a.metafieldmappingid and t.metafieldid=s.stdmetafieldid and a.name =? and t.name =? and s.name=?";
 		Result rs = null;
 		try {
-			rs = Database.executeQuery(sql, metafieldMapping, standardKey);
+			rs = Database.executeQuery(sql, metafieldMapping, standardKey, standardValue);
 			if (rs != null && rs.getRowCount() > 0) {
-				return (String) rs.getRows()[0].get("METAFIELDID");
+				return rs.getRows()[0].get("METAFIELDID").toString();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	/**
+	 * 获取配置值ID
+	 * 
+	 * @param metafieldMapping 参数配置名
+	 * @param standardValue    参数配置值
+	 * @return
+	 */
+	public static String getStandardValueId(String metafieldMapping, String standardValue) {
+		String sql = "select s.metafieldid, s.name from metafield t,metafield s,metafieldmapping a where t.metafieldmappingid=a.metafieldmappingid and t.metafieldid=s.stdmetafieldid and a.name =? and s.name=?";
+		Result rs = null;
+		try {
+			rs = Database.executeQuery(sql, metafieldMapping, standardValue);
+			if (rs != null && rs.getRowCount() > 0) {
+				return rs.getRows()[0].get("METAFIELDID").toString();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

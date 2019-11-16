@@ -53,7 +53,7 @@ public class QuestionManageDAO {
 
 		String bussinessFlag = CommonLibMetafieldmappingDAO.getBussinessFlag(serviceType);
 
-		if (CommonLibQueryManageDAO.isExistServiceNameNew(preServiceId, scenarioName, brand)) {// 判断是否存在相同名称业务
+		if (CommonLibQueryManageDAO.isExistChildServiceName(preServiceId, scenarioName, brand)) {// 判断是否存在相同名称业务
 			// 事务处理失败
 			jsonObj.put("success", false);
 			jsonObj.put("msg", "业务名称已存在!");

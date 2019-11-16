@@ -518,6 +518,18 @@ public class ScenariosDAO {
 		}
 		return null;
 	}
+	
+	/**
+	 * 获取商家根问题库
+	 * 
+	 * @param servieType 商家
+	 */
+	public static Result getQuestionRootService(String serviceType) {
+		// 获取用户
+		User user = (User) GetSession.getSessionByKey("accessUser");
+		Result result = CommonLibQueryManageDAO.createServiceTreeNew(user.getUserID(), serviceType, "", "全国", "");
+		return result;
+	}
 
 	/**
 	 * 查询公共用户意图
@@ -608,7 +620,7 @@ public class ScenariosDAO {
 		// 存在则先删除
 		String standardKeyId = MetafieldDao.getStandardKeyId("第三方接口信息配制", standardKey);
 		if (StringUtils.isNotBlank(standardKeyId)) {
-			MetafieldDao.deleteKey(standardKeyId, "第三方接口信息配制", standardKey);
+			MetafieldDao.deleteKey("第三方接口信息配制", standardKey);
 		}
 		// 插入接口配置键
 		List<String> standardKeys = new ArrayList<String>();
@@ -1063,14 +1075,12 @@ public class ScenariosDAO {
 	 * 
 	 * @param wordClassId    词类ID
 	 * @param wordClass      词类名称
-	 * @param standardWordId 词类ID
 	 * @param wordItem       词条名称
 	 * @param wordIds        别名ID集合，逗号分割
 	 * @param wordAliases    别名集合，逗号分割
 	 * @return
 	 */
-	public static Object deleteWordAlias(String wordClassId, String wordClass, String standardWordId, String wordItem,
-			String wordIds, String wordAliases) {
+	public static Object deleteWordAlias(String wordClassId, String wordClass, String wordItem, String wordIds, String wordAliases) {
 		JSONObject jsonObj = new JSONObject();
 		// 获取用户
 		User user = (User) GetSession.getSessionByKey("accessUser");

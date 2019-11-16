@@ -459,7 +459,7 @@ public class InteractiveSceneAction extends BaseAction {
 		if(StringUtils.isNotBlank(robotId)) {
 			//创建开场语标准问
 			qsServceid = questionRoot.getString("serviceid");
-			questions.put("开场语", "开启近类*场近类*[话语近类|消息近类]#无序#编者=\"自动添加"+presceName+"\"&针对问题=\"开场语\""+"&人工地市=\"是\"");
+			questions.put("开场语", "开场语近类#无序#编者=\"自动添加"+presceName+"\"&针对问题=\"开场语\""+"&人工地市=\"是\"");
 			createSQ = (JSONObject) QuestionManageDAO.createStandardQuestion(qsServceid,serviceName,questions,cityCode,this.httpRequest);
 			if(createSQ.getBooleanValue("success") != true)
 			{

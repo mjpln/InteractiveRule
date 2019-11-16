@@ -140,7 +140,7 @@ public class InteractiveSceneCallAction extends BaseAction {
 			m_result = ScenariosDAO.insertWordAlias(wordAliases, wordClassId, wordClass, standardWordId, wordItem);
 		}
 		if ("deleteWordAlias".equals(type)) {// 删除别名
-			m_result = ScenariosDAO.deleteWordAlias(wordClassId, wordClass, standardWordId, wordItem, wordIds, wordAliases);
+			m_result = ScenariosDAO.deleteWordAlias(wordClassId, wordClass, wordItem, wordIds, wordAliases);
 		}
 		if ("listPagingWordClass".equals(type)) {// 分页查询词类
 			m_result = ScenariosDAO.listPagingWordClass(scenariosid, wordClass, page, rows);

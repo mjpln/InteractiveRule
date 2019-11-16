@@ -57,6 +57,7 @@ import com.knowology.km.util.GetLoadbalancingConfig;
 import com.knowology.km.util.GetSession;
 import com.knowology.km.util.GlobalValues;
 import com.knowology.km.util.MyUtil;
+import com.knowology.km.util.NumberUtil;
 import com.knowology.km.util.WordToHtml;
 import com.knowology.km.util.getConfigValue;
 import com.knowology.km.util.getServiceClient;
@@ -3634,24 +3635,80 @@ public class InteractiveSceneDAO {
 	/**
 	 *删除场景
 	 * 
-	 * @param scenariosid
-	 *            场景ID
-	 *@param name
-	 *            场景名称
-	 *@return
-	 *@returnType Object
+	 *@param scenariosid 场景ID
+	 *@param name 		 场景名称
 	 */
 	public static Object deleteMenu(String scenariosid, String name) {
-		// 定义返回json
+		scenariosid = NumberUtil.formatSceneId(scenariosid);
+		// 定义返回JSON
 		JSONObject jsonObj = new JSONObject();
 		// 获得用户登录信息
 		Object sre = GetSession.getSessionByKey("accessUser");
 		User user = (User) sre;
 		// 获取行业
 		String serviceType = user.getIndustryOrganizationApplication();
-		// 插入数据
-		int c = CommonLibInteractiveSceneDAO.deleteSceneName(user,scenariosid, name,
-				serviceType);
+		// 删除场景
+		int c = CommonLibInteractiveSceneDAO.deleteSceneName(user,scenariosid, name, serviceType);
+		// 查询实体机器人ID
+		String robotId = ScenariosDAO.getSceneRobotID(scenariosid);
+		if(StringUtils.isNotBlank(robotId)) {
+			// 删除场景语义对应关系
+			MetafieldDao.deleteConfigValue("场景机器人ID对应关系", serviceType, scenariosid + "::" + robotId);
+			// 删除实体机器人ID
+			MetafieldDao.deleteKey("实体机器人ID配置", robotId);
+			// 删除场景地市编码
+			MetafieldDao.deleteConfigValue("地市编码配置", robotId);
+			// 删除机器人ID词条
+			String wordClass = "实体机器人ID父类";
+			Result result = CommonLibWordclassDAO.getWordclassID(wordClass);
+			if (result != null && result.getRowCount() > 0) {
+				String wordClassId = result.getRows()[0].get("wordclassid").toString();
+				jsonObj = (JSONObject) ScenariosDAO.listPagingWordItem(scenariosid, wordClassId, wordClass, robotId, 1, 10);
+				if(jsonObj.getIntValue("total") > 0) {
+					String wordId = jsonObj.getJSONArray("rows").getJSONObject(0).getString("wordid");
+					ScenariosDAO.deleteWordItem(wordId, wordClassId, robotId);
+				}
+			}
+		}
+		// 删除场景词类信息
+		if(StringUtils.isNotBlank(name)) {
+			// 删除用户回答父类
+			String wordClassId = "";
+			String wordClass = "sys"+name+"用户回答父类";
+			Result result = CommonLibWordclassDAO.getWordclassID(wordClass);
+			if (result != null && result.getRowCount() > 0) {
+				wordClassId = result.getRows()[0].get("wordclassid").toString();
+				CommonLibWordclassDAO.delete(user, wordClassId, wordClass, "", "");
+			}
+			// 删除上文:节点名父类
+			wordClass = "sys"+name+"上文:节点名父类";
+			result = CommonLibWordclassDAO.getWordclassID(wordClass);
+			if (result != null && result.getRowCount() > 0) {
+				wordClassId = result.getRows()[0].get("wordclassid").toString();
+				CommonLibWordclassDAO.delete(user, wordClassId, wordClass, "", "");
+			}
+			// 删除信息收集父类
+			wordClass = "sys"+name+"信息收集父类";
+			result = CommonLibWordclassDAO.getWordclassID(wordClass);
+			if (result != null && result.getRowCount() > 0) {
+				wordClassId = result.getRows()[0].get("wordclassid").toString();
+				CommonLibWordclassDAO.delete(user, wordClassId, wordClass, "", "");
+			}
+		}
+		// 删除场景问题库
+		Result result = ScenariosDAO.getQuestionRootService(serviceType);
+		if (result != null && result.getRowCount() > 0) {
+			String brand = result.getRows()[0].get("service").toString();
+			if(StringUtils.isNotBlank(brand)) {;
+				result = CommonLibServiceDAO.getServiceID(name+"问题库", brand);
+				if (result != null && result.getRowCount() > 0) {
+					String serviceId = result.getRows()[0].get("serviceid").toString();
+					List<String> serviceIds = new ArrayList<String>();
+					serviceIds.add(serviceId);
+					CommonLibServiceDAO.deleteServiceByID(serviceIds);
+				}
+			}
+		}
 		// 判断事务处理结果
 		if (c > 0) {
 			// 事务处理成功
