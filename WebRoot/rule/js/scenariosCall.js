@@ -602,6 +602,9 @@ function initCollectionType() {
     	},{
     		"id":"userInfoCollection",
     		"text":"用户信息采集"
+    	},{
+    		"id":"userAnswerCollection",
+    		"text":"用户回答采集"
     	}],
 		onChange: function(newVal, oldVal) {
 			if(newVal == 'elementCollection') {
@@ -611,6 +614,12 @@ function initCollectionType() {
 				$('#toAddCollectionIntentionPageBtn').show();
 			}
 			if(newVal == 'userInfoCollection') {
+				$('#collectionform-collectionParam-tr').show();
+				$('#collectionform-collectionTimes-tr').show();
+				$('#collectionform-collectionElement-tr').hide();
+				$('#toAddCollectionIntentionPageBtn').hide();
+			}
+			if(newVal == 'userAnswerCollection') {
 				$('#collectionform-collectionParam-tr').show();
 				$('#collectionform-collectionTimes-tr').show();
 				$('#collectionform-collectionElement-tr').hide();

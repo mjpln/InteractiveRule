@@ -8,4 +8,5 @@ public class ActionTypeConsts {
 	public static final String SMS_ACTION = "SMS";
 	public static final String TRANSFER_ACTION = "TRANS";
 	public static final String DTMF_ACTION = "DTMF";
+	public static final String COLLECTION_ACTION = "COLLECT";
 }

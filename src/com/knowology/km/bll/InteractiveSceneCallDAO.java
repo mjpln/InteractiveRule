@@ -13,6 +13,7 @@ import javax.servlet.jsp.jstl.sql.Result;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
+import com.alibaba.druid.sql.ast.statement.SQLWithSubqueryClause.Entry;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.knowology.Bean.User;
@@ -30,6 +31,7 @@ import com.knowology.km.constant.CallOutNodeTypeConsts;
 import com.knowology.km.constant.CallOutSceneElementConsts;
 import com.knowology.km.constant.CollectionIntentionConsts;
 import com.knowology.km.constant.CollectionStatusConsts;
+import com.knowology.km.constant.CollectionTypeConsts;
 import com.knowology.km.constant.InteracviteTypeConsts;
 import com.knowology.km.constant.ParamTypeConsts;
 import com.knowology.km.constant.RegnitionRuleTypeConsts;
@@ -39,7 +41,6 @@ import com.knowology.km.constant.SceneTypeConsts;
 import com.knowology.km.constant.UrlActionInvocationTypeConsts;
 import com.knowology.km.entity.CheckInforef;
 import com.knowology.km.entity.InsertOrUpdateParam;
-import com.knowology.km.enums.CollectionTypeEnum;
 import com.knowology.km.enums.ComparisionRelationEnum;
 import com.knowology.km.pojo.AndCondition;
 import com.knowology.km.pojo.CollectionNode;
@@ -62,6 +63,7 @@ import com.knowology.km.util.GetLoadbalancingConfig;
 import com.knowology.km.util.GetSession;
 import com.knowology.km.util.HttpclientUtil;
 import com.knowology.km.util.MyUtil;
+import com.knowology.km.util.NumberUtil;
 import com.knowology.km.util.ResponseData;
 import com.knowology.km.util.SimpleString;
 import com.knowology.km.util.getServiceClient;
@@ -259,24 +261,6 @@ public class InteractiveSceneCallDAO {
 	}
 
 	/**
-	 * 信息收集组件 生成规则
-	 */
-	private static List<SceneRule> generateCollectionNodeSceneRules(String scenariosid, CollectionNode collectionNode,
-			NodeData nextNode, List<SceneRule> sceneRules) {
-		switch (CollectionTypeEnum.getEnum(collectionNode.getCollectionType())) {
-		case ELEMENT_COLLECTION:
-			return InteractiveSceneCallDAO.generateElementCollectionNodeSceneRules(scenariosid, collectionNode,
-					nextNode, sceneRules);
-		case USER_INFO_COLLECTION:
-			return InteractiveSceneCallDAO.generateUserInfoCollectionNodeSceneRules2(scenariosid, collectionNode,
-					nextNode, sceneRules);
-		default:
-			break;
-		}
-		return sceneRules;
-	}
-
-	/**
 	 * 开始组件 生成规则
 	 * 
 	 * @param scenariosid 场景ID
@@ -291,7 +275,7 @@ public class InteractiveSceneCallDAO {
 		if (SceneTypeConsts.CALL_OUT.equals(sceneType)) {
 			ruleResponse += "业务信息获取(\"用户信息查询\");";
 		}
-		ruleResponse += getCallRuleResponse(toNode);
+		ruleResponse += getCallRuleResponse(null, toNode);
 		SceneRule sceneRule = generateInteractiveRule(scenariosid, null, "交互", null, null, null, null, null, null, null,
 				ruleResponse);
 		sceneRules.add(sceneRule);
@@ -331,14 +315,14 @@ public class InteractiveSceneCallDAO {
 		sceneRules.add(sceneRule);
 		if ("获取到按键值".equals(isGetPressNumber)) {
 			// 获取到按键值，跳转节点
-			String ruleResponse = getCallRuleResponse(toNode);
+			String ruleResponse = getCallRuleResponse(fromNode, toNode);
 			sceneRule = generateInteractiveRule(scenariosid, null, fromNode.getKey(), null, null, null, null, null,
 					null, "是", ruleResponse);
 			sceneRules.add(sceneRule);
 		}
 		if ("未获取到按键值".equals(isGetPressNumber)) {
 			// 未获取到按键值，跳转节点
-			String ruleResponse = getCallRuleResponse(toNode);
+			String ruleResponse = getCallRuleResponse(fromNode, fromNode);
 			sceneRule = generateInteractiveRule(scenariosid, null, fromNode.getKey(), null, null, null, null, null,
 					null, "否", ruleResponse);
 			sceneRules.add(sceneRule);
@@ -367,13 +351,13 @@ public class InteractiveSceneCallDAO {
 		// 意图交互规则
 		if (!"跳出".equals(customerAnswer) && !"跳转".equals(customerAnswer)) {
 			// 系统已选或已告知规则
-			String ruleResponse = getCallRuleResponse(toNode);
+			String ruleResponse = getCallRuleResponse(fromNode, toNode);
 			SceneRule sceneRule = generateInteractiveRule(scenariosid, toNode.getKey(), aboveNodeName, customerAnswer,
 					recognitionStatus, null, differentiatedNode, null, null, null, ruleResponse);
 			sceneRules.add(sceneRule);
 		}
 		if ("跳转".equals(customerAnswer)) {
-			String ruleResponse = getCallRuleResponse(toNode);
+			String ruleResponse = getCallRuleResponse(fromNode, toNode);
 			SceneRule sceneRule = generateInteractiveRule(scenariosid, toNode.getKey(), aboveNodeName, null, null, null,
 					null, null, null, null, ruleResponse);
 			sceneRules.add(sceneRule);
@@ -381,7 +365,7 @@ public class InteractiveSceneCallDAO {
 		if ("跳出".equals(customerAnswer)) {
 			// 当前节点跳出时，所有上文节点需要配置跳出规则
 			for (LinkData fromLink : fromNode.getFromLinks()) {
-				String ruleResponse = getCallRuleResponse(toNode);
+				String ruleResponse = getCallRuleResponse(fromNode, toNode);
 				if (CallOutNodeTypeConsts.START_NODE.equals(fromLink.getFromNode().getCategory())) {
 					SceneRule sceneRule = generateInteractiveRule(scenariosid, fromNode.getKey(), "交互", null, "跳出",
 							null, null, null, null, null, ruleResponse);
@@ -416,7 +400,7 @@ public class InteractiveSceneCallDAO {
 	private static List<SceneRule> generateURLActionNodeSceneRules(String scenariosid, URLActionNode fromNode,
 			NodeData toNode, List<SceneRule> sceneRules) {
 		// 跳转节点
-		String ruleResponse = getCallRuleResponse(toNode);
+		String ruleResponse = getCallRuleResponse(fromNode, toNode);
 		SceneRule sceneRule = generateInteractiveRule(scenariosid, fromNode.getKey(), fromNode.getKey(), null, null,
 				null, null, null, null, null, ruleResponse);
 		sceneRules.add(sceneRule);
@@ -438,7 +422,7 @@ public class InteractiveSceneCallDAO {
 		/**
 		 * 条件跳转
 		 */
-		String ruleResponse = InteractiveSceneCallDAO.getCallRuleResponse(toNode); // 回复内容
+		String ruleResponse = InteractiveSceneCallDAO.getCallRuleResponse(fromNode, toNode); // 回复内容
 		logger.info(conditionName + "------->" + ruleResponse);
 		List<SceneElement> sceneElementValues = new ArrayList<SceneElement>(); // 规则条件
 		// 上文节点名
@@ -532,7 +516,7 @@ public class InteractiveSceneCallDAO {
 	private static List<SceneRule> generateTransferNodeSceneRules(String scenariosid, TransferNode fromNode,
 			NodeData toNode, List<SceneRule> sceneRules) {
 		// 跳转节点
-		String ruleResponse = getCallRuleResponse(toNode);
+		String ruleResponse = getCallRuleResponse(fromNode, toNode);
 		SceneRule sceneRule = generateInteractiveRule(scenariosid, null, fromNode.getKey(), null, null, null, null,
 				null, null, null, ruleResponse);
 		sceneRules.add(sceneRule);
@@ -540,183 +524,67 @@ public class InteractiveSceneCallDAO {
 	}
 
 	/**
-	 * 信息收集组件 生成要素采集规则
+	 * 信息收集组件 生成规则
 	 * 
 	 * @param scenariosid    场景ID
-	 * @param collectionNode 信息收集节点
-	 * @param nextNode       跳转节点
+	 * @param fromNode 		 来源节点
+	 * @param toNode         跳转节点
 	 * @param conditionValue 条件值
 	 * @param sceneRules     规则列表
 	 * @param weight         优先级
 	 * @return
 	 */
-	public static List<SceneRule> generateElementCollectionNodeSceneRules(String scenariosid,
-			CollectionNode collectionNode, NodeData nextNode, List<SceneRule> sceneRules) {
+	public static List<SceneRule> generateCollectionNodeSceneRules(String scenariosid,
+			CollectionNode fromNode, NodeData toNode, List<SceneRule> sceneRules) {
 		SceneRule sceneRule = null;
 		String ruleResponse = null;
-		String interactiveType = collectionNode.getInteractiveType();
+		String interactiveType = fromNode.getInteractiveType();
 		String responseType = ResponseTypeConsts.WRITTEN_RESPONSE_RULE;
-		String collectionIntention = collectionNode.getCollectionIntention();
-		// 信息收集成功规则
-		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_SUCCESS, nextNode);
-		List<SceneElement> sceneElementValues = getCollectionSceneElements(scenariosid, collectionNode.getKey(),
-				collectionNode.getCollectionElement(), "已选");
-		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, ruleResponse, sceneElementValues,
-				responseType);
-		sceneRules.add(sceneRule);
-		// 信息收集失败规则
-		responseType = InteracviteTypeConsts.MENU_OPTIONS.equals(interactiveType)
-				? ResponseTypeConsts.MENU_RESPONSE_RULE
-				: ResponseTypeConsts.WRITTEN_RESPONSE_RULE;
-		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_FAIL, null);
-		sceneElementValues = getCollectionSceneElements(scenariosid, collectionNode.getKey(),
-				collectionNode.getCollectionElement(), "交互");
-		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, ruleResponse, sceneElementValues,
-				responseType);
-		sceneRules.add(sceneRule);
-		// 信息收集语义理解规则
-		if (!CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)) {
-			sceneRule = InteractiveSceneCallDAO.generateRegnitionRule(scenariosid, collectionNode.getKey(),
-					collectionNode.getKey(), null, null, null, null, collectionNode.getCollectionIntention(),
-					collectionNode.getCollectionParam());
-			sceneRules.add(sceneRule);
-		} 
-		return sceneRules;
-	}
-
-	/**
-	 * 信息收集组件 用户信息采集规则
-	 * 
-	 * @param scenariosid    场景ID
-	 * @param collectionNode 信息收集节点
-	 * @param nextNode       跳转节点
-	 * @param conditionValue 条件值
-	 * @param sceneRules     规则列表
-	 * @param weight         优先级
-	 * @return
-	 */
-	public static List<SceneRule> generateUserInfoCollectionNodeSceneRules2(String scenariosid,
-			CollectionNode collectionNode, NodeData nextNode, List<SceneRule> sceneRules) {
-		SceneRule sceneRule = null;
-		String ruleResponse = null;
-		String interactiveType = collectionNode.getInteractiveType();
-		String responseType = ResponseTypeConsts.WRITTEN_RESPONSE_RULE;
-		String collectionIntention = collectionNode.getCollectionIntention();
-		String collectionParam = collectionNode.getCollectionParam();
+		String collectionIntention = fromNode.getCollectionIntention();
+		String collectionParam = fromNode.getCollectionParam();
+		String collectionTimes = fromNode.getCollectionTimes();
 		// 插入信息收集要素
 		insertOtherConditionElement(scenariosid, collectionParam);
 		// 信息收集成功规则
-		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_SUCCESS, nextNode);
-		List<SceneElement> sceneElementValues = getCollectionSceneElements(scenariosid, collectionNode.getKey(),
-				collectionNode.getCollectionParam(), "已选");
+		fromNode.setCollectionStatus(CollectionStatusConsts.COLLCETION_SUCCESS);
+		ruleResponse = getCallRuleResponse(fromNode, toNode);
+		List<SceneElement> sceneElementValues = getCollectionSceneElements(scenariosid, fromNode.getKey(),
+				fromNode.getCollectionParam(), "已选", "<="+collectionTimes);
 		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, ruleResponse, sceneElementValues,
 				responseType);
 		sceneRules.add(sceneRule);
 		// 信息收集失败规则
+		fromNode.setCollectionStatus(CollectionStatusConsts.COLLCETION_FAIL);
 		responseType = InteracviteTypeConsts.MENU_OPTIONS.equals(interactiveType)
 				? ResponseTypeConsts.MENU_RESPONSE_RULE
 				: ResponseTypeConsts.WRITTEN_RESPONSE_RULE;
-		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_FAIL, null);
-		sceneElementValues = getCollectionSceneElements(scenariosid, collectionNode.getKey(),
-				collectionNode.getCollectionParam(), "交互");
+		ruleResponse = getCallRuleResponse(fromNode, fromNode);
+		sceneElementValues = getCollectionSceneElements(scenariosid, fromNode.getKey(),
+				fromNode.getCollectionParam(), "交互", "<="+collectionTimes);
 		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, ruleResponse, sceneElementValues,
 				responseType);
 		sceneRules.add(sceneRule);
+		// 信息收集跳出规则
+		fromNode.setCollectionStatus(CollectionStatusConsts.COLLCETION_OUT);
+		ruleResponse = getCallRuleResponse(fromNode, toNode);
+		sceneElementValues = getCollectionSceneElements(scenariosid, fromNode.getKey(), null, null, ">"+collectionTimes);
+		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, ruleResponse, sceneElementValues, responseType);
+		sceneRules.add(sceneRule);
 		// 信息收集语义理解规则
 		if (!CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)) {
-			sceneRule = InteractiveSceneCallDAO.generateRegnitionRule(scenariosid, collectionNode.getKey(),
-					collectionNode.getKey(), null, null, null, null, collectionNode.getCollectionIntention(),
-					collectionNode.getCollectionParam());
-			sceneRules.add(sceneRule);
-		}
-		return sceneRules;
-	}
-
-	/**
-	 * 信息收集组件 用户信息采集规则
-	 * 
-	 * @param scenariosid    场景ID
-	 * @param collectionNode 信息收集节点
-	 * @param nextNode       跳转节点
-	 * @param conditionValue 条件值
-	 * @param weight         优先级
-	 * @param sceneRules     规则列表
-	 * @return
-	 */
-	public static List<SceneRule> generateUserInfoCollectionNodeSceneRules(String scenariosid,
-			CollectionNode collectionNode, NodeData nextNode, List<SceneRule> sceneRules) {
-		SceneRule sceneRule = null;
-		String ruleResponse = null;
-		List<String> others = null;
-		Map<String, String> setItems = null;
-		String collectionIntention = collectionNode.getCollectionIntention();
-		String collectionParam = collectionNode.getCollectionParam();
-		String collectionVariable = CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention) ? "query"
-				: collectionParam;
-		// 信息收集成功规则
-		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_SUCCESS, nextNode);
-		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, collectionNode.getKey(),
-				collectionNode.getKey(), null, null, null, null, null, CollectionStatusConsts.COLLCETION_SUCCESS, null,
-				ruleResponse);
-		sceneRules.add(sceneRule);
-		// 信息收集失败规则
-		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_FAIL, null);
-		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, collectionNode.getKey(),
-				collectionNode.getKey(), null, null, null, null, null, CollectionStatusConsts.COLLCETION_FAIL, null,
-				ruleResponse);
-		sceneRules.add(sceneRule);
-		// 信息收集跳出规则
-		ruleResponse = getCollectionRuleResponse(collectionNode, CollectionStatusConsts.COLLCETION_OUT, nextNode);
-		sceneRule = InteractiveSceneCallDAO.generateInteractiveRule(scenariosid, collectionNode.getKey(),
-				collectionNode.getKey(), null, null, null, null, null, CollectionStatusConsts.COLLCETION_OUT, null,
-				ruleResponse);
-		sceneRules.add(sceneRule);
-		// 收集任意类型时，不生成语义理解规则
-		if (!CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)) {
-			sceneRule = InteractiveSceneCallDAO.generateRegnitionRule(scenariosid, null, collectionNode.getKey(), null,
-					null, null, null, collectionIntention, collectionNode.getCollectionParam());
+			sceneRule = InteractiveSceneCallDAO.generateRegnitionRule(scenariosid, fromNode.getKey(),
+					fromNode.getKey(), null, null, null, null, fromNode.getCollectionIntention(),
+					fromNode.getCollectionParam());
 			sceneRules.add(sceneRule);
 		}
 		// 没有收集到信息，收集次数加1
-		String condition = CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME + "=" + collectionNode.getKey();
-		condition += " and " + collectionVariable + "=" + "\"\"";
+		String condition = CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME + "=" + fromNode.getKey();
+		condition += " and " + collectionParam + "=" + "\"\"";
 		condition += " and " + CallOutSceneElementConsts.COLLECTION_TIMES_ELEMENT_NAME + "<="
-				+ collectionNode.getCollectionTimes();
-		others = new ArrayList<String>();
+				+ fromNode.getCollectionTimes();
+		List<String> others = new ArrayList<String>();
 		others.add("ADD(\"" + CallOutSceneElementConsts.COLLECTION_TIMES_ELEMENT_NAME + "\",\"1\")");
 		String result = ScenariosDAO.getRuleResponse(null, others);
-		sceneRule = InteractiveSceneCallDAO.generateOtherRule(scenariosid, condition, result);
-		sceneRules.add(sceneRule);
-		// 收集到信息，设置信息收集状态为成功
-		condition = CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME + "=" + collectionNode.getKey();
-		condition += " and " + collectionVariable + "!=" + "\"\"";
-		others = new ArrayList<String>();
-		setItems = new HashMap<String, String>();
-		setItems.put(CallOutSceneElementConsts.COLLECTION_STATUS_ELEMENT_NAME,
-				CollectionStatusConsts.COLLCETION_SUCCESS);
-		others.add("SET(\"" + CallOutSceneElementConsts.COLLECTION_TIMES_ELEMENT_NAME + "\",\"\")");
-		result = ScenariosDAO.getRuleResponse(setItems, others);
-		sceneRule = InteractiveSceneCallDAO.generateOtherRule(scenariosid, condition, result);
-		sceneRules.add(sceneRule);
-		// 没有收集到信息，设置信息收集状态为失败
-		condition = CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME + "=" + collectionNode.getKey();
-		condition += " and " + collectionVariable + "=" + "\"\"";
-		condition += " and " + CallOutSceneElementConsts.COLLECTION_TIMES_ELEMENT_NAME + "<="
-				+ collectionNode.getCollectionTimes();
-		setItems = new HashMap<String, String>();
-		setItems.put(CallOutSceneElementConsts.COLLECTION_STATUS_ELEMENT_NAME, CollectionStatusConsts.COLLCETION_FAIL);
-		result = ScenariosDAO.getRuleResponse(setItems, null);
-		sceneRule = InteractiveSceneCallDAO.generateOtherRule(scenariosid, condition, result);
-		sceneRules.add(sceneRule);
-		// 收集次数达到限制，设置信息收集状态为跳出
-		condition = CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME + "=" + collectionNode.getKey();
-		condition += " and " + collectionVariable + "=" + "\"\"";
-		condition += " and " + CallOutSceneElementConsts.COLLECTION_TIMES_ELEMENT_NAME + ">"
-				+ collectionNode.getCollectionTimes();
-		setItems = new HashMap<String, String>();
-		setItems.put(CallOutSceneElementConsts.COLLECTION_TIMES_ELEMENT_NAME, "");
-		setItems.put(CallOutSceneElementConsts.COLLECTION_STATUS_ELEMENT_NAME, CollectionStatusConsts.COLLCETION_OUT);
-		result = ScenariosDAO.getRuleResponse(setItems, null);
 		sceneRule = InteractiveSceneCallDAO.generateOtherRule(scenariosid, condition, result);
 		sceneRules.add(sceneRule);
 		return sceneRules;
@@ -732,7 +600,7 @@ public class InteractiveSceneCallDAO {
 	 * @return 信息收集场景要素集合
 	 */
 	private static List<SceneElement> getCollectionSceneElements(String scenariosid, String aboveNodeName,
-			String collectionParam, String collectionValue) {
+			String collectionParam, String collectionValue, String collectionTimes) {
 		List<SceneElement> sceneElementValues = new ArrayList<SceneElement>();
 		// 上文节点名
 		SceneElement sceneElement = new SceneElement();
@@ -750,40 +618,86 @@ public class InteractiveSceneCallDAO {
 		sceneElement.setElementName(collectionParam);
 		sceneElement.setElementValue(collectionValue);
 		sceneElementValues.add(sceneElement);
+		// 信息收集次数
+		sceneElement = new SceneElement();
+		sceneElement.setElementName(CallOutSceneElementConsts.COLLECTION_TIMES_ELEMENT_NAME);
+		sceneElement.setElementValue(collectionTimes);
+		sceneElementValues.add(sceneElement);
 		return sceneElementValues;
 	}
 
 	/**
 	 * 获取回复内容
 	 */
-	public static String getCallRuleResponse(NodeData toNode) {
+	public static String getCallRuleResponse(NodeData fromNode, NodeData toNode) {
+		String fromCategory = "";
+		String toCategory = toNode.getCategory();
+		if(fromNode != null) {
+			fromCategory = fromNode.getCategory();
+		}
+		String ruleResponse = "";
+		StringBuffer actionBuffer = new StringBuffer();
+		StringBuffer actionParamsBuffer = new StringBuffer();
+		Map<String, String> actionAndParamsMaps = new HashMap<String, String>();
+		if (CallOutNodeTypeConsts.COLLECTION_NODE.equals(fromCategory)) {
+			CollectionNode fromCollectionNode = (CollectionNode) fromNode;
+			if(CollectionStatusConsts.COLLCETION_SUCCESS.equals(fromCollectionNode.getCollectionStatus())) {
+				String action = ActionTypeConsts.COLLECTION_ACTION;
+				String actionParams = getCollectionActionParams(fromCollectionNode);
+				actionAndParamsMaps.put(action, actionParams);
+			}
+		}
+		if (CallOutNodeTypeConsts.TTS_NODE.equals(toCategory) || CallOutNodeTypeConsts.END_NODE.equals(toCategory)) {
+			TTSNode ttsNode = (TTSNode) toNode;
+			String action = StringUtils.isBlank(ttsNode.getAction()) ? "" : ttsNode.getAction();
+			String actionParams = StringUtils.isBlank(ttsNode.getActionParams()) ? "" : ttsNode.getActionParams();
+			actionAndParamsMaps.put(action, actionParams);
+			ruleResponse = getTTSRuleResponse(fromNode, (TTSNode) toNode);
+		}
+		if (CallOutNodeTypeConsts.COLLECTION_NODE.equals(toCategory)) {
+			ruleResponse = getCollectionRuleResponse(fromNode, (CollectionNode) toNode);
+		}
+		if (CallOutNodeTypeConsts.DTMF_NODE.equals(toCategory)) {
+			String action = ActionTypeConsts.DTMF_ACTION;
+			String actionParams = getDTMFActionParams((DTMFNode) toNode);
+			actionAndParamsMaps.put(action, actionParams);
+			ruleResponse = getDTMFRuleResponse(fromNode, (DTMFNode) toNode);
+		}
+		if (CallOutNodeTypeConsts.CONDITION_NODE.equals(toCategory)) {
+			ruleResponse = getConditionRuleResponse((ConditionNode) toNode);
+		}
+		if (CallOutNodeTypeConsts.TRANSFER_NODE.equals(toCategory)) {
+			String action = ActionTypeConsts.TRANSFER_ACTION;
+			String actionParams = getTransferActionParams((TransferNode) toNode);
+			actionAndParamsMaps.put(action, actionParams);
+			ruleResponse = getTransferResponse((TransferNode) toNode);
+		}
+		if (CallOutNodeTypeConsts.URL_ACTION_NODE.equals(toCategory)) {
+			ruleResponse = getURLActionResponse((URLActionNode) toNode);
+		}
 		Map<String, String> setItems = new HashMap<String, String>();
 		setItems.put("是否末梢编码", StringUtils.isBlank(toNode.getEndFlag()) ? "否" : toNode.getEndFlag());
-		setItems.put("action", ""); // action动作置为空
-		setItems.put("actionParams", ""); // action参数置为空
-		String category = toNode.getCategory();
-		String ruleResponse = ScenariosDAO.getRuleResponse(setItems);
-		if (CallOutNodeTypeConsts.TTS_NODE.equals(category) || CallOutNodeTypeConsts.END_NODE.equals(category)) {
-			return ruleResponse + getTTSRuleResponse((TTSNode) toNode);
+		// 设置动作和参数
+		for(Map.Entry<String, String> entry : actionAndParamsMaps.entrySet()) {
+			actionAndParamsMaps.size();
+			String action = entry.getKey();
+			String actionParams = entry.getValue();
+			if(StringUtils.isNotBlank(action) && StringUtils.isNotBlank(actionParams)) {
+				actionBuffer.append(action).append("@@");
+				actionParamsBuffer.append(actionParams).append("@@");
+			}
 		}
-		if (CallOutNodeTypeConsts.COLLECTION_NODE.equals(category)) {
-			return ruleResponse + getCollectionRuleResponse((CollectionNode) toNode, null, null);
+		if(StringUtils.isNotBlank(actionBuffer) && StringUtils.isNotBlank(actionParamsBuffer)) {
+			setItems.put("action", actionBuffer.substring(0,actionBuffer.length()-2)); // 去掉最后@@
+			setItems.put("actionParams", actionParamsBuffer.substring(0,actionParamsBuffer.length()-2)); // 去掉最后@@
+		} else {
+			setItems.put("action", "");
+			setItems.put("actionParams", ""); 
 		}
-		if (CallOutNodeTypeConsts.DTMF_NODE.equals(category)) {
-			return ruleResponse + getDTMFRuleResponse((DTMFNode) toNode);
-		}
-		if (CallOutNodeTypeConsts.CONDITION_NODE.equals(category)) {
-			return ruleResponse + getConditionRuleResponse((ConditionNode) toNode);
-		}
-		if (CallOutNodeTypeConsts.TRANSFER_NODE.equals(category)) {
-			return ruleResponse + getTransferResponse((TransferNode) toNode);
-		}
-		if (CallOutNodeTypeConsts.URL_ACTION_NODE.equals(category)) {
-			return ruleResponse + getURLActionResponse((URLActionNode) toNode);
-		}
-		return null;
+		ruleResponse += ScenariosDAO.getRuleResponse(setItems);
+		return ruleResponse;
 	}
-
+	
 	/**
 	 * 获取动作组件回复内容
 	 */
@@ -804,17 +718,11 @@ public class InteractiveSceneCallDAO {
 	 */
 	private static String getTransferResponse(TransferNode toNode) {
 		String ruleResponse = "";
-		String action = ActionTypeConsts.TRANSFER_ACTION;
-		// 设置动作参数，转人工号码
-		StringBuffer actionParams = new StringBuffer();
-		actionParams.append(toNode.getTransferNumber());
 		Map<String, String> setItems = new HashMap<String, String>();
 		if (SceneTypeConsts.CALL_IN.equals(sceneType)) {
 			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, toNode.getKey());
 		}
 		setItems.put("节点名", toNode.getKey());
-		setItems.put("action", action);
-		setItems.put("actionParams", actionParams.toString());
 		ruleResponse = ScenariosDAO.getRuleResponse(setItems);
 		return ruleResponse;
 	}
@@ -822,48 +730,68 @@ public class InteractiveSceneCallDAO {
 	/**
 	 * 获取TTS回复
 	 * 
-	 * @param ttsNode TTS节点
+	 * @param fromNode 来源节点
+	 * @param toNode   目标节点
 	 * @return 回复内容
 	 */
-	private static String getTTSRuleResponse(TTSNode ttsNode) {
+	private static String getTTSRuleResponse(NodeData fromNode, TTSNode toNode) {
 		Map<String, String> setItems = new HashMap<String, String>();
-		if (ttsNode.getOtherResponses() != null && !ttsNode.getOtherResponses().isEmpty()) {
-			for (OtherResponse otherResponse : ttsNode.getOtherResponses()) {
+		String wordsContent = StringUtils.isBlank(toNode.getWordsContent()) ? "" : toNode.getWordsContent();
+		String code = StringUtils.isBlank(toNode.getCode()) ? "" : toNode.getCode();
+		if (toNode.getOtherResponses() != null && !toNode.getOtherResponses().isEmpty()) {
+			for (OtherResponse otherResponse : toNode.getOtherResponses()) {
 				setItems.put(otherResponse.getOtherResponseName(), otherResponse.getOtherResponseValue());
 			}
 		}
-		setItems.put("节点名", ttsNode.getKey());
-		if (isJumpNode(ttsNode)) {
-			// 跳转节点不走意图识别
-			setItems.put("任意类型匹配", "跳转节点任意类型匹配");
-		} else {
-			// 非跳转节点走意图识别
-			setItems.put("任意类型匹配", "");
-			setItems.put("用户回答", "");
+		if (isJumpNode(toNode)) {
+			// 跳转节点设置上文节点名
+			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, toNode.getKey());
 		}
-		if (InteracviteTypeConsts.WORD_PATTERN.equals(ttsNode.getInteractiveType())) {
-			setItems.put("TTS", StringUtils.isBlank(ttsNode.getWordsContent()) ? "" : ttsNode.getWordsContent());
-		}
-		setItems.put("code", StringUtils.isBlank(ttsNode.getCode()) ? "" : ttsNode.getCode());
-		setItems.put("action", StringUtils.isBlank(ttsNode.getAction()) ? "" : ttsNode.getAction());
-		setItems.put("actionParams", StringUtils.isBlank(ttsNode.getActionParams()) ? "" : ttsNode.getActionParams());
+		setItems.put("节点名", toNode.getKey());
+		setItems.put("用户回答", "");
 		String ruleResponse = ScenariosDAO.getRuleResponse(setItems);
-		if (InteracviteTypeConsts.MENU_OPTIONS.equals(ttsNode.getInteractiveType())) {
-			String menuStartWords = ttsNode.getMenuStartWords();
-			String menuOptions = ttsNode.getMenuOptions();
-			String menuEndWords = ttsNode.getMenuEndWords();
+		if (InteracviteTypeConsts.MENU_OPTIONS.equals(toNode.getInteractiveType())) {
+			String menuStartWords = toNode.getMenuStartWords();
+			String menuOptions = toNode.getMenuOptions();
+			String menuEndWords = toNode.getMenuEndWords();
 			String menuItems = ScenariosDAO.getMenuRuleResponseTemplate(menuStartWords, menuOptions, menuEndWords);
 			ruleResponse += menuItems;
+		}
+		// 设置话术内容TTS
+		if (InteracviteTypeConsts.WORD_PATTERN.equals(toNode.getInteractiveType())) {
+			if(isJumpNode(fromNode)) {
+				ruleResponse += ScenariosDAO.getRuleResponse("TTS", "TTS", wordsContent);
+			} else {
+				setItems = new HashMap<String, String>();
+				setItems.put("TTS", wordsContent);
+				ruleResponse += ScenariosDAO.getRuleResponse(setItems);
+			}
+		}
+		// 设置录音文件code
+		if(isJumpNode(fromNode)) {
+			ruleResponse += ScenariosDAO.getRuleResponse("code", "code", code);
+		} else {
+			setItems = new HashMap<String, String>();
+			setItems.put("code", code);
+			ruleResponse += ScenariosDAO.getRuleResponse(setItems);
 		}
 		return ruleResponse;
 	}
 
-	private static boolean isJumpNode(TTSNode ttsNode) {
-		List<LinkData> toLinks = ttsNode.getToLinks();
-		if (toLinks != null && !toLinks.isEmpty()) {
-			for (LinkData linkData : toLinks) {
-				if (linkData.getFromPort().getText().equals("跳转")) {
-					return true;
+	/**
+	 * 是否为跳转节点
+	 * 
+	 * @param nodeData
+	 * @return
+	 */
+	private static boolean isJumpNode(NodeData nodeData) {
+		if (nodeData != null) {
+			List<LinkData> toLinks = nodeData.getToLinks();
+			if (toLinks != null && !toLinks.isEmpty()) {
+				for (LinkData linkData : toLinks) {
+					if (linkData.getFromPort().getText().equals("跳转")) {
+						return true;
+					}
 				}
 			}
 		}
@@ -873,31 +801,24 @@ public class InteractiveSceneCallDAO {
 	/**
 	 * 获取DTMF回复
 	 * 
-	 * @param dtmfNode DTMF节点
+	 * @param fromNode 来源节点
+	 * @param toNode   目标节点
 	 * @return 回复内容
 	 */
-	private static String getDTMFRuleResponse(DTMFNode dtmfNode) {
+	private static String getDTMFRuleResponse(NodeData fromNode, DTMFNode toNode) {
 		String ruleResponse = "";
-		String action = ActionTypeConsts.DTMF_ACTION;
-		// 设置动作参数，按键值|按键超时话术|按键最小个数|按键最大个数|按键超时时间|结束收号按键|采集失败重复次数|DTMF别名
-		StringBuffer actionParams = new StringBuffer();
-		actionParams.append(dtmfNode.getPressNumbers()).append("|");
-		actionParams.append(dtmfNode.getPressTimeOutAnswer()).append("|");
-		actionParams.append(dtmfNode.getMinLength()).append("|");
-		actionParams.append(dtmfNode.getMaxLength()).append("|");
-		actionParams.append(dtmfNode.getPressTimeOut()).append("|");
-		actionParams.append(dtmfNode.getEndPressNumber()).append("|");
-		actionParams.append(dtmfNode.getAttemptLimit()).append("|");
-		actionParams.append(dtmfNode.getDtmfAlias());
 		Map<String, String> setItems = new HashMap<String, String>();
 		if (SceneTypeConsts.CALL_IN.equals(sceneType)) {
-			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, dtmfNode.getKey());
+			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, toNode.getKey());
 		}
-		setItems.put("节点名", dtmfNode.getKey());
-		setItems.put("TTS", dtmfNode.getDtmfAnswer());
-		setItems.put("code", "T" + dtmfNode.getDtmfAnswer()); // code以T开头
-		setItems.put("action", action);
-		setItems.put("actionParams", actionParams.toString());
+		setItems.put("节点名", toNode.getKey());
+		if(isJumpNode(fromNode)) {
+			setItems.put("TTS", "@TTS");
+			setItems.put("code", "@code");
+		} else {
+			setItems.put("TTS", toNode.getDtmfAnswer());
+			setItems.put("code", "T" + toNode.getDtmfAnswer());
+		}
 		ruleResponse = ScenariosDAO.getRuleResponse(setItems);
 		return ruleResponse;
 	}
@@ -905,7 +826,8 @@ public class InteractiveSceneCallDAO {
 	/**
 	 * 获取条件回复
 	 * 
-	 * @param conditionNode 条件节点
+	 * @param fromNode 来源节点
+	 * @param toNode   目标节点
 	 * @return 回复内容
 	 */
 	public static String getConditionRuleResponse(ConditionNode conditionNode) {
@@ -920,57 +842,112 @@ public class InteractiveSceneCallDAO {
 	/**
 	 * 获取信息组件回复内容
 	 * 
-	 * @param collectionNode   信息收集节点
-	 * @param collectionStatus 信息收集状态
-	 * @param nextNode         跳转节点
+	 * @param fromNode 来源节点
+	 * @param toNode   目标节点
 	 * @return 回复内容
 	 */
-	public static String getCollectionRuleResponse(CollectionNode collectionNode, String collectionStatus,
-			NodeData nextNode) {
+	public static String getCollectionRuleResponse(NodeData fromNode, CollectionNode toNode) {
 		String result = "";
 		Map<String, String> setItems = null;
 		List<String> others = new ArrayList<String>();
-		String collectionIntention = collectionNode.getCollectionIntention();
-		if (StringUtils.isBlank(collectionStatus)) {
-			// 跳转到信息收集节点
+		String collectionStatus = toNode.getCollectionStatus();
+		String collectionIntention = toNode.getCollectionIntention();
+		if (StringUtils.isBlank(collectionStatus)) { // 跳转到信息收集节点
 			setItems = new HashMap<String, String>();
-			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, collectionNode.getKey());
-			setItems.put("节点名", collectionNode.getKey());
+			setItems.put(CallOutSceneElementConsts.ABOVE_NODE_ELEMENT_NAME, toNode.getKey());
+			setItems.put("节点名", toNode.getKey());
 			setItems.put(CallOutSceneElementConsts.COLLECTION_STATUS_ELEMENT_NAME, ""); // 信息收集状态置为空
-			if (StringUtils.isNotBlank(collectionNode.getCollectionParam())) {
-				setItems.put(collectionNode.getCollectionParam(), ""); // 关联要素值置为空
-				setItems.put("任意类型匹配",
-						CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)
-								? collectionNode.getCollectionParam()
-								: ""); // 任意类型不匹配意图，直接把用户回答赋给信息收集的变量
+			// 关联意图为任意类型，不进行意图匹配
+			setItems.put("任意类型匹配",
+					CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention) ? toNode.getCollectionParam()
+							: "");
+			// 采集类型为用户回答时，信息收集参数值为query，query变量表示用户回复
+			if (CollectionTypeConsts.USER_ANSWER_COLLECTION.equals(toNode.getCollectionType())) {
+				setItems.put(toNode.getCollectionParam(), "@query");
 			} else {
-				setItems.put(collectionNode.getCollectionElement(), ""); // 关联要素值置为空
-				setItems.put("任意类型匹配",
-						CollectionIntentionConsts.SYSTEM_ANY.equals(collectionIntention)
-								? collectionNode.getCollectionElement()
-								: ""); // 任意类型不匹配意图，直接把用户回答赋给信息收集的变量
+				setItems.put(toNode.getCollectionParam(), "");
+				setItems.put(toNode.getCollectionElement(), "");
 			}
+			setItems.put(CallOutSceneElementConsts.COLLECTION_TIMES_ELEMENT_NAME, "0");
 			result = ScenariosDAO.getRuleResponse(setItems, others);
 		}
-		if (CollectionStatusConsts.COLLCETION_OUT.equals(collectionStatus)
-				|| CollectionStatusConsts.COLLCETION_SUCCESS.equals(collectionStatus)) {
-			// 信息收集成功或跳出，跳转
-			result = getCallRuleResponse(nextNode);
-		}
-		if (CollectionStatusConsts.COLLCETION_FAIL.equals(collectionStatus)) {
-			// 信息收集失败，重复话术
-			String interactiveType = collectionNode.getInteractiveType();
+		if (CollectionStatusConsts.COLLCETION_FAIL.equals(collectionStatus)) { // 信息收集失败，重复话术
+			String interactiveType = toNode.getInteractiveType();
 			if (InteracviteTypeConsts.MENU_OPTIONS.equals(interactiveType)) {
-				result = ScenariosDAO.getMenuRuleResponseTemplate(collectionNode.getMenuStartWords(),
-						collectionNode.getMenuOptions(), collectionNode.getMenuEndWords());
+				result = ScenariosDAO.getMenuRuleResponseTemplate(toNode.getMenuStartWords(), toNode.getMenuOptions(),
+						toNode.getMenuEndWords());
 			}
 			if (InteracviteTypeConsts.WORD_PATTERN.equals(interactiveType)) {
-				setItems = new HashMap<String, String>();
-				setItems.put("TTS", collectionNode.getCollectionWords());
-				result = ScenariosDAO.getRuleResponse(setItems, others);
+				if(isJumpNode(fromNode)) {
+					result += ScenariosDAO.getRuleResponse("TTS", "TTS", toNode.getCollectionWords());
+					result += ScenariosDAO.getRuleResponse("code", "code", "T" + toNode.getCollectionWords());
+				} else {
+					setItems = new HashMap<String, String>();
+					setItems.put("TTS", toNode.getCollectionWords());
+					setItems.put("code", "T" + toNode.getCollectionWords());
+					result = ScenariosDAO.getRuleResponse(setItems);
+				}
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * 获取信息收集发送URL
+	 */
+	private static String getCollectionSendUrl() {
+		// 获取用户
+		User user = (User) GetSession.getSessionByKey("accessUser");
+		// 获取行业
+		String serviceType = user.getIndustryOrganizationApplication();
+		Result rsConfig = CommonLibMetafieldmappingDAO.getConfigValue("第三方接口信息配制", serviceType+"::信息收集发送地址");
+		if (rsConfig != null && rsConfig.getRowCount() > 0) {
+			for (int i = 0; i < rsConfig.getRowCount(); i++) {
+				String seneRobotIDConfig = (String) rsConfig.getRows()[i].get("name").toString();
+				if ("URL".equals(seneRobotIDConfig.split(":=")[0])) {
+					String url = seneRobotIDConfig.split(":=").length > 1 ? seneRobotIDConfig.split(":=")[1]:"";
+					return url;
+				}
+			}
+		}
+		return "";
+	}
+	
+	private static String getCollectionActionParams (CollectionNode toNode) {
+		// 设置COLLECT动作参数，发送URL|参数名|参数值
+		StringBuffer actionParams = new StringBuffer();
+		String collectionSendUrl = getCollectionSendUrl();
+		if(StringUtils.isNotBlank(collectionSendUrl)) {
+			String collectionParam = toNode.getCollectionParam();
+			String collectionValue = "<@"+toNode.getCollectionParam()+">";
+			actionParams.append(collectionSendUrl).append("|");
+			actionParams.append(collectionParam).append("|");
+			actionParams.append(collectionValue);
+		} else {
+			logger.error("场景配置模块，第三方接口信息配制，信息收集发送地址未配置，请检查");
+		}
+		return actionParams.toString();
+	}
+	
+	private static String getDTMFActionParams (DTMFNode toNode) {
+		// 设置DTMF动作参数，按键值|按键超时话术|按键最小个数|按键最大个数|按键超时时间|结束收号按键|采集失败重复次数|DTMF别名
+		StringBuffer actionParams = new StringBuffer();
+		actionParams.append(toNode.getPressNumbers()).append("|");
+		actionParams.append(toNode.getPressTimeOutAnswer()).append("|");
+		actionParams.append(toNode.getMinLength()).append("|");
+		actionParams.append(toNode.getMaxLength()).append("|");
+		actionParams.append(toNode.getPressTimeOut()).append("|");
+		actionParams.append(toNode.getEndPressNumber()).append("|");
+		actionParams.append(toNode.getAttemptLimit()).append("|");
+		actionParams.append(toNode.getDtmfAlias());
+		return actionParams.toString();
+	}
+	
+	private static String getTransferActionParams (TransferNode toNode) {
+		// 设置Transfer动作参数，转人工号码
+		StringBuffer actionParams = new StringBuffer();
+		actionParams.append(toNode.getTransferNumber());
+		return actionParams.toString();
 	}
 
 	/**
@@ -1034,11 +1011,11 @@ public class InteractiveSceneCallDAO {
 			others.add("信息补全(\"" + collectionIntention + "\",\"上文\",\"" + collectionVariable + "\")");
 			ruleResponse = ScenariosDAO.getRuleResponse(null, others);
 			questionObject = "识别规则业务";
-			standardQuestion = "<识别规则业务>"+collectionIntention.trim();
+			standardQuestion = "<识别规则业务>" + collectionIntention.trim();
 		}
 		if (StringUtils.isNotBlank(customerAnswer)) {
 			questionObject = "识别规则业务";
-			standardQuestion = "<识别规则业务>"+customerAnswer.trim();
+			standardQuestion = "<识别规则业务>" + customerAnswer.trim();
 			others = new ArrayList<String>();
 			setItems = new HashMap<String, String>();
 			others.add("信息补全(\"用户回答\",\"上文\")");
@@ -1802,7 +1779,7 @@ public class InteractiveSceneCallDAO {
 		JSONObject jsonObj = new JSONObject();
 		try {
 			String queryPhoneAttributeNamesUrl = getQueryAttributeNamesUrl();
-			if(StringUtils.isNotBlank(queryPhoneAttributeNamesUrl)) {
+			if (StringUtils.isNotBlank(queryPhoneAttributeNamesUrl)) {
 				// 创建GET请求
 				logger.info("查询号码属性接口，请求地址：" + queryPhoneAttributeNamesUrl);
 				String response = HttpclientUtil.get(queryPhoneAttributeNamesUrl);
@@ -1819,7 +1796,7 @@ public class InteractiveSceneCallDAO {
 			} else {
 				logger.error("查询号码属性接口，接口地址未配置");
 			}
-			
+
 		} catch (Exception e) {
 			logger.error("查询号码属性接口，系统异常：", e);
 		}
@@ -1983,7 +1960,7 @@ public class InteractiveSceneCallDAO {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 判断系统场景要素
 	 * 
@@ -2177,21 +2154,22 @@ public class InteractiveSceneCallDAO {
 		jsonObj.put("success", false);
 		return jsonObj;
 	}
-	
+
 	/**
 	 * 新增场景要素词模
 	 * 
-	 * @param scenariosid         场景ID
-	 * @param sceneName 场景名称
-	 * @param elementName 关联意图
-	 * @param simpleWordPattern   简单词模
-	 * @param wordPatternType     词模类型
+	 * @param scenariosid           场景ID
+	 * @param sceneName             场景名称
+	 * @param elementName           关联意图
+	 * @param simpleWordPattern     简单词模
+	 * @param wordPatternType       词模类型
 	 * @param returnKeyValueJsonStr 词模返回值JSON[{"returnKey":"",returnValue:""}]
 	 * @param request
 	 * @return
 	 */
-	public static Object addSceneElementWordPattern(String scenariosid, String sceneName, String sceneType, String elementName,
-			String simpleWordPattern, String wordPatternType, String returnKeyValueJsonStr, HttpServletRequest request) {
+	public static Object addSceneElementWordPattern(String scenariosid, String sceneName, String sceneType,
+			String elementName, String simpleWordPattern, String wordPatternType, String returnKeyValueJsonStr,
+			HttpServletRequest request) {
 		JSONObject jsonObj = new JSONObject();
 		// 添加词模返回值
 		if (simpleWordPattern.indexOf("&" + elementName + "=") > -1) {
@@ -2203,18 +2181,21 @@ public class InteractiveSceneCallDAO {
 		}
 		StringBuffer returnValues = new StringBuffer();
 		List<ReturnKeyValue> returnKeyValueList = JSONObject.parseArray(returnKeyValueJsonStr, ReturnKeyValue.class);
-		for(ReturnKeyValue returnKeyValue : returnKeyValueList) {
-			returnValues.append(returnKeyValue.getReturnKey()).append("=").append(returnKeyValue.getReturnValue()).append("&");
+		for (ReturnKeyValue returnKeyValue : returnKeyValueList) {
+			returnValues.append(returnKeyValue.getReturnKey()).append("=").append(returnKeyValue.getReturnValue())
+					.append("&");
 		}
 		// 识别规则业务新增标准问
-		jsonObj = (JSONObject) ScenariosDAO.insertRecognitionRuleNormalQuery(sceneType, RegnitionRuleTypeConsts.COLLETION_INTENTION, sceneName, elementName, returnKeyValueJsonStr, scenariosid);
-		if(!jsonObj.getBooleanValue("success")) {
+		jsonObj = (JSONObject) ScenariosDAO.insertRecognitionRuleNormalQuery(sceneType,
+				RegnitionRuleTypeConsts.COLLETION_INTENTION, sceneName, elementName, returnKeyValueJsonStr,
+				scenariosid);
+		if (!jsonObj.getBooleanValue("success")) {
 			return jsonObj;
 		}
 		// 标准问添加词模
 		String serviceId = ScenariosDAO.getRegnitionRuleServiceId(sceneType, sceneName); // 识别规则业务ID
-		String kbdataid = getCustomerAnswerKbdataId(serviceId , elementName);
-		String cityCode = ScenariosDAO.getCityCode(scenariosid,sceneType);
-		return saveWordpat(kbdataid, elementName, simpleWordPattern, wordPatternType, cityCode , request);
+		String kbdataid = getCustomerAnswerKbdataId(serviceId, elementName);
+		String cityCode = ScenariosDAO.getCityCode(scenariosid, sceneType);
+		return saveWordpat(kbdataid, elementName, simpleWordPattern, wordPatternType, cityCode, request);
 	}
 }

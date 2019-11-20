@@ -434,7 +434,7 @@ public class ScenariosDAO {
 	}
 
 	/**
-	 * 设置回复内容
+	 * 设置回复内容 SET(参数名,参数值)：参数名=参数值
 	 */
 	public static String getRuleResponse(Map<String, String> setItems) {
 		if (setItems != null && !setItems.isEmpty()) {
@@ -442,6 +442,19 @@ public class ScenariosDAO {
 			for (Entry<String, String> item : setItems.entrySet()) {
 				ruleResponse.append("SET(\"" + item.getKey() + "\",\"" + item.getValue() + "\")").append(";");
 			}
+			return ruleResponse.toString();
+		}
+		return "";
+
+	}
+	
+	/**
+	 * 设置回复内容:SET(参数名1,@参数名2,参数值)：参数名1的值=参数名2的值+参数值
+	 */
+	public static String getRuleResponse(String setItem1, String setItem2, String setItem3) {
+		if (StringUtils.isNotBlank(setItem1) && StringUtils.isNotBlank(setItem2)) {
+			StringBuffer ruleResponse = new StringBuffer();
+			ruleResponse.append("SET(\"" + setItem1 + "\",\"@" + setItem2 + "\","+"\""+setItem3+"\")").append(";");
 			return ruleResponse.toString();
 		}
 		return "";
