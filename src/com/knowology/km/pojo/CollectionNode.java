@@ -14,6 +14,11 @@ public class CollectionNode extends NodeData {
 	 * 采集类型
 	 */
 	private String collectionType;
+	
+	/**
+	 * 信息收集状态
+	 */
+	private String collectionStatus;
 
 	/**
 	 * 重复次数
@@ -82,6 +87,14 @@ public class CollectionNode extends NodeData {
 
 	public void setCollectionType(String collectionType) {
 		this.collectionType = collectionType;
+	}
+
+	public String getCollectionStatus() {
+		return collectionStatus;
+	}
+
+	public void setCollectionStatus(String collectionStatus) {
+		this.collectionStatus = collectionStatus;
 	}
 
 	public String getCollectionTimes() {
@@ -155,6 +168,8 @@ public class CollectionNode extends NodeData {
 		builder.append(collectionParam);
 		builder.append(", collectionType=");
 		builder.append(collectionType);
+		builder.append(", collectionStatus=");
+		builder.append(collectionStatus);
 		builder.append(", collectionTimes=");
 		builder.append(collectionTimes);
 		builder.append(", collectionWords=");
@@ -173,6 +188,6 @@ public class CollectionNode extends NodeData {
 		builder.append(menuEndWords);
 		builder.append("]");
 		return builder.toString();
-	}
+	}	
 
 }
