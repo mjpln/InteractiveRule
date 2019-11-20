@@ -4000,11 +4000,19 @@ function addListenerEvents() {
 				$('#collectionform-collectionParam-tr').show();
 				$('#collectionform-collectionTimes-tr').hide();
 				$('#collectionform-collectionElement-tr').show();
+				$('#toAddCollectionIntentionPageBtn').show();
 			}
 			if(nodeData.collectionType == 'userInfoCollection') {
 				$('#collectionform-collectionParam-tr').show();
 				$('#collectionform-collectionTimes-tr').show();
 				$('#collectionform-collectionElement-tr').hide();
+				$('#toAddCollectionIntentionPageBtn').hide();
+			}
+			if(nodeData.collectionType == 'userAnswerCollection') {
+				$('#collectionform-collectionParam-tr').show();
+				$('#collectionform-collectionTimes-tr').show();
+				$('#collectionform-collectionElement-tr').hide();
+				$('#toAddCollectionIntentionPageBtn').hide();
 			}
 			if(nodeData.interactiveType == '词模匹配') { // 系统反问
 				$('#collectionform-collectionWords-tr').show();
